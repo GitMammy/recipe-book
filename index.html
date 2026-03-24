@@ -230,47 +230,24 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   }
 
   // 5. 読み込み関数（Supabase版）
-  async function loadRecipes() {
-    console.log("Supabaseからデータを読み込み中...");
-    const { data, error } = await window.supabase
-      .from('recipes')
-      .select('*')
-      .order('date', { ascending: false });
-  
-    if (error) {
-      console.error("読み込みエラー:", error);
-    } else {
-      // ここが大事：ing_parts を ingParts に読み替えて recipes に入れる
-      recipes = data.map(r => ({ ...r, ingParts: r.ing_parts }));
-      render();
-    }
+async function loadRecipes() {
+  console.log("Supabaseからデータを読み込み中...");
+  const { data, error } = await window.supabase
+    .from('recipes')
+    .select('*')
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error("読み込みエラー:", error);
+  } else if (data) {
+    // 重要な修正：クラウドの ing_parts をプログラム用の ingParts に移し替える
+    recipes = data.map(function(r) {
+      r.ingParts = r.ing_parts || []; 
+      return r;
+    });
+    render();
   }
-  async function loadRecipes_OLD() {
-    console.log("Supabaseからデータを読み込み中...");
-    try {
-      // ※ window.supabase を使うのが安全です
-      const { data, error } = await window.supabase
-        .from('recipes')
-        .select('*')
-        // ↓ここを 'created_at' ではなく 'date' に修正（テーブルの列名に合わせる）
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        recipes = data;
-      } else {
-        // データがなければサンプルを表示
-        recipes = SAMPLES;
-      }
-    } catch (err) {
-      console.error('データ取得失敗、サンプルを表示します:', err);
-      recipes = SAMPLES;
-    }
-
-    render(); 
-  }
-
+}
 
   
   function genId(){return 'r'+Date.now();}
@@ -631,101 +608,35 @@ async function saveRecipe(){
       photos:photos,img:'',date:new Date().toISOString().slice(0,10)});
   }
 
-  // --- Supabaseへの保存処理 ---
   try {
-    // 1. 既存データをリセット（IDが0より大きいものを削除）
+    // 古いデータを消して最新の状態を保存
     await window.supabase.from('recipes').delete().gt('id', 0);
-    
-    // 2. 現在の配列をすべてクラウドへ送る
-    const cleanData = recipes.map(rcp => ({
-      name: rcp.name || "",
-      cat: rcp.cat || "",
-      genre: rcp.genre || "",
-      date: rcp.date || new Date().toISOString().slice(0, 10),
-      desc: rcp.desc || "",
-      ings: rcp.ings || [],
-      ing_parts: rcp.ingParts || [], // プログラムのingPartsをSupabaseのing_partsへ
-      steps: rcp.steps || "",
-      memo: rcp.memo || "",
-      url: rcp.url || "",
-      fav: rcp.fav || false,
-      heart: rcp.heart || false,
-      pub: rcp.pub || false
-    }));
-    
+    var cleanData = recipes.map(function(rcp) {
+      return {
+        name: rcp.name || "",
+        cat: rcp.cat || "",
+        genre: rcp.genre || "",
+        date: rcp.date || new Date().toISOString().slice(0, 10),
+        desc: rcp.desc || "",
+        ings: rcp.ings || [],
+        ing_parts: rcp.ingParts || [], // ここをSupabaseの列名に合わせる
+        steps: rcp.steps || "",
+        memo: rcp.memo || "",
+        url: rcp.url || "",
+        fav: !!rcp.fav,
+        heart: !!rcp.heart,
+        pub: !!rcp.pub
+      };
+    });
     await window.supabase.from('recipes').insert(cleanData);
-    console.log("クラウド保存完了！");
   } catch (err) {
     console.error("Save Error:", err);
   }
-  // -------------------------
 
-  closeOverlay('overlayAdd');render();
-}
-async function saveRecipe_OLD(){ // ← ここに async を付け足します
-  var name = document.getElementById('fName').value.trim();
-  if(!name){alert('料理名を入力してください');return;}
-  
-  var ings = document.getElementById('fIngs').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
-  var ingParts = getIngData();
-  var photos = pendingPhotos.map(function(p){return{title:p.title,data:p.data};});
-
-  if(editId){
-    // 編集モード
-    var r = recipes.find(function(x){return x.id===editId;});
-    r.name=name; r.desc=document.getElementById('fDesc').value; r.cat=document.getElementById('fCat').value;
-    r.genre=document.getElementById('fGenre').value; r.ings=ings; r.url=document.getElementById('fUrl').value;
-    r.ingParts=ingParts; r.steps=document.getElementById('fSteps').value;
-    r.memo=document.getElementById('fMemo').value; r.pub=document.getElementById('fPub').checked;
-    r.photos=photos; r.img='';
-  } else {
-    // 新規追加モード（unshiftで配列の先頭に追加）
-    recipes.unshift({
-      id: genId(), name: name, desc: document.getElementById('fDesc').value,
-      cat: document.getElementById('fCat').value, genre: document.getElementById('fGenre').value,
-      ings: ings, url: document.getElementById('fUrl').value, ingParts: ingParts,
-      steps: document.getElementById('fSteps').value, memo: document.getElementById('fMemo').value,
-      pub: document.getElementById('fPub').checked, fav: false, heart: false,
-      photos: photos, img: '', date: new Date().toISOString().slice(0, 10)
-    });
-  }
-
-  // ★ ここからが重要！ブラウザではなくクラウド(Supabase)に保存します ★
-  try {
-    // 1. まず現在のSupabaseの中身を一度リセット（IDが0より大きいものを消す）
-    await window.supabase.from('recipes').delete().gt('id', 0);
-
-    // 2. 今の recipes 配列（最新の状態）をすべて保存
-    // IDは自動で振られるので含めずに送ります
-    // すべての項目をクラウドに保存するように修正
-    const cleanData = recipes.map(rcp => ({
-      name: rcp.name || "",
-      cat: rcp.cat || "",
-      genre: rcp.genre || "",
-      date: rcp.date || new Date().toISOString().slice(0, 10),
-      desc: rcp.desc || "",
-      ings: rcp.ings || [],         // 材料リスト
-      ingParts: rcp.ing_parts || [], // 材料の詳細構造
-      steps: rcp.steps || "",       // 作り方
-      memo: rcp.memo || "",         // メモ
-      fav: rcp.fav || false,
-      heart: rcp.heart || false,
-      pub: rcp.pub || false
-    }));
-
-    const { error } = await window.supabase.from('recipes').insert(cleanData);
-    if (error) throw error;
-
-    console.log("クラウドに無事保存されました！");
-  } catch (err) {
-    console.error("保存失敗:", err);
-    alert("保存中にエラーが発生しました。");
-  }
-
-  // 最後に画面を閉じて再描画
   closeOverlay('overlayAdd');
   render();
 }
+
 
 function deleteRecipe(){
   if(!confirm('このレシピを削除しますか？'))return;
