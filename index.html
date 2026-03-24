@@ -638,19 +638,27 @@ async function saveRecipe(){
 }
 
 
-function deleteRecipe(){
+async function deleteRecipe(){
   if(!confirm('このレシピを削除しますか？'))return;
-  recipes=recipes.filter(function(r){return r.id!==editId;});
-  save();closeOverlay('overlayAdd');render();
+  // 1. 配列から削除
+  recipes = recipes.filter(function(r){return r.id!==editId;});
+  
+  // 2. クラウド(Supabase)からも削除するために save を実行
+  await save(); 
+  
+  closeOverlay('overlayAdd');
+  render();
 }
 
 function renderIngSection(r){
-  var parts=r.ingParts;
-  if(parts&&parts.length){
-    var hasLabels=parts.some(function(p){return p.label;});
+  // 修正ポイント：r.ingParts がなくても r.ing_parts を見るようにする
+  var parts = r.ingParts || r.ing_parts; 
+  
+  if(parts && parts.length){
+    var hasLabels = parts.some(function(p){return p.label;});
     return parts.map(function(p){
-      var lh=hasLabels&&p.label?'<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>':'';
-      var rh=p.rows.map(function(row){
+      var lh = hasLabels && p.label ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>' : '';
+      var rh = (p.rows || []).map(function(row){
         return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
@@ -663,8 +671,9 @@ function renderIngSection(r){
         +'</tr></thead><tbody>'+rh+'</tbody></table>';
     }).join('');
   }
-  if(r.ingRows&&r.ingRows.length){
-    var rh2=r.ingRows.map(function(row){
+  // (以下、既存の処理が続く...)
+  if(r.ingRows && r.ingRows.length){
+    var rh2 = r.ingRows.map(function(row){
       return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
@@ -676,10 +685,9 @@ function renderIngSection(r){
       +'<th style="text-align:left;padding:3px 6px;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #eee">備考</th>'
       +'</tr></thead><tbody>'+rh2+'</tbody></table>';
   }
-  if(r.ingDetail)return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
+  if(r.ingDetail) return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
   return '';
 }
-
 function openDetail(id){
   var r=recipes.find(function(x){return x.id===id;});
   var ingHtml=renderIngSection(r);
