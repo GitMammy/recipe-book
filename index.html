@@ -257,6 +257,28 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     renderCards(); 
   }
 
+// ここから「一時的なデータ移行用ボタン」を貼り付け
+  const migrateBtn = document.createElement('button');
+  migrateBtn.innerText = "データをクラウドに保存";
+  migrateBtn.style = "position:fixed; top:10px; left:10px; z-index:9999; background:red; color:white; padding:10px; border-radius:5px; cursor:pointer;";
+  document.body.appendChild(migrateBtn);
+
+  migrateBtn.onclick = async () => {
+    if(!confirm("サンプルデータをSupabaseに保存しますか？")) return;
+    
+    const { data, error } = await window.supabase
+      .from('recipes')
+      .insert(SAMPLES);
+
+    if (error) {
+      alert("保存失敗: " + error.message);
+      console.error(error);
+    } else {
+      alert("保存成功！ページを再読み込みしてください。");
+      migrateBtn.remove();
+    }
+  };
+  
   function genId(){return 'r'+Date.now();}
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
