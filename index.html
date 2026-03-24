@@ -628,13 +628,20 @@ async function saveRecipe(){ // ← ここに async を付け足します
 
     // 2. 今の recipes 配列（最新の状態）をすべて保存
     // IDは自動で振られるので含めずに送ります
+    // すべての項目をクラウドに保存するように修正
     const cleanData = recipes.map(rcp => ({
-      name: rcp.name,
-      cat: rcp.cat,
-      date: rcp.date,
+      name: rcp.name || "",
+      cat: rcp.cat || "",
+      genre: rcp.genre || "",
+      date: rcp.date || new Date().toISOString().slice(0, 10),
       desc: rcp.desc || "",
+      ings: rcp.ings || [],         // 材料リスト
+      ingParts: rcp.ingParts || [], // 材料の詳細構造
+      steps: rcp.steps || "",       // 作り方
+      memo: rcp.memo || "",         // メモ
       fav: rcp.fav || false,
-      heart: rcp.heart || false
+      heart: rcp.heart || false,
+      pub: rcp.pub || false
     }));
 
     const { error } = await window.supabase.from('recipes').insert(cleanData);
