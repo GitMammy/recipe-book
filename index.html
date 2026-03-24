@@ -123,7 +123,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .toolbar-right{gap:4px}
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 <body>
 <div class="app">
@@ -189,33 +189,17 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     <div id="detailContent"></div>
   </div>
 </div>
+
 <!-- add start 26/03/24 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // 1. Supabaseの接続設定
   const SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI...'; // ここにあなたのanonキーを貼る
   const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // 2. データの読み込み例（初期表示など）
-  async function loadRecipes() {
-    const { data, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('データ取得失敗:', error);
-      return;
-    }
-    
-    console.log('取得データ:', data);
-    // ここで data を使って、現在あるカード描画ロジックに渡す
-  }
-
-  // ページ読み込み時に実行
-  window.addEventListener('DOMContentLoaded', loadRecipes);
 </script>
 <!-- add end26/03/24 -->
+  
 <script>
 var recipes=[];
 var editId=null;
