@@ -192,36 +192,28 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 
 //　　edit start 26/03/24　-----------
-<--! 　195-205　<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
-//<script>
-  // 1. Supabase の初期化（一度だけ定義する）
-  // すでに他の場所で supabase を定義している場合は、ここでの const は不要ですが、
-  // エラー回避のため、window オブジェクトに入れて確実化します。
-  //window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-  //window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI'; 
-
   
-  // ライブラリが読み込まれるのを待ってから初期化　
-  //const supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    
 <script>
-  // 195行目からの塊をこれに置き換えると確実です
-  window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-  window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI...'; // あなたのキー
-  
-  // 変数名がぶつからないように設定
-  window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    
+  // --- ここから JavaScript の世界 ---
 
-  // 2. 変数宣言
+  // 2. Supabase の設定
+  window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+  window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+
+  // 3. 接続クライアントの作成
+  // 名前がぶつからないように window.supabase に入れます
+  window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+  // 4. アプリで使う変数宣言
   var recipes = [];
   var editId = null;
   var favFilter = null;
   var dragSrc = null;
   var pendingPhotos = [];
 
-  // 3. サンプルデータ
+  // 5. サンプルデータ (SAMPLES) はこの下にそのまま続けてください...
   var SAMPLES = [
     {id:'s1',name:'鶏の唐揚げ（にんにく多め）',desc:'クックパッドをベースにアレンジ',cat:'主菜',genre:'和食',ings:['鶏もも肉','にんにく','しょうが','醤油'],ingParts:[{label:'',rows:[{name:'鶏もも肉',amt:'300g',note:''},{name:'にんにく',amt:'3片',note:'みじん切り'},{name:'しょうが',amt:'1片',note:''},{name:'醤油',amt:'大さじ2',note:''},{name:'片栗粉',amt:'適量',note:''}]}],steps:'① 鶏肉を一口大に切る\n② 漬けダレに30分漬ける\n③ 170℃の油で揚げる',memo:'にんにくは2倍にすると風味UP',url:'https://cookpad.com',pub:true,fav:true,heart:true,photos:[],date:'2025-03-10'},
     {id:'s2',name:'ほうれん草のごま和え',desc:'シンプルな定番副菜',cat:'副菜',genre:'和食',ings:['ほうれん草','白ごま','醤油'],ingParts:[{label:'',rows:[{name:'ほうれん草',amt:'1束',note:''},{name:'白ごま',amt:'大さじ2',note:''},{name:'醤油',amt:'小さじ2',note:''},{name:'砂糖',amt:'小さじ1',note:''}]}],steps:'① ほうれん草を茹でて絞る\n② 調味料とごまで和える',memo:'',url:'',pub:false,fav:false,heart:false,photos:[],date:'2025-03-12'},
