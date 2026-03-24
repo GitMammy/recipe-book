@@ -565,23 +565,40 @@ function openAdd(){
 
 function openEdit(id){
   closeOverlay('overlayDetail');
-  editId=id;
-  var r=recipes.find(function(x){return x.id===id;});
-  document.getElementById('formTitle').textContent='レシピを編集';
-  document.getElementById('fName').value=r.name||'';
-  document.getElementById('fDesc').value=r.desc||'';
-  document.getElementById('fCat').value=r.cat||'';
-  document.getElementById('fGenre').value=r.genre||'';
-  document.getElementById('fIngs').value=(r.ings||[]).join(', ');
-  document.getElementById('fUrl').value=r.url||'';
-  document.getElementById('fSteps').value=r.steps||'';
-  document.getElementById('fMemo').value=r.memo||'';
-  document.getElementById('fPub').checked=!!r.pub;
-  document.getElementById('btnDelete').style.display='';
-  pendingPhotos=(r.photos||[]).map(function(p){return{title:p.title||'',data:p.data||''};});
-  if(!pendingPhotos.length&&r.img)pendingPhotos=[{title:'',data:r.img}];
+  
+  // 修正：IDが数字でも文字列でも正しくレシピを見つけられるようにする
+  var r = recipes.find(function(x){ return String(x.id) === String(id); });
+  
+  // ガード：もしレシピが見つからなかったら処理を中断する
+  if(!r) {
+    console.error("Edit target not found for ID:", id);
+    return;
+  }
+
+  editId = r.id; // editIdも確実なものに更新
+  
+  document.getElementById('formTitle').textContent = 'レシピを編集';
+  document.getElementById('fName').value = r.name || '';
+  document.getElementById('fDesc').value = r.desc || '';
+  document.getElementById('fCat').value = r.cat || '';
+  document.getElementById('fGenre').value = r.genre || '';
+  document.getElementById('fIngs').value = (r.ings || []).join(', ');
+  document.getElementById('fUrl').value = r.url || '';
+  document.getElementById('fSteps').value = r.steps || '';
+  document.getElementById('fMemo').value = r.memo || '';
+  document.getElementById('fPub').checked = !!r.pub;
+  document.getElementById('btnDelete').style.display = '';
+  
+  pendingPhotos = (r.photos || []).map(function(p){ 
+    return {title: p.title || '', data: p.data || ''}; 
+  });
+  if(!pendingPhotos.length && r.img) pendingPhotos = [{title: '', data: r.img}];
+  
   renderPhotoList();
-  setIngData(r.ingParts,r.ingRows,r.ingDetail);
+  
+  // 材料データの引き継ぎ（どちらの名前のデータがあっても動くように）
+  setIngData(r.ingParts || r.ing_parts, r.ingRows, r.ingDetail);
+  
   openOverlay('overlayAdd');
 }
 
