@@ -229,8 +229,23 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     }
   }
 
-// 5. 読み込み関数（Supabase版）
+  // 5. 読み込み関数（Supabase版）
   async function loadRecipes() {
+    console.log("Supabaseからデータを読み込み中...");
+    const { data, error } = await window.supabase
+      .from('recipes')
+      .select('*')
+      .order('date', { ascending: false });
+  
+    if (error) {
+      console.error("読み込みエラー:", error);
+    } else {
+      // ここが大事：ing_parts を ingParts に読み替えて recipes に入れる
+      recipes = data.map(r => ({ ...r, ingParts: r.ing_parts }));
+      render();
+    }
+  }
+  async function loadRecipes-OLD() {
     console.log("Supabaseからデータを読み込み中...");
     try {
       // ※ window.supabase を使うのが安全です
@@ -593,7 +608,61 @@ function openEdit(id){
   openOverlay('overlayAdd');
 }
 
-async function saveRecipe(){ // ← ここに async を付け足します
+async function saveRecipe(){
+  var name=document.getElementById('fName').value.trim();
+  if(!name){alert('料理名を入力してください');return;}
+  var ings=document.getElementById('fIngs').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  var ingParts=getIngData();
+  var photos=pendingPhotos.map(function(p){return{title:p.title,data:p.data};});
+  
+  if(editId){
+    var r=recipes.find(function(x){return x.id===editId;});
+    r.name=name;r.desc=document.getElementById('fDesc').value;r.cat=document.getElementById('fCat').value;
+    r.genre=document.getElementById('fGenre').value;r.ings=ings;r.url=document.getElementById('fUrl').value;
+    r.ingParts=ingParts;r.steps=document.getElementById('fSteps').value;
+    r.memo=document.getElementById('fMemo').value;r.pub=document.getElementById('fPub').checked;
+    r.photos=photos;r.img='';
+  }else{
+    recipes.unshift({id:genId(),name:name,desc:document.getElementById('fDesc').value,
+      cat:document.getElementById('fCat').value,genre:document.getElementById('fGenre').value,
+      ings:ings,url:document.getElementById('fUrl').value,ingParts:ingParts,
+      steps:document.getElementById('fSteps').value,memo:document.getElementById('fMemo').value,
+      pub:document.getElementById('fPub').checked,fav:false,heart:false,
+      photos:photos,img:'',date:new Date().toISOString().slice(0,10)});
+  }
+
+  // --- Supabaseへの保存処理 ---
+  try {
+    // 1. 既存データをリセット（IDが0より大きいものを削除）
+    await window.supabase.from('recipes').delete().gt('id', 0);
+    
+    // 2. 現在の配列をすべてクラウドへ送る
+    const cleanData = recipes.map(rcp => ({
+      name: rcp.name || "",
+      cat: rcp.cat || "",
+      genre: rcp.genre || "",
+      date: rcp.date || new Date().toISOString().slice(0, 10),
+      desc: rcp.desc || "",
+      ings: rcp.ings || [],
+      ing_parts: rcp.ingParts || [], // プログラムのingPartsをSupabaseのing_partsへ
+      steps: rcp.steps || "",
+      memo: rcp.memo || "",
+      url: rcp.url || "",
+      fav: rcp.fav || false,
+      heart: rcp.heart || false,
+      pub: rcp.pub || false
+    }));
+    
+    await window.supabase.from('recipes').insert(cleanData);
+    console.log("クラウド保存完了！");
+  } catch (err) {
+    console.error("Save Error:", err);
+  }
+  // -------------------------
+
+  closeOverlay('overlayAdd');render();
+}
+async function saveRecipe-OLD(){ // ← ここに async を付け足します
   var name = document.getElementById('fName').value.trim();
   if(!name){alert('料理名を入力してください');return;}
   
