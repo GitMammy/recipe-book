@@ -245,7 +245,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       render();
     }
   }
-  async function loadRecipes-OLD() {
+  async function loadRecipes_OLD() {
     console.log("Supabaseからデータを読み込み中...");
     try {
       // ※ window.supabase を使うのが安全です
@@ -662,7 +662,7 @@ async function saveRecipe(){
 
   closeOverlay('overlayAdd');render();
 }
-async function saveRecipe-OLD(){ // ← ここに async を付け足します
+async function saveRecipe_OLD(){ // ← ここに async を付け足します
   var name = document.getElementById('fName').value.trim();
   if(!name){alert('料理名を入力してください');return;}
   
