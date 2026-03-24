@@ -601,7 +601,9 @@ function openEdit(id){
   
   openOverlay('overlayAdd');
 }
-
+////////////////////////////
+///////　レシピ保存　///////
+////////////////////////////
 async function saveRecipe(){
   var name=document.getElementById('fName').value.trim();
   if(!name){alert('料理名を入力してください');return;}
@@ -610,50 +612,65 @@ async function saveRecipe(){
   var photos=pendingPhotos.map(function(p){return{title:p.title,data:p.data};});
   
   if(editId){
-    var r=recipes.find(function(x){return x.id===editId;});
-    r.name=name;r.desc=document.getElementById('fDesc').value;r.cat=document.getElementById('fCat').value;
-    r.genre=document.getElementById('fGenre').value;r.ings=ings;r.url=document.getElementById('fUrl').value;
-    r.ingParts=ingParts;r.steps=document.getElementById('fSteps').value;
-    r.memo=document.getElementById('fMemo').value;r.pub=document.getElementById('fPub').checked;
-    r.photos=photos;r.img='';
+    var r=recipes.find(function(x){return String(x.id)===String(editId);});
+    if(r){
+      r.name=name;r.desc=document.getElementById('fDesc').value;r.cat=document.getElementById('fCat').value;
+      r.genre=document.getElementById('fGenre').value;r.ings=ings;r.url=document.getElementById('fUrl').value;
+      r.ingParts=ingParts;r.steps=document.getElementById('fSteps').value;
+      r.memo=document.getElementById('fMemo').value;r.pub=document.getElementById('fPub').checked;
+      r.photos=photos;r.img='';
+    }
   }else{
-    recipes.unshift({id:genId(),name:name,desc:document.getElementById('fDesc').value,
+    recipes.unshift({
+      id:genId(),name:name,desc:document.getElementById('fDesc').value,
       cat:document.getElementById('fCat').value,genre:document.getElementById('fGenre').value,
       ings:ings,url:document.getElementById('fUrl').value,ingParts:ingParts,
       steps:document.getElementById('fSteps').value,memo:document.getElementById('fMemo').value,
       pub:document.getElementById('fPub').checked,fav:false,heart:false,
-      photos:photos,img:'',date:new Date().toISOString().slice(0,10)});
+      photos:photos,img:'',date:new Date().toISOString().slice(0,10)
+    });
   }
 
   try {
-    // 古いデータを消して最新の状態を保存
-    await window.supabase.from('recipes').delete().gt('id', 0);
+    // 1. クラウド側のデータをリセット（全削除）
+    // ※もしDBのidがint8（数値）なら .neq('id', 0) などに変える必要がありますが、
+    // さっきのSQL(text)ならこのままでOKです
+    await window.supabase.from('recipes').delete().neq('name', '___dummy___');
+
+    // 2. クラウドに送るデータを整理（DBの列名に合わせる）
     var cleanData = recipes.map(function(rcp) {
       return {
+        id: String(rcp.id), // ★IDを文字列として確実に保存
         name: rcp.name || "",
         cat: rcp.cat || "",
         genre: rcp.genre || "",
         date: rcp.date || new Date().toISOString().slice(0, 10),
         desc: rcp.desc || "",
         ings: rcp.ings || [],
-        ing_parts: rcp.ingParts || [], // ここをSupabaseの列名に合わせる
+        ing_parts: rcp.ingParts || [], // 画面で作った構造データ
         steps: rcp.steps || "",
         memo: rcp.memo || "",
         url: rcp.url || "",
+        photos: rcp.photos || [], // 写真データ
         fav: !!rcp.fav,
         heart: !!rcp.heart,
         pub: !!rcp.pub
       };
     });
-    await window.supabase.from('recipes').insert(cleanData);
+
+    // 3. 一括挿入
+    const { error } = await window.supabase.from('recipes').insert(cleanData);
+    if(error) throw error;
+    
+    console.log("クラウド保存に成功しました！");
   } catch (err) {
     console.error("Save Error:", err);
+    alert("保存に失敗しました。コンソールを確認してください。");
   }
 
   closeOverlay('overlayAdd');
   render();
 }
-
 
 async function deleteRecipe(){
   if(!confirm('このレシピを削除しますか？'))return;
