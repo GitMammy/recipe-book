@@ -692,44 +692,69 @@ function renderIngSection(r){
   return '';
 } // ← ここまでを上書き！
 function openDetail(id){
-  var r=recipes.find(function(x){return x.id===id;});
-  var ingHtml=renderIngSection(r);
-  var photos=r.photos&&r.photos.length?r.photos:(r.img?[{title:'',data:r.img}]:[]);
-  currentPhotos=photos;
-  var html='';
-  html+='<div class="detail-top"><h2>'+esc(r.name)+'</h2>'
-    +'<div style="display:flex;gap:4px;flex-shrink:0">'
-    +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
-    +'<button class="star-btn'+(r.fav?' on':'')+'" style="font-size:17px" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
-    +'</div></div>';
-  html+='<div class="tags" style="margin-bottom:1rem">'
-    +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
-    +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
-    +'<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
-    +'</div>';
-  if(r.desc)html+='<div class="detail-section"><h3>説明</h3><p>'+esc(r.desc)+'</p></div>';
-  if(r.ings&&r.ings.length)html+='<div class="detail-section"><h3>食材タグ</h3><div class="tags">'+r.ings.map(function(i){return '<span class="tag t-ing">'+esc(i)+'</span>';}).join('')+'</div></div>';
-  if(ingHtml)html+='<div class="detail-section"><h3>材料</h3>'+ingHtml+'</div>';
-  if(r.steps)html+='<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
-  if(photos.length){
-    html+='<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
-    photos.forEach(function(p,i){
-      html+='<div class="photo-gallery-item"><img src="'+p.data+'" alt="'+(p.title?esc(p.title):'')+'" onclick="openLightbox('+i+')" title="クリックで拡大">';
-      if(p.title)html+='<div class="photo-gallery-caption">'+esc(p.title)+'</div>';
-      html+='</div>';
-    });
-    html+='</div></div>';
+  // 修正：IDが数字でも文字列でも正しくレシピを見つけられるようにする
+  var r = recipes.find(function(x){ return String(x.id) === String(id); });
+  
+  // 【超重要】もしレシピが見つからなかったら、エラーを出さずに処理を終える（ガード）
+  if(!r){
+    console.error("Recipe not found for ID:", id);
+    return;
   }
-  if(r.memo)html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
-  if(r.url)html+='<div class="detail-section"><h3>元レシピ</h3><a href="'+esc(r.url)+'" style="font-size:13px;color:#185FA5;word-break:break-all">'+esc(r.url)+'</a></div>';
-  html+='<div style="font-size:11px;color:#aaa;margin-bottom:1rem">'+(r.date||'')+'</div>';
-  html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
-    +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
-    +'<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>'
-    +'</div></div>';
-  document.getElementById('detailContent').innerHTML=html;
+
+  var ingHtml = renderIngSection(r);
+  
+  // 写真データの安全な取得
+  var photos = (r.photos && r.photos.length) ? r.photos : (r.img ? [{title:'', data:r.img}] : []);
+  currentPhotos = photos;
+  
+  var html = '';
+  html += '<div class="detail-top"><h2>' + esc(r.name) + '</h2>'
+    + '<div style="display:flex;gap:4px;flex-shrink:0">'
+    + '<button class="heart-btn' + (r.heart ? ' on' : '') + '" style="font-size:18px" onclick="toggleHeart(event,\'' + r.id + '\');openDetail(\'' + r.id + '\')">♡</button>'
+    + '<button class="star-btn' + (r.fav ? ' on' : '') + '" style="font-size:17px" onclick="toggleStar(event,\'' + r.id + '\');openDetail(\'' + r.id + '\')">★</button>'
+    + '</div></div>';
+  
+  html += '<div class="tags" style="margin-bottom:1rem">'
+    + (r.cat ? '<span class="tag t-cat">' + esc(r.cat) + '</span>' : '')
+    + (r.genre ? '<span class="tag t-ing">' + esc(r.genre) + '</span>' : '')
+    + '<span class="tag ' + (r.pub ? 't-pub' : 't-priv') + '">' + (r.pub ? '公開' : '非公開') + '</span>'
+    + '</div>';
+  
+  if(r.desc) html += '<div class="detail-section"><h3>説明</h3><p>' + esc(r.desc) + '</p></div>';
+  
+  if(r.ings && r.ings.length) {
+    html += '<div class="detail-section"><h3>食材タグ</h3><div class="tags">' + r.ings.map(function(i){ return '<span class="tag t-ing">' + esc(i) + '</span>'; }).join('') + '</div></div>';
+  }
+  
+  if(ingHtml) html += '<div class="detail-section"><h3>材料</h3>' + ingHtml + '</div>';
+  
+  if(r.steps) html += '<div class="detail-section"><h3>手順</h3><p>' + esc(r.steps) + '</p></div>';
+  
+  if(photos.length){
+    html += '<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
+    photos.forEach(function(p, i){
+      html += '<div class="photo-gallery-item"><img src="' + p.data + '" alt="' + (p.title ? esc(p.title) : '') + '" onclick="openLightbox(' + i + ')" title="クリックで拡大">';
+      if(p.title) html += '<div class="photo-gallery-caption">' + esc(p.title) + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+  
+  if(r.memo) html += '<div class="detail-section"><h3>アレンジ・覚書</h3><p>' + esc(r.memo) + '</p></div>';
+  
+  if(r.url) html += '<div class="detail-section"><h3>元レシピ</h3><a href="' + esc(r.url) + '" style="font-size:13px;color:#185FA5;word-break:break-all">' + esc(r.url) + '</a></div>';
+  
+  html += '<div style="font-size:11px;color:#aaa;margin-bottom:1rem">' + (r.date || '') + '</div>';
+  
+  html += '<div class="modal-btns"><div></div><div class="modal-btns-right">'
+    + '<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
+    + '<button class="btn btn-sm btn-accent" onclick="openEdit(\'' + r.id + '\')">編集</button>'
+    + '</div></div>';
+  
+  document.getElementById('detailContent').innerHTML = html;
   openOverlay('overlayDetail');
 }
+  
 
 function openOverlay(id){document.getElementById(id).classList.add('open');}
 function closeOverlay(id){document.getElementById(id).classList.remove('open');}
