@@ -651,12 +651,14 @@ async function deleteRecipe(){
 }
 
 function renderIngSection(r){
-  // 修正ポイント：r.ingParts がなくても r.ing_parts を見るようにする
-  var parts = r.ingParts || r.ing_parts; 
+  // 【安全装置】レシピデータ自体がない、または材料データが空の場合の対策
+  if(!r) return '';
+  var parts = r.ingParts || r.ing_parts || []; 
   
-  if(parts && parts.length){
-    var hasLabels = parts.some(function(p){return p.label;});
+  if(Array.isArray(parts) && parts.length > 0){
+    var hasLabels = parts.some(function(p){ return p && p.label; });
     return parts.map(function(p){
+      if(!p || !p.rows) return ''; // 各パーツが壊れていても無視する
       var lh = hasLabels && p.label ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>' : '';
       var rh = (p.rows || []).map(function(row){
         return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
@@ -671,7 +673,8 @@ function renderIngSection(r){
         +'</tr></thead><tbody>'+rh+'</tbody></table>';
     }).join('');
   }
-  // (以下、既存の処理が続く...)
+
+  // 以下は今まで通り
   if(r.ingRows && r.ingRows.length){
     var rh2 = r.ingRows.map(function(row){
       return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
@@ -687,7 +690,7 @@ function renderIngSection(r){
   }
   if(r.ingDetail) return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
   return '';
-}
+} // ← ここまでを上書き！
 function openDetail(id){
   var r=recipes.find(function(x){return x.id===id;});
   var ingHtml=renderIngSection(r);
