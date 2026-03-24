@@ -229,14 +229,16 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     }
   }
 
-  // 5. 読み込み関数（Supabase版）
+// 5. 読み込み関数（Supabase版）
   async function loadRecipes() {
     console.log("Supabaseからデータを読み込み中...");
     try {
-      const { data, error } = await supabase
+      // ※ window.supabase を使うのが安全です
+      const { data, error } = await window.supabase
         .from('recipes')
         .select('*')
-        .order('created_at', { ascending: false });
+        // ↓ここを 'created_at' ではなく 'date' に修正（テーブルの列名に合わせる）
+        .order('date', { ascending: false });
 
       if (error) throw error;
 
@@ -247,11 +249,12 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
         recipes = SAMPLES;
       }
     } catch (err) {
-      console.error('データ取得失敗、ローカルから読み込みます:', err);
-      recipes = JSON.parse(localStorage.getItem('rcp2') || '[]');
-      if (!recipes.length) recipes = SAMPLES;
+      console.error('データ取得失敗、サンプルを表示します:', err);
+      recipes = SAMPLES;
     }
-    //　renderCards();
+
+    // 最後にここ！ // を消して renderCards() を動かします
+    renderCards(); 
   }
 
   function genId(){return 'r'+Date.now();}
