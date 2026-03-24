@@ -636,7 +636,7 @@ async function saveRecipe(){ // ← ここに async を付け足します
       date: rcp.date || new Date().toISOString().slice(0, 10),
       desc: rcp.desc || "",
       ings: rcp.ings || [],         // 材料リスト
-      ingParts: rcp.ingParts || [], // 材料の詳細構造
+      ingParts: rcp.ing_parts || [], // 材料の詳細構造
       steps: rcp.steps || "",       // 作り方
       memo: rcp.memo || "",         // メモ
       fav: rcp.fav || false,
