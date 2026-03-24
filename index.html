@@ -231,18 +231,13 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
   // 5. 読み込み関数（Supabase版）
 async function loadRecipes() {
-  console.log("Supabaseからデータを読み込み中...");
-  const { data, error } = await window.supabase
-    .from('recipes')
-    .select('*')
-    .order('date', { ascending: false });
-
-  if (error) {
-    console.error("読み込みエラー:", error);
-  } else if (data) {
-    // 重要な修正：クラウドの ing_parts をプログラム用の ingParts に移し替える
+  const { data, error } = await window.supabase.from('recipes').select('*').order('date', { ascending: false });
+  if (!error && data) {
     recipes = data.map(function(r) {
-      r.ingParts = r.ing_parts || []; 
+      // クラウドの列名（アンダーバー）をJS側の名前に変換
+      r.ingParts = r.ing_parts || [];
+      r.ingRows = r.ing_rows || [];
+      r.desc = r.desc || ""; // "desc" も確実に読み込む
       return r;
     });
     render();
@@ -622,7 +617,7 @@ async function saveRecipe(){
     }
   }else{
     recipes.unshift({
-      id:genId(),name:name,desc:document.getElementById('fDesc').value,
+      id:String(Date.now()),name:name,desc:document.getElementById('fDesc').value,
       cat:document.getElementById('fCat').value,genre:document.getElementById('fGenre').value,
       ings:ings,url:document.getElementById('fUrl').value,ingParts:ingParts,
       steps:document.getElementById('fSteps').value,memo:document.getElementById('fMemo').value,
@@ -632,40 +627,34 @@ async function saveRecipe(){
   }
 
   try {
-    // 1. クラウド側のデータをリセット（全削除）
-    // ※もしDBのidがint8（数値）なら .neq('id', 0) などに変える必要がありますが、
-    // さっきのSQL(text)ならこのままでOKです
+    // 古いデータを削除（全削除の安全な方法）
     await window.supabase.from('recipes').delete().neq('name', '___dummy___');
 
-    // 2. クラウドに送るデータを整理（DBの列名に合わせる）
     var cleanData = recipes.map(function(rcp) {
       return {
-        id: String(rcp.id), // ★IDを文字列として確実に保存
+        id: String(rcp.id),
         name: rcp.name || "",
         cat: rcp.cat || "",
         genre: rcp.genre || "",
-        date: rcp.date || new Date().toISOString().slice(0, 10),
-        desc: rcp.desc || "",
+        date: rcp.date || "",
+        "desc": rcp.desc || "", // ★SQLの予約語対策でダブルクォーテーション
         ings: rcp.ings || [],
-        ing_parts: rcp.ingParts || [], // 画面で作った構造データ
+        ing_parts: rcp.ingParts || [], 
+        ing_rows: rcp.ingRows || [],   
         steps: rcp.steps || "",
         memo: rcp.memo || "",
         url: rcp.url || "",
-        photos: rcp.photos || [], // 写真データ
+        photos: rcp.photos || [],
         fav: !!rcp.fav,
         heart: !!rcp.heart,
         pub: !!rcp.pub
       };
     });
 
-    // 3. 一括挿入
     const { error } = await window.supabase.from('recipes').insert(cleanData);
     if(error) throw error;
-    
-    console.log("クラウド保存に成功しました！");
   } catch (err) {
     console.error("Save Error:", err);
-    alert("保存に失敗しました。コンソールを確認してください。");
   }
 
   closeOverlay('overlayAdd');
