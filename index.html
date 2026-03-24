@@ -263,37 +263,36 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   document.body.appendChild(migrateBtn);
 
 migrateBtn.onclick = async () => {
-  // 1. JSONの中身を入力してもらう
-  const input = prompt("エクスポートしたJSONの中身を貼り付けてください");
-  if(!input) return;
+    // 1. プロンプトを出して、手元のJSONを貼り付けてもらう
+    const input = prompt("エクスポートしたJSONファイルの中身をすべてコピーして、ここに貼り付けてください");
+    if(!input) return;
 
-  try {
-    const myRecipes = JSON.parse(input);
-    
-    // 2. 不要なデータを削る（エラー防止）
-    // Supabaseに存在しない列があるとエラーになるため、
-    // ここで必要なデータだけを抜き出します
-    const cleanData = myRecipes.map(r => ({
-      name: r.name,
-      cat: r.cat,
-      date: r.date || new Date().toISOString().split('T')[0],
-      desc: r.desc || "", // もしdescがあれば入れる
-      fav: r.fav || false
-      // 他に重要な項目があればここに追加してください
-    }));
+    try {
+      const myRecipes = JSON.parse(input);
+      
+      // 2. データの形を整える（エラー対策）
+      const cleanData = myRecipes.map(r => ({
+        name: r.name || "名称未設定",
+        cat: r.cat || "その他",
+        date: r.date || new Date().toISOString().split('T')[0],
+        desc: r.desc || "",
+        fav: r.fav || false
+      }));
 
-    const { data, error } = await window.supabase
-      .from('recipes')
-      .insert(cleanData);
+      // 3. Supabaseに送信
+      const { data, error } = await window.supabase
+        .from('recipes')
+        .insert(cleanData);
 
-    if (error) throw error;
-    alert("成功！ " + cleanData.length + "件保存しました。");
-    location.reload();
-  } catch (e) {
-    alert("保存失敗: " + e.message);
-    console.error(e);
-  }
-};
+      if (error) throw error;
+      
+      alert("成功！ " + cleanData.length + "件のレシピを保存しました。");
+      location.reload(); // 画面を更新して反映
+    } catch (e) {
+      alert("失敗しました: " + e.message);
+      console.error(e);
+    }
+  };
   
   function genId(){return 'r'+Date.now();}
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
