@@ -201,6 +201,66 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 <!-- add end26/03/24 -->
   
 <script>
+//　　edit start 26/03/24　-----------
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// 2. 変数の宣言
+var recipes = [];
+var editId = null;
+var favFilter = null;
+var dragSrc = null;
+var pendingPhotos = [];
+
+// 3. サンプルデータ（Supabaseが空の時用）
+var SAMPLES = [
+  {id:'s1',name:'鶏の唐揚げ（にんにく多め）',desc:'クックパッドをベースにアレンジ',cat:'主菜',genre:'和食',ings:['鶏もも肉','にんにく','しょうが','醤油'],ingParts:[{label:'',rows:[{name:'鶏もも肉',amt:'300g',note:''},{name:'にんにく',amt:'3片',note:'みじん切り'},{name:'しょうが',amt:'1片',note:''},{name:'醤油',amt:'大さじ2',note:''},{name:'片栗粉',amt:'適量',note:''}]}],steps:'① 鶏肉を一口大に切る\n② 漬けダレに30分漬ける\n③ 170℃の油で揚げる',memo:'にんにくは2倍にすると風味UP',url:'https://cookpad.com',pub:true,fav:true,heart:true,photos:[],date:'2025-03-10'},
+  {id:'s2',name:'ほうれん草のごま和え',desc:'シンプルな定番副菜',cat:'副菜',genre:'和食',ings:['ほうれん草','白ごま','醤油'],ingParts:[{label:'',rows:[{name:'ほうれん草',amt:'1束',note:''},{name:'白ごま',amt:'大さじ2',note:''},{name:'醤油',amt:'小さじ2',note:''},{name:'砂糖',amt:'小さじ1',note:''}]}],steps:'① ほうれん草を茹でて絞る\n② 調味料とごまで和える',memo:'',url:'',pub:false,fav:false,heart:false,photos:[],date:'2025-03-12'},
+  {id:'s3',name:'ビスコッティ',desc:'２種のナッツ入り',cat:'焼き菓子',genre:'イタリア',ings:['薄力粉','卵','アーモンド','クランベリー'],ingParts:[{label:'生地',rows:[{name:'薄力粉',amt:'200g',note:'ふるう'},{name:'砂糖',amt:'100g',note:''},{name:'卵',amt:'2個',note:''},{name:'ベーキングパウダー',amt:'小さじ1',note:''}]},{label:'ミックスイン',rows:[{name:'アーモンド',amt:'80g',note:'粗く刻む'},{name:'ドライクランベリー',amt:'50g',note:''}]}],steps:'① 粉類を混ぜる\n② 卵を加えて生地を作る\n③ ナッツを混ぜ込んで成形\n④ 180℃で25分、スライスして再度15分焼く',memo:'２度焼きでサクサクに',url:'',pub:true,fav:true,heart:true,photos:[],date:'2025-03-18'},
+];
+
+// 4. 【重要】保存関数をSupabase版に書き換え
+async function save() {
+  // 今ある recipes 配列を丸ごと Supabase に保存（まずはテストとして簡易的に）
+  // 本来は1件ずつですが、移行の第一歩として「現在の全データ」を保存する形にします
+  console.log("保存中...");
+  // ※ここでは一旦 localStorage へのバックアップも残しておきます
+  try {
+    localStorage.setItem('rcp2', JSON.stringify(recipes));
+  } catch(e) {}
+}
+
+// 5. 【重要】読み込み関数をSupabase版に書き換え
+async function loadRecipes() {
+  console.log("Supabaseからデータを読み込み中...");
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('取得失敗:', error);
+    // 失敗したらLocalStorageから読み込む（バックアップ）
+    recipes = JSON.parse(localStorage.getItem('rcp2') || '[]');
+  } else {
+    recipes = data || [];
+  }
+
+  // データが全くない場合はサンプルを表示
+  if (!recipes.length) {
+    recipes = SAMPLES;
+    // 初回のみサンプルをSupabaseに送るならここに処理を追加
+  }
+  
+  renderCards(); // 画面を更新
+}
+
+// 6. 共通関数（そのまま）
+function genId(){return 'r'+Date.now();}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ページ読み込み時に実行
+window.addEventListener('DOMContentLoaded', loadRecipes);
+<!--　
 var recipes=[];
 var editId=null;
 var favFilter=null;
@@ -219,7 +279,8 @@ if(!recipes.length){recipes=SAMPLES;save();}
 function save(){try{localStorage.setItem('rcp2',JSON.stringify(recipes));}catch(e){}}
 function genId(){return 'r'+Date.now();}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
+-->
+//　　edit end 26/03/24　-----------  
 function getFiltered(){
   var q=(document.getElementById('search').value||'').toLowerCase();
   var c=document.getElementById('filterCat').value;
