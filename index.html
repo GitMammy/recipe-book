@@ -70,9 +70,13 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .ing-table td{padding:3px 4px;vertical-align:middle}
 .ing-table td input{height:30px;padding:0 6px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;color:#1a1a1a;width:100%;outline:none}
 .ing-table td input:focus{border-color:#D4537E}
-.col-name{width:38%}.col-amt{width:25%}.col-note{width:auto}.col-del{width:28px}
+.col-name{width:35%}.col-amt{width:23%}.col-note{width:auto}.col-del{width:24px}.col-move{width:28px}
 .btn-del-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;line-height:1;padding:0 2px}
 .btn-del-row:hover{color:#E24B4A}
+.btn-move-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;line-height:1.1;padding:0;display:block;width:14px;text-align:center}
+.btn-move-row:hover{color:#888}
+.photo-cover-label{display:flex;align-items:center;gap:3px;font-size:11px;color:#888;white-space:nowrap;cursor:pointer}
+.photo-cover-label input{width:auto;height:auto;cursor:pointer}
 .btn-add-row{height:26px;padding:0 10px;font-size:12px;border:1px dashed #D4537E;border-radius:6px;background:#fff;color:#D4537E;cursor:pointer;margin-top:5px}
 .btn-add-row:hover{background:#FBEAF0}
 .btn-add-part{height:26px;padding:0 10px;font-size:12px;border:1px dashed #aaa;border-radius:6px;background:#fff;color:#888;cursor:pointer;margin-top:5px;margin-left:6px}
@@ -246,7 +250,10 @@ function toggleFavFilter(){
 }
 
 function getThumb(r){
-  if(r.photos&&r.photos.length)return r.photos[0].data;
+  if(r.photos&&r.photos.length){
+    var cover=r.photos.find(function(p){return p.cover;});
+    return cover?cover.data:r.photos[0].data;
+  }
   if(r.img)return r.img;
   return '';
 }
@@ -339,6 +346,9 @@ function handlePhotoAdd(input){
 function renderPhotoList(){
   var list=document.getElementById('photoList');
   list.innerHTML='';
+  // coverフラグが1つもなければ先頭をデフォルトにする
+  var hascover=pendingPhotos.some(function(p){return p.cover;});
+  if(!hascover&&pendingPhotos.length>0) pendingPhotos[0].cover=true;
   pendingPhotos.forEach(function(photo,i){
     var item=document.createElement('div');
     item.className='photo-item';
@@ -353,6 +363,21 @@ function renderPhotoList(){
     (function(idx){
       titleInput.oninput=function(){pendingPhotos[idx].title=this.value;};
     })(i);
+    // 一覧用チェックボックス（排他：1枚だけ）
+    var coverLabel=document.createElement('label');
+    coverLabel.className='photo-cover-label';
+    var coverCb=document.createElement('input');
+    coverCb.type='checkbox';
+    coverCb.checked=!!photo.cover;
+    (function(idx){
+      coverCb.onchange=function(){
+        pendingPhotos.forEach(function(p){p.cover=false;});
+        pendingPhotos[idx].cover=true;
+        renderPhotoList();
+      };
+    })(i);
+    coverLabel.appendChild(coverCb);
+    coverLabel.appendChild(document.createTextNode('一覧用'));
     var delBtn=document.createElement('button');
     delBtn.className='btn-del-photo';
     delBtn.textContent='✕';
@@ -361,6 +386,7 @@ function renderPhotoList(){
     })(i);
     item.appendChild(img);
     item.appendChild(titleInput);
+    item.appendChild(coverLabel);
     item.appendChild(delBtn);
     list.appendChild(item);
   });
@@ -399,7 +425,7 @@ function makePartEl(label,rows,showHeader){
   header.appendChild(delBtn);
   var table=document.createElement('table');
   table.className='ing-table';
-  table.innerHTML='<thead><tr><th class="col-name">材料名</th><th class="col-amt">分量</th><th class="col-note">備考</th><th class="col-del"></th></tr></thead>';
+  table.innerHTML='<thead><tr><th class="col-name">材料名</th><th class="col-amt">分量</th><th class="col-note">備考</th><th class="col-move"></th><th class="col-del"></th></tr></thead>';
   var tbody=document.createElement('tbody');
   table.appendChild(tbody);
   var addRowBtn=document.createElement('button');
@@ -459,11 +485,19 @@ function addRowToTbody(tbody,name,amt,note){
   var iA=document.createElement('input');iA.type='text';iA.placeholder='例：200g';iA.value=amt||'';tdA.appendChild(iA);
   var tdNo=document.createElement('td');tdNo.className='col-note';
   var iNo=document.createElement('input');iNo.type='text';iNo.placeholder='備考';iNo.value=note||'';tdNo.appendChild(iNo);
+  // ↑↓ 並び替えボタン
+  var tdM=document.createElement('td');tdM.className='col-move';
+  tdM.style.cssText='padding:0 2px;vertical-align:middle';
+  var bUp=document.createElement('button');bUp.className='btn-move-row';bUp.textContent='▲';bUp.title='上へ';
+  bUp.onclick=function(){var prev=tr.previousElementSibling;if(prev)tbody.insertBefore(tr,prev);};
+  var bDn=document.createElement('button');bDn.className='btn-move-row';bDn.textContent='▼';bDn.title='下へ';
+  bDn.onclick=function(){var next=tr.nextElementSibling;if(next)tbody.insertBefore(next,tr);};
+  tdM.appendChild(bUp);tdM.appendChild(bDn);
   var tdD=document.createElement('td');tdD.className='col-del';
   var bD=document.createElement('button');bD.className='btn-del-row';bD.textContent='✕';
   bD.onclick=function(){tr.remove();};
   tdD.appendChild(bD);
-  tr.appendChild(tdN);tr.appendChild(tdA);tr.appendChild(tdNo);tr.appendChild(tdD);
+  tr.appendChild(tdN);tr.appendChild(tdA);tr.appendChild(tdNo);tr.appendChild(tdM);tr.appendChild(tdD);
   tbody.appendChild(tr);
 }
 
@@ -539,7 +573,7 @@ function openEdit(id){
   document.getElementById('fMemo').value=r.memo||'';
   document.getElementById('fPub').checked=!!r.pub;
   document.getElementById('btnDelete').style.display='';
-  pendingPhotos=(r.photos||[]).map(function(p){return{title:p.title||'',data:p.data||''};});
+  pendingPhotos=(r.photos||[]).map(function(p){return{title:p.title||'',data:p.data||'',cover:!!p.cover};});
   if(!pendingPhotos.length&&r.img)pendingPhotos=[{title:'',data:r.img}];
   renderPhotoList();
   setIngData(r.ingParts||r.ing_parts,r.ingRows,r.ingDetail);
@@ -551,7 +585,7 @@ async function saveRecipe(){
   if(!name){alert('料理名を入力してください');return;}
   var ings=document.getElementById('fIngs').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
   var ingParts=getIngData();
-  var photos=pendingPhotos.map(function(p){return{title:p.title,data:p.data};});
+  var photos=pendingPhotos.map(function(p){return{title:p.title,data:p.data,cover:!!p.cover};});
 
   if(editId){
     var r=recipes.find(function(x){return String(x.id)===String(editId);});
