@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0530　-->
+  <!--　260627-0730　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -235,10 +235,11 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
     </button>
 
-    <button class="btn" onclick="exportData()">書き出し</button>
+
 
     <!-- ① 編集ツール：シークレットURLのときだけ表示 -->
     <span id="editorTools" style="display:none;gap:6px;align-items:center">
+      <button class="btn" onclick="exportData()">書き出し</button>
       <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
       <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
       <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
