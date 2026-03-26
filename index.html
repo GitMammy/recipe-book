@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1725　-->
+  <!--　260626-1730　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -318,25 +318,35 @@ function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){re
 function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.fav=!r.fav;save();render();}}
 
 function handlePhotoAdd(input){
-  var file=input.files[0];if(!file)return;
+  var file=input.files[0]; if(!file) return;
   var reader=new FileReader();
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
       var MAX=1200;
-      var w=img.width,h=img.height;
+      var w=img.width, h=img.height;
       var dataUrl;
-      if(w<=MAX&&h<=MAX){
-        dataUrl=e.target.result;
-      } else {
-        var scale=MAX/Math.max(w,h);
-        var cw=Math.round(w*scale),ch=Math.round(h*scale);
-        var canvas=document.createElement('canvas');
-        canvas.width=cw;canvas.height=ch;
-        canvas.getContext('2d').drawImage(img,0,0,cw,ch);
-        dataUrl=canvas.toDataURL('image/jpeg',0.8);
-      }
-      pendingPhotos.push({title:'',data:dataUrl});
+      
+      // 画像が大きくても小さくても、必ずCanvasを通してWebPに変換する
+      var scale = (w > MAX || h > MAX) ? MAX / Math.max(w, h) : 1;
+      var cw = Math.round(w * scale);
+      var ch = Math.round(h * scale);
+      
+      var canvas = document.createElement('canvas');
+      canvas.width = cw;
+      canvas.height = ch;
+      var ctx = canvas.getContext('2d');
+      
+      // 背景を白にする（透過画像が黒くならないための工夫）
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, cw, ch);
+      
+      ctx.drawImage(img, 0, 0, cw, ch);
+      
+      // ここを image/webp に変更！
+      dataUrl = canvas.toDataURL('image/webp', 0.85); 
+      
+      pendingPhotos.push({title:'', data:dataUrl});
       renderPhotoList();
     };
     img.src=e.target.result;
