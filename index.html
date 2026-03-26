@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-2015　-->
+  <!--　260626-2023　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,13 +11,20 @@
 body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
 
 .app {
-  padding: 1.25rem 1.5rem !important;
+  padding: 1.25rem 1.5rem;
   max-width: 960px;
   margin: 0 auto;
-  /* display: block; は消してOKです */
 }
 
-.topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.topbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;             /* 横幅いっぱい使う */
+}
+
 input[type=text]{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;outline:none}
 input[type=text]:focus{border-color:#D4537E}
 select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer}
@@ -26,22 +33,30 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .btn-accent{background:#D4537E;color:#fff;border-color:#D4537E}
 .btn-accent:hover{background:#993556}
 .btn-sm{height:28px;padding:0 10px;font-size:12px}
-.toolbar-right{display:flex;gap:6px;align-items:center;margin-left:auto}
+
+.toolbar-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
+  flex-shrink: 0;          /* ボタンたちが潰れないようにする */
+}
+
 .fav-filter {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;                /* アイコン同士の隙間を 8px で固定 */
+  gap: 6px;                /* アイコン同士の隙間を 6px に固定 */
   font-size: 14px;
   color: #888;
   cursor: pointer;
   height: 36px;
-  padding: 0 12px;
+  padding: 0 10px;         /* 左右の余白を少し詰める */
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #fff;
-  width: fit-content;      /* 【重要】幅を中身にピッタリ合わせる */
-  min-width: 0;            /* 最小幅の設定を解除 */
+  width: fit-content;      /* 【重要】幅を中身に合わせる設定 */
+  min-width: 0 !important; /* 強制的に最小幅の設定を消す */
 }
 .fav-filter:hover{background:#f0f0f0}
 .count-bar{font-size:13px;color:#888;margin-bottom:10px}
