@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0730　-->
+  <!--　260627-0755　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -407,16 +407,16 @@ function render(){
 }
 
 function getCatEmoji(cat){
-  if(!cat)return '🍽';
-  if(cat.indexOf('主菜')>=0)return '🍖';
-  if(cat.indexOf('副菜')>=0)return '🥗';
-  if(cat.indexOf('汁')>=0||cat.indexOf('スープ')>=0)return '🍲';
-  if(cat.indexOf('デザート')>=0||cat.indexOf('お菓子')>=0||cat.indexOf('焼き菓子')>=0)return '🍰';
-  if(cat.indexOf('主食')>=0||cat.indexOf('麺')>=0||cat.indexOf('パスタ')>=0)return '🍜';
-  if(cat.indexOf('飲み')>=0)return '🥤';
-  return '🍽';
+  if(!cat)return '🍰';
+  if(cat.indexOf('焼き菓子')>=0)return '🍪';
+  if(cat.indexOf('おやつ')>=0)return '🥞';
+  if(cat.indexOf('揚げ菓子')>=0)return '🍩';
+  if(cat.indexOf('パン')>=0)return '🥐';
+  if(cat.indexOf('冷菓')>=0)return '🍮';
+  if(cat.indexOf('氷菓')>=0)return '🍧';
+  return '🍰';
 }
-
+  
 function updateSelects(){
   var cats=[]; recipes.forEach(function(r){if(r.cat&&cats.indexOf(r.cat)<0)cats.push(r.cat);});
   var genres=[]; recipes.forEach(function(r){if(r.genre&&genres.indexOf(r.genre)<0)genres.push(r.genre);});
