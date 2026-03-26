@@ -123,7 +123,6 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .toolbar-right{gap:4px}
 }
 </style>
-
 </head>
 <body>
 <div class="app">
@@ -190,72 +189,36 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   </div>
 </div>
 
-
-<!-- 　　edit start 26/03/24　------------->
-  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-  // --- ここから JavaScript の世界 ---
+window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
 
-  // 2. Supabase の設定
-  window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-  window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+var recipes = [];
+var editId = null;
+var favFilter = null;
+var dragSrc = null;
+var pendingPhotos = [];
 
-  // 3. 接続クライアントの作成
-  // 名前がぶつからないように window.supabase に入れます
-  window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-
-  // 4. アプリで使う変数宣言
-  var recipes = [];
-  var editId = null;
-  var favFilter = null;
-  var dragSrc = null;
-  var pendingPhotos = [];
-
-  // 5. サンプルデータ (SAMPLES) はこの下にそのまま続けてください...
-  var SAMPLES = [
-    {id:'s1',name:'鶏の唐揚げ（にんにく多め）',desc:'クックパッドをベースにアレンジ',cat:'主菜',genre:'和食',ings:['鶏もも肉','にんにく','しょうが','醤油'],ingParts:[{label:'',rows:[{name:'鶏もも肉',amt:'300g',note:''},{name:'にんにく',amt:'3片',note:'みじん切り'},{name:'しょうが',amt:'1片',note:''},{name:'醤油',amt:'大さじ2',note:''},{name:'片栗粉',amt:'適量',note:''}]}],steps:'① 鶏肉を一口大に切る\n② 漬けダレに30分漬ける\n③ 170℃の油で揚げる',memo:'にんにくは2倍にすると風味UP',url:'https://cookpad.com',pub:true,fav:true,heart:true,photos:[],date:'2025-03-10'},
-    {id:'s2',name:'ほうれん草のごま和え',desc:'シンプルな定番副菜',cat:'副菜',genre:'和食',ings:['ほうれん草','白ごま','醤油'],ingParts:[{label:'',rows:[{name:'ほうれん草',amt:'1束',note:''},{name:'白ごま',amt:'大さじ2',note:''},{name:'醤油',amt:'小さじ2',note:''},{name:'砂糖',amt:'小さじ1',note:''}]}],steps:'① ほうれん草を茹でて絞る\n② 調味料とごまで和える',memo:'',url:'',pub:false,fav:false,heart:false,photos:[],date:'2025-03-12'},
-    {id:'s3',name:'ビスコッティ',desc:'２種のナッツ入り',cat:'焼き菓子',genre:'イタリア',ings:['薄力粉','卵','アーモンド','クランベリー'],ingParts:[{label:'生地',rows:[{name:'薄力粉',amt:'200g',note:'ふるう'},{name:'砂糖',amt:'100g',note:''},{name:'卵',amt:'2個',note:''},{name:'ベーキングパウダー',amt:'小さじ1',note:''}]},{label:'ミックスイン',rows:[{name:'アーモンド',amt:'80g',note:'粗く刻む'},{name:'ドライクランベリー',amt:'50g',note:''}]}],steps:'① 粉類を混ぜる\n② 卵を加えて生地を作る\n③ ナッツを混ぜ込んで成形\n④ 180℃で25分、スライスして再度15分焼く',memo:'２度焼きでサクサクに',url:'',pub:true,fav:true,heart:true,photos:[],date:'2025-03-18'}
-  ];
-
-  // 4. 保存関数
-  function save() {
-    try {
-      localStorage.setItem('rcp2', JSON.stringify(recipes));
-    } catch(e) {
-      console.error("保存失敗:", e);
-    }
-  }
-
-  // 5. 読み込み関数（Supabase版）
 async function loadRecipes() {
   const { data, error } = await window.supabase.from('recipes').select('*').order('date', { ascending: false });
   if (!error && data) {
     recipes = data.map(function(r) {
-      // クラウドの列名（アンダーバー）をJS側の名前に変換
       r.ingParts = r.ing_parts || [];
-      r.ingRows = r.ing_rows || [];
-      r.desc = r.desc || ""; // "desc" も確実に読み込む
+      r.ingRows  = r.ing_rows  || [];
+      r.desc     = r.desc      || '';
       return r;
     });
     render();
   }
 }
 
-  
-  function genId(){return 'r'+Date.now();}
-  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function genId(){ return 'r' + Date.now(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // ページ読み込み完了時に実行
-  window.addEventListener('load', loadRecipes);
+window.addEventListener('load', loadRecipes);
 
-
-//　　edit end 26/03/24　-----------  
-
-
-  
 function getFiltered(){
   var q=(document.getElementById('search').value||'').toLowerCase();
   var c=document.getElementById('filterCat').value;
@@ -560,52 +523,34 @@ function openAdd(){
 
 function openEdit(id){
   closeOverlay('overlayDetail');
-  
-  // 修正：IDが数字でも文字列でも正しくレシピを見つけられるようにする
-  var r = recipes.find(function(x){ return String(x.id) === String(id); });
-  
-  // ガード：もしレシピが見つからなかったら処理を中断する
-  if(!r) {
-    console.error("Edit target not found for ID:", id);
-    return;
-  }
-
-  editId = r.id; // editIdも確実なものに更新
-  
-  document.getElementById('formTitle').textContent = 'レシピを編集';
-  document.getElementById('fName').value = r.name || '';
-  document.getElementById('fDesc').value = r.desc || '';
-  document.getElementById('fCat').value = r.cat || '';
-  document.getElementById('fGenre').value = r.genre || '';
-  document.getElementById('fIngs').value = (r.ings || []).join(', ');
-  document.getElementById('fUrl').value = r.url || '';
-  document.getElementById('fSteps').value = r.steps || '';
-  document.getElementById('fMemo').value = r.memo || '';
-  document.getElementById('fPub').checked = !!r.pub;
-  document.getElementById('btnDelete').style.display = '';
-  
-  pendingPhotos = (r.photos || []).map(function(p){ 
-    return {title: p.title || '', data: p.data || ''}; 
-  });
-  if(!pendingPhotos.length && r.img) pendingPhotos = [{title: '', data: r.img}];
-  
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(!r){console.error('Edit target not found for ID:',id);return;}
+  editId=r.id;
+  document.getElementById('formTitle').textContent='レシピを編集';
+  document.getElementById('fName').value=r.name||'';
+  document.getElementById('fDesc').value=r.desc||'';
+  document.getElementById('fCat').value=r.cat||'';
+  document.getElementById('fGenre').value=r.genre||'';
+  document.getElementById('fIngs').value=(r.ings||[]).join(', ');
+  document.getElementById('fUrl').value=r.url||'';
+  document.getElementById('fSteps').value=r.steps||'';
+  document.getElementById('fMemo').value=r.memo||'';
+  document.getElementById('fPub').checked=!!r.pub;
+  document.getElementById('btnDelete').style.display='';
+  pendingPhotos=(r.photos||[]).map(function(p){return{title:p.title||'',data:p.data||''};});
+  if(!pendingPhotos.length&&r.img)pendingPhotos=[{title:'',data:r.img}];
   renderPhotoList();
-  
-  // 材料データの引き継ぎ（どちらの名前のデータがあっても動くように）
-  setIngData(r.ingParts || r.ing_parts, r.ingRows, r.ingDetail);
-  
+  setIngData(r.ingParts||r.ing_parts,r.ingRows,r.ingDetail);
   openOverlay('overlayAdd');
 }
-////////////////////////////
-///////　レシピ保存　///////
-////////////////////////////
+
 async function saveRecipe(){
   var name=document.getElementById('fName').value.trim();
   if(!name){alert('料理名を入力してください');return;}
   var ings=document.getElementById('fIngs').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
   var ingParts=getIngData();
   var photos=pendingPhotos.map(function(p){return{title:p.title,data:p.data};});
-  
+
   if(editId){
     var r=recipes.find(function(x){return String(x.id)===String(editId);});
     if(r){
@@ -615,7 +560,7 @@ async function saveRecipe(){
       r.memo=document.getElementById('fMemo').value;r.pub=document.getElementById('fPub').checked;
       r.photos=photos;r.img='';
     }
-  }else{
+  } else {
     recipes.unshift({
       id:String(Date.now()),name:name,desc:document.getElementById('fDesc').value,
       cat:document.getElementById('fCat').value,genre:document.getElementById('fGenre').value,
@@ -627,63 +572,68 @@ async function saveRecipe(){
   }
 
   try {
-    // 古いデータを削除（全削除の安全な方法）
-    await window.supabase.from('recipes').delete().neq('name', '___dummy___');
-
-    var cleanData = recipes.map(function(rcp) {
+    await window.supabase.from('recipes').delete().neq('name','___dummy___');
+    var cleanData=recipes.map(function(rcp){
       return {
-        id: String(rcp.id),
-        name: rcp.name || "",
-        cat: rcp.cat || "",
-        genre: rcp.genre || "",
-        date: rcp.date || "",
-        "desc": rcp.desc || "", // ★SQLの予約語対策でダブルクォーテーション
-        ings: rcp.ings || [],
-        ing_parts: rcp.ingParts || [], 
-        ing_rows: rcp.ingRows || [],   
-        steps: rcp.steps || "",
-        memo: rcp.memo || "",
-        url: rcp.url || "",
-        photos: rcp.photos || [],
-        fav: !!rcp.fav,
-        heart: !!rcp.heart,
-        pub: !!rcp.pub
+        id:String(rcp.id),
+        name:rcp.name||'',
+        cat:rcp.cat||'',
+        genre:rcp.genre||'',
+        date:rcp.date||'',
+        desc:rcp.desc||'',
+        ings:rcp.ings||[],
+        ing_parts:rcp.ingParts||[],
+        ing_rows:rcp.ingRows||[],
+        steps:rcp.steps||'',
+        memo:rcp.memo||'',
+        url:rcp.url||'',
+        photos:rcp.photos||[],
+        fav:!!rcp.fav,
+        heart:!!rcp.heart,
+        pub:!!rcp.pub
       };
     });
-
-    const { error } = await window.supabase.from('recipes').insert(cleanData);
-    if(error) throw error;
-  } catch (err) {
-    console.error("Save Error:", err);
+    const { error }=await window.supabase.from('recipes').insert(cleanData);
+    if(error)throw error;
+  } catch(err){
+    console.error('Save Error:',err);
+    alert('保存に失敗しました: '+err.message);
   }
 
   closeOverlay('overlayAdd');
   render();
 }
 
+// ★修正：Supabaseから直接削除するように変更
 async function deleteRecipe(){
   if(!confirm('このレシピを削除しますか？'))return;
-  // 1. 配列から削除
-  recipes = recipes.filter(function(r){return r.id!==editId;});
-  
-  // 2. クラウド(Supabase)からも削除するために save を実行
-  await save(); 
-  
+
+  try {
+    // Supabaseから直接削除
+    const { error } = await window.supabase.from('recipes').delete().eq('id', String(editId));
+    if(error) throw error;
+
+    // ローカル配列からも削除
+    recipes = recipes.filter(function(r){ return String(r.id) !== String(editId); });
+  } catch(err){
+    console.error('Delete Error:', err);
+    alert('削除に失敗しました: ' + err.message);
+    return;
+  }
+
   closeOverlay('overlayAdd');
   render();
 }
 
 function renderIngSection(r){
-  // 【安全装置】レシピデータ自体がない、または材料データが空の場合の対策
-  if(!r) return '';
-  var parts = r.ingParts || r.ing_parts || []; 
-  
-  if(Array.isArray(parts) && parts.length > 0){
-    var hasLabels = parts.some(function(p){ return p && p.label; });
+  if(!r)return '';
+  var parts=r.ingParts||r.ing_parts||[];
+  if(Array.isArray(parts)&&parts.length>0){
+    var hasLabels=parts.some(function(p){return p&&p.label;});
     return parts.map(function(p){
-      if(!p || !p.rows) return ''; // 各パーツが壊れていても無視する
-      var lh = hasLabels && p.label ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>' : '';
-      var rh = (p.rows || []).map(function(row){
+      if(!p||!p.rows)return '';
+      var lh=hasLabels&&p.label?'<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>':'';
+      var rh=(p.rows||[]).map(function(row){
         return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
@@ -696,10 +646,8 @@ function renderIngSection(r){
         +'</tr></thead><tbody>'+rh+'</tbody></table>';
     }).join('');
   }
-
-  // 以下は今まで通り
-  if(r.ingRows && r.ingRows.length){
-    var rh2 = r.ingRows.map(function(row){
+  if(r.ingRows&&r.ingRows.length){
+    var rh2=r.ingRows.map(function(row){
       return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
@@ -711,73 +659,52 @@ function renderIngSection(r){
       +'<th style="text-align:left;padding:3px 6px;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #eee">備考</th>'
       +'</tr></thead><tbody>'+rh2+'</tbody></table>';
   }
-  if(r.ingDetail) return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
+  if(r.ingDetail)return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
   return '';
-} // ← ここまでを上書き！
-function openDetail(id){
-  // 修正：IDが数字でも文字列でも正しくレシピを見つけられるようにする
-  var r = recipes.find(function(x){ return String(x.id) === String(id); });
-  
-  // 【超重要】もしレシピが見つからなかったら、エラーを出さずに処理を終える（ガード）
-  if(!r){
-    console.error("Recipe not found for ID:", id);
-    return;
-  }
+}
 
-  var ingHtml = renderIngSection(r);
-  
-  // 写真データの安全な取得
-  var photos = (r.photos && r.photos.length) ? r.photos : (r.img ? [{title:'', data:r.img}] : []);
-  currentPhotos = photos;
-  
-  var html = '';
-  html += '<div class="detail-top"><h2>' + esc(r.name) + '</h2>'
-    + '<div style="display:flex;gap:4px;flex-shrink:0">'
-    + '<button class="heart-btn' + (r.heart ? ' on' : '') + '" style="font-size:18px" onclick="toggleHeart(event,\'' + r.id + '\');openDetail(\'' + r.id + '\')">♡</button>'
-    + '<button class="star-btn' + (r.fav ? ' on' : '') + '" style="font-size:17px" onclick="toggleStar(event,\'' + r.id + '\');openDetail(\'' + r.id + '\')">★</button>'
-    + '</div></div>';
-  
-  html += '<div class="tags" style="margin-bottom:1rem">'
-    + (r.cat ? '<span class="tag t-cat">' + esc(r.cat) + '</span>' : '')
-    + (r.genre ? '<span class="tag t-ing">' + esc(r.genre) + '</span>' : '')
-    + '<span class="tag ' + (r.pub ? 't-pub' : 't-priv') + '">' + (r.pub ? '公開' : '非公開') + '</span>'
-    + '</div>';
-  
-  if(r.desc) html += '<div class="detail-section"><h3>説明</h3><p>' + esc(r.desc) + '</p></div>';
-  
-  if(r.ings && r.ings.length) {
-    html += '<div class="detail-section"><h3>食材タグ</h3><div class="tags">' + r.ings.map(function(i){ return '<span class="tag t-ing">' + esc(i) + '</span>'; }).join('') + '</div></div>';
+function openDetail(id){
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(!r){console.error('Recipe not found for ID:',id);return;}
+  var ingHtml=renderIngSection(r);
+  var photos=(r.photos&&r.photos.length)?r.photos:(r.img?[{title:'',data:r.img}]:[]);
+  currentPhotos=photos;
+  var html='';
+  html+='<div class="detail-top"><h2>'+esc(r.name)+'</h2>'
+    +'<div style="display:flex;gap:4px;flex-shrink:0">'
+    +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
+    +'<button class="star-btn'+(r.fav?' on':'')+'" style="font-size:17px" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
+    +'</div></div>';
+  html+='<div class="tags" style="margin-bottom:1rem">'
+    +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
+    +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
+    +'<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
+    +'</div>';
+  if(r.desc)html+='<div class="detail-section"><h3>説明</h3><p>'+esc(r.desc)+'</p></div>';
+  if(r.ings&&r.ings.length){
+    html+='<div class="detail-section"><h3>食材タグ</h3><div class="tags">'+r.ings.map(function(i){return '<span class="tag t-ing">'+esc(i)+'</span>';}).join('')+'</div></div>';
   }
-  
-  if(ingHtml) html += '<div class="detail-section"><h3>材料</h3>' + ingHtml + '</div>';
-  
-  if(r.steps) html += '<div class="detail-section"><h3>手順</h3><p>' + esc(r.steps) + '</p></div>';
-  
+  if(ingHtml)html+='<div class="detail-section"><h3>材料</h3>'+ingHtml+'</div>';
+  if(r.steps)html+='<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
   if(photos.length){
-    html += '<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
-    photos.forEach(function(p, i){
-      html += '<div class="photo-gallery-item"><img src="' + p.data + '" alt="' + (p.title ? esc(p.title) : '') + '" onclick="openLightbox(' + i + ')" title="クリックで拡大">';
-      if(p.title) html += '<div class="photo-gallery-caption">' + esc(p.title) + '</div>';
-      html += '</div>';
+    html+='<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
+    photos.forEach(function(p,i){
+      html+='<div class="photo-gallery-item"><img src="'+p.data+'" alt="'+(p.title?esc(p.title):'')+'" onclick="openLightbox('+i+')" title="クリックで拡大">';
+      if(p.title)html+='<div class="photo-gallery-caption">'+esc(p.title)+'</div>';
+      html+='</div>';
     });
-    html += '</div></div>';
+    html+='</div></div>';
   }
-  
-  if(r.memo) html += '<div class="detail-section"><h3>アレンジ・覚書</h3><p>' + esc(r.memo) + '</p></div>';
-  
-  if(r.url) html += '<div class="detail-section"><h3>元レシピ</h3><a href="' + esc(r.url) + '" style="font-size:13px;color:#185FA5;word-break:break-all">' + esc(r.url) + '</a></div>';
-  
-  html += '<div style="font-size:11px;color:#aaa;margin-bottom:1rem">' + (r.date || '') + '</div>';
-  
-  html += '<div class="modal-btns"><div></div><div class="modal-btns-right">'
-    + '<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
-    + '<button class="btn btn-sm btn-accent" onclick="openEdit(\'' + r.id + '\')">編集</button>'
-    + '</div></div>';
-  
-  document.getElementById('detailContent').innerHTML = html;
+  if(r.memo)html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
+  if(r.url)html+='<div class="detail-section"><h3>元レシピ</h3><a href="'+esc(r.url)+'" style="font-size:13px;color:#185FA5;word-break:break-all">'+esc(r.url)+'</a></div>';
+  html+='<div style="font-size:11px;color:#aaa;margin-bottom:1rem">'+(r.date||'')+'</div>';
+  html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
+    +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
+    +'<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>'
+    +'</div></div>';
+  document.getElementById('detailContent').innerHTML=html;
   openOverlay('overlayDetail');
 }
-  
 
 function openOverlay(id){document.getElementById(id).classList.add('open');}
 function closeOverlay(id){document.getElementById(id).classList.remove('open');}
@@ -804,9 +731,8 @@ function openLightbox(idx){
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
 }
-
-render();
 </script>
+
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightboxImg" src="" alt="">
