@@ -136,6 +136,8 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
         <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
       </button>
       <button class="btn" onclick="exportData()">書き出し</button>
+      <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
+      <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
       <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
     </div>
   </div>
@@ -730,6 +732,151 @@ function openLightbox(idx){
 }
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
+}
+
+// -----------------------------------------------
+// テキストファイルからレシピを読み込む
+// -----------------------------------------------
+function openFromTextFile(input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var text = e.target.result;
+    var parsed = parseRecipeText(text);
+    if(!parsed.name){
+      alert('「料理名:」が見つかりませんでした。\nフォーマットを確認してください。');
+      input.value = '';
+      return;
+    }
+    // フォームをクリアして開く
+    editId = null;
+    pendingPhotos = [];
+    document.getElementById('formTitle').textContent = 'レシピを追加（テキストから）';
+    document.getElementById('fName').value    = parsed.name;
+    document.getElementById('fDesc').value    = parsed.desc;
+    document.getElementById('fCat').value     = parsed.cat;
+    document.getElementById('fGenre').value   = parsed.genre;
+    document.getElementById('fIngs').value    = parsed.ings;
+    document.getElementById('fUrl').value     = parsed.url;
+    document.getElementById('fSteps').value   = parsed.steps;
+    document.getElementById('fMemo').value    = parsed.memo;
+    document.getElementById('fPub').checked   = parsed.pub;
+    document.getElementById('btnDelete').style.display = 'none';
+    renderPhotoList();
+    setIngData(parsed.ingParts, null, null);
+    openOverlay('overlayAdd');
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseRecipeText(text){
+  var result = {
+    name:'', desc:'', cat:'', genre:'', ings:'',
+    url:'', steps:'', memo:'', pub:false, ingParts:[]
+  };
+
+  // 行に分割
+  var lines = text.split(/\r?\n/);
+
+  // 状態管理
+  var mode = 'header';          // 'header' | 'ing' | 'steps' | 'memo'
+  var currentPartLabel = '';
+  var currentRows = [];
+  var stepsLines = [];
+  var memoLines = [];
+
+  function flushPart(){
+    if(currentRows.length > 0){
+      result.ingParts.push({ label: currentPartLabel, rows: currentRows });
+      currentRows = [];
+      currentPartLabel = '';
+    }
+  }
+
+  for(var i = 0; i < lines.length; i++){
+    var raw = lines[i];
+    var line = raw.trim();
+
+    // 空行はモードをリセットしない（手順・覚書は複数行続くため）
+    if(line === ''){
+      if(mode === 'steps') stepsLines.push('');
+      continue;
+    }
+
+    // [材料: パート名] または [材料]
+    var ingHeader = line.match(/^\[材料(?:[:：]\s*(.+?))?\]$/);
+    if(ingHeader){
+      flushPart();
+      mode = 'ing';
+      currentPartLabel = ingHeader[1] ? ingHeader[1].trim() : '';
+      continue;
+    }
+
+    // 手順: のあとは複数行モードへ
+    if(/^手順[:：]/.test(line)){
+      mode = 'steps';
+      var rest = line.replace(/^手順[:：]\s*/, '');
+      if(rest) stepsLines.push(rest);
+      continue;
+    }
+
+    // 覚書: のあとは複数行モードへ
+    if(/^覚書[:：]/.test(line)){
+      flushPart();
+      mode = 'memo';
+      var rest2 = line.replace(/^覚書[:：]\s*/, '');
+      if(rest2) memoLines.push(rest2);
+      continue;
+    }
+
+    // ヘッダー項目（どのモードでも優先して拾う）
+    var kv = line.match(/^(料理名|カテゴリ|ジャンル|説明|URL|公開|食材タグ)[:：]\s*(.*)/);
+    if(kv){
+      flushPart();
+      mode = 'header';
+      var key = kv[1], val = kv[2].trim();
+      if(key==='料理名')   result.name  = val;
+      if(key==='カテゴリ') result.cat   = val;
+      if(key==='ジャンル') result.genre = val;
+      if(key==='説明')     result.desc  = val;
+      if(key==='URL')      result.url   = val;
+      if(key==='食材タグ') result.ings  = val;
+      if(key==='公開')     result.pub   = /^(はい|yes|true|1)$/i.test(val);
+      continue;
+    }
+
+    // モードに応じた処理
+    if(mode === 'ing'){
+      // 材料行: 名前, 分量, 備考（カンマ区切り）
+      var parts = line.split(/,|，/).map(function(s){ return s.trim(); });
+      currentRows.push({
+        name: parts[0] || '',
+        amt:  parts[1] || '',
+        note: parts[2] || ''
+      });
+      continue;
+    }
+
+    if(mode === 'steps'){
+      stepsLines.push(line);
+      continue;
+    }
+
+    if(mode === 'memo'){
+      memoLines.push(line);
+      continue;
+    }
+  }
+
+  // 残りのパートをフラッシュ
+  flushPart();
+
+  result.steps = stepsLines.join('\n').trim();
+  result.memo  = memoLines.join('\n').trim();
+
+  return result;
 }
 </script>
 
