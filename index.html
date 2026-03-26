@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0803　-->
+  <!--　260627-0830　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -258,8 +258,30 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     <div class="field"><label>料理名</label><input type="text" id="fName" placeholder="例：鶏の唐揚げ"></div>
     <div class="field"><label>説明</label><input type="text" id="fDesc" placeholder="一言メモ"></div>
     <div class="field-row">
-      <div class="field"><label>カテゴリ</label><input type="text" id="fCat" list="catList" placeholder="例：主菜"><datalist id="catList"></datalist></div>
-      <div class="field"><label>ジャンル</label><input type="text" id="fGenre" list="genreList" placeholder="例：和食"><datalist id="genreList"></datalist></div>
+      <div class="field">
+        <label>カテゴリ</label><input type="text" id="fCat" list="catList" placeholder="例：主菜">
+        <datalist id="catList">
+          <option value="焼き菓子">
+          <option value="おやつ">
+          <option value="パーツ">
+          <option value="揚げ菓子">
+          <option value="パン">
+          <option value="冷菓">
+          <option value="氷菓">
+          <option value="飲み物">
+        </datalist>
+      </div>
+      <div class="field">
+        <label>ジャンル</label><input type="text" id="fGenre" list="genreList" placeholder="例：和食">
+        <datalist id="genreList">
+          <option value="フランス">
+          <option value="ドイツ">
+          <option value="日本">
+          <option value="イタリア">
+          <option value="アメリカ">
+          <option value="アジア">
+        </datalist>
+      </div>
     </div>
     <div class="field"><label>食材タグ（カンマ区切り）</label><input type="text" id="fIngs" placeholder="例：鶏もも肉, にんにく, しょうが"></div>
     <div class="field"><label>元レシピURL（任意）</label><input type="text" id="fUrl" placeholder="https://..."></div>
@@ -304,7 +326,7 @@ window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
 
 // ① シークレットURL判定
-var SECRET_KEY = 'sakuramoti';  // ← ここを好きな文字列に変えてください
+var SECRET_KEY = 'okashi2024';  // ← ここを好きな文字列に変えてください
 var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
 
 var recipes = [];
@@ -407,27 +429,24 @@ function render(){
 }
 
 function getCatEmoji(cat){
-  if(!cat)return '🍰';
-  if(cat.indexOf('焼き菓子')>=0)return '🍪';
-  if(cat.indexOf('おやつ')>=0)return '🥞';
-  if(cat.indexOf('パーツ')>=0)return '🥣';
-  if(cat.indexOf('揚げ菓子')>=0)return '🍩';
-  if(cat.indexOf('パン')>=0)return '🥐';
-  if(cat.indexOf('冷菓')>=0)return '🍮';
-  if(cat.indexOf('氷菓')>=0)return '🍧';
-  if(cat.indexOf('飲み物')>=0)return '🍹';
-  return '🍰';
+  if(!cat)return '🍽';
+  if(cat.indexOf('主菜')>=0)return '🍖';
+  if(cat.indexOf('副菜')>=0)return '🥗';
+  if(cat.indexOf('汁')>=0||cat.indexOf('スープ')>=0)return '🍲';
+  if(cat.indexOf('デザート')>=0||cat.indexOf('お菓子')>=0||cat.indexOf('焼き菓子')>=0)return '🍰';
+  if(cat.indexOf('主食')>=0||cat.indexOf('麺')>=0||cat.indexOf('パスタ')>=0)return '🍜';
+  if(cat.indexOf('飲み')>=0)return '🥤';
+  return '🍽';
 }
-  
+
+// 変更後
 function updateSelects(){
   var cats=[]; recipes.forEach(function(r){if(r.cat&&cats.indexOf(r.cat)<0)cats.push(r.cat);});
-  var genres=[]; recipes.forEach(function(r){if(r.genre&&genres.indexOf(r.genre)<0)genres.push(r.genre);});
   var sc=document.getElementById('filterCat');
   var cv=sc.value;
   sc.innerHTML='<option value="">カテゴリ：すべて</option>'+cats.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
   sc.value=cv;
-  document.getElementById('catList').innerHTML=cats.map(function(c){return '<option value="'+esc(c)+'">';}).join('');
-  document.getElementById('genreList').innerHTML=genres.map(function(g){return '<option value="'+esc(g)+'">';}).join('');
+  // datalistは固定なので更新しない
 }
 
 function toggleHeart(e, id) {
