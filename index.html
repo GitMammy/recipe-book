@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1925　-->
+  <!--　260626-1940　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -954,7 +954,8 @@ function openDetail(id){
     +'<div style="display:flex;gap:4px;flex-shrink:0">'
     +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
     +'<button class="star-btn'+(r.fav?' on':'')+'" style="font-size:17px" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
-    +'</div></div>';
+    + '<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♛</button>'
+　　+'</div></div>';
   html+='<div class="tags" style="margin-bottom:1rem">'
     +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
     +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
