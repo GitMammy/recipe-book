@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1950　-->
+  <!--　260626-2000　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
-.app{padding:1.25rem 1rem;max-width:960px;margin:0 auto}
+.app{padding:1.25rem 1.5rem;max-width:960px;margin:0 auto}
 .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
 input[type=text]{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;outline:none}
 input[type=text]:focus{border-color:#D4537E}
@@ -20,7 +20,21 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .btn-accent:hover{background:#993556}
 .btn-sm{height:28px;padding:0 10px;font-size:12px}
 .toolbar-right{display:flex;gap:6px;align-items:center;margin-left:auto}
-.fav-filter{display:flex;align-items:center;gap:5px;font-size:13px;color:#888;cursor:pointer;height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff}
+.fav-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 中身を中央に寄せる */
+  gap: 4px;                /* アイコン同士の隙間を少し狭くして均等にする */
+  font-size: 14px;         /* ほんの少し大きくすると見やすいです */
+  color: #888;
+  cursor: pointer;
+  height: 36px;
+  padding: 0 12px;         /* 左右の余白を少し広げる */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  min-width: 85px;         /* ボタン自体の最低限の幅を決める */
+}
 .fav-filter:hover{background:#f0f0f0}
 .count-bar{font-size:13px;color:#888;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
@@ -134,7 +148,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 @media(max-width:600px){
 .field-row{flex-direction:column}
-.app{padding:1rem 0.75rem}
+.app{padding:1rem 1.25rem}
 .topbar{gap:6px}
 .topbar input[type=text]{min-width:120px}
 .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
