@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1840　-->
+  <!--　260626-1925　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,6 +114,24 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .lightbox img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
 .lightbox-caption{color:#fff;font-size:13px;text-align:center}
 .lightbox-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1}
+/* --- ここから追加 --- */
+.crown-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px; /* ♡や★より少し大きくするとバランスが良いです */
+  padding: 0;
+  line-height: 1;
+  color: #ccc;
+  transition: color 0.2s;
+}
+.crown-btn.on {
+  color: #FFD700; /* 豪華なゴールド！ */
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); /* ほんのり光らせる */
+}
+/* --- ここまで追加 --- */
+
+
 @media(max-width:600px){
 .field-row{flex-direction:column}
 .app{padding:1rem 0.75rem}
@@ -286,6 +304,7 @@ function render(){
       +'<div class="hearts">'
       +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
       +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
+　　　+'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♛</button>' // これを追加！
       +'</div></div>'
       +descHtml
       +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
@@ -318,6 +337,7 @@ function updateSelects(){
 
 //function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.heart=!r.heart;save();render();}}
 //function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.fav=!r.fav;save();render();}}
+// 💛
 function toggleHeart(e, id) {
   e.stopPropagation();
   var r = recipes.find(function(x) { return String(x.id) === String(id); });
@@ -328,7 +348,7 @@ function toggleHeart(e, id) {
     render();
   }
 }
-
+// ★
 function toggleStar(e, id) {
   e.stopPropagation();
   var r = recipes.find(function(x) { return String(x.id) === String(id); });
@@ -336,6 +356,20 @@ function toggleStar(e, id) {
     r.fav = !r.fav;
     // 料理名チェックのない専用関数を呼ぶ
     saveStatus(r.id, r.heart, r.fav); 
+    render();
+  }
+}
+// ♛
+function toggleCrown(e, id) {
+  e.stopPropagation();
+  var r = recipes.find(function(x) { return String(x.id) === String(id); });
+  if (r) {
+    // もしデータに crown プロパティがなければ false から始める
+    if (r.crown === undefined) r.crown = false;
+    
+    r.crown = !r.crown;
+    // 既存の heart, fav と一緒に crown も保存
+    saveStatus(r.id, r.heart, r.fav, r.crown); 
     render();
   }
 }
@@ -820,11 +854,16 @@ async function saveRecipe() {
 }
 
 // お気に入り状態だけをSupabaseに即座に保存する関数
-async function saveStatus(id, heart, fav) {
+// 引数に crown を追加します
+async function saveStatus(id, heart, fav, crown) {
   try {
     const { error } = await window.supabase
       .from('recipes')
-      .update({ heart: heart, fav: fav })
+      .update({ 
+        heart: heart, 
+        fav: fav,
+        crown: crown // 王冠の状態も保存
+      })
       .eq('id', String(id));
 
     if (error) throw error;
