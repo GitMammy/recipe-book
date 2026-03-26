@@ -777,15 +777,15 @@ function parseRecipeText(text){
     url:'', steps:'', memo:'', pub:false, ingParts:[]
   };
 
-  // 行に分割
   var lines = text.split(/\r?\n/);
 
-  // 状態管理
-  var mode = 'header';          // 'header' | 'ing' | 'steps' | 'memo'
+  // モード: 'none' | 'name' | 'cat' | 'genre' | 'desc' | 'ings' | 'url' | 'pub' | 'ing' | 'steps' | 'memo'
+  var mode = 'none';
   var currentPartLabel = '';
   var currentRows = [];
   var stepsLines = [];
   var memoLines = [];
+  var contentLines = []; // 単一行項目の一時バッファ
 
   function flushPart(){
     if(currentRows.length > 0){
@@ -795,82 +795,83 @@ function parseRecipeText(text){
     }
   }
 
-  for(var i = 0; i < lines.length; i++){
-    var raw = lines[i];
-    var line = raw.trim();
+  function flushContent(){
+    var val = contentLines.join('\n').trim();
+    contentLines = [];
+    return val;
+  }
 
-    // 空行はモードをリセットしない（手順・覚書は複数行続くため）
+  for(var i = 0; i < lines.length; i++){
+    var line = lines[i].trim();
+
+    // ※ 始まりの行はコメント・但し書きなので無視
+    if(/^※/.test(line)) continue;
+
+    // # 見出し行の処理
+    if(/^#\s+/.test(line)){
+      var heading = line.replace(/^#\s+/, '').trim();
+
+      // 前のモードの後処理
+      if(mode === 'ing') flushPart();
+
+      // # パート名: xxx （材料モード中の行）
+      if(/^パート名[:：]/.test(heading)){
+        // 直前の材料パートを確定してから新パートを開始
+        flushPart();
+        currentPartLabel = heading.replace(/^パート名[:：]\s*/, '').trim();
+        // modeはingのまま
+        continue;
+      }
+
+      // 各見出しに応じてモード切り替え
+      if(heading === '料理名')   { mode = 'name';   continue; }
+      if(heading === 'カテゴリ') { mode = 'cat';    continue; }
+      if(heading === 'ジャンル') { mode = 'genre';  continue; }
+      if(heading === '説明')     { mode = 'desc';   continue; }
+      if(heading === '食材タグ') { mode = 'ings';   continue; }
+      if(heading === 'URL')      { mode = 'url';    continue; }
+      if(heading === '公開')     { mode = 'pub';    continue; }
+      if(heading === '手順')     { mode = 'steps';  continue; }
+      if(heading === '覚書')     { mode = 'memo';   continue; }
+      if(heading === '材料')     { mode = 'ing'; currentPartLabel = ''; continue; }
+
+      // 未知の見出しは無視
+      mode = 'none';
+      continue;
+    }
+
+    // 空行スキップ（手順・覚書内の空行は保持）
     if(line === ''){
       if(mode === 'steps') stepsLines.push('');
+      if(mode === 'memo')  memoLines.push('');
       continue;
     }
 
-    // [材料: パート名] または [材料]
-    var ingHeader = line.match(/^\[材料(?:[:：]\s*(.+?))?\]$/);
-    if(ingHeader){
-      flushPart();
-      mode = 'ing';
-      currentPartLabel = ingHeader[1] ? ingHeader[1].trim() : '';
-      continue;
-    }
+    // モードに応じてコンテンツ行を処理
+    if(mode === 'name')  { result.name  = line; mode = 'none'; continue; }
+    if(mode === 'cat')   { result.cat   = line; mode = 'none'; continue; }
+    if(mode === 'genre') { result.genre = line; mode = 'none'; continue; }
+    if(mode === 'desc')  { result.desc  = line; mode = 'none'; continue; }
+    if(mode === 'ings')  { result.ings  = line; mode = 'none'; continue; }
+    if(mode === 'url')   { result.url   = line; mode = 'none'; continue; }
+    if(mode === 'pub')   { result.pub   = /^(はい|yes|true|1)$/i.test(line); mode = 'none'; continue; }
 
-    // 手順: のあとは複数行モードへ
-    if(/^手順[:：]/.test(line)){
-      mode = 'steps';
-      var rest = line.replace(/^手順[:：]\s*/, '');
-      if(rest) stepsLines.push(rest);
-      continue;
-    }
-
-    // 覚書: のあとは複数行モードへ
-    if(/^覚書[:：]/.test(line)){
-      flushPart();
-      mode = 'memo';
-      var rest2 = line.replace(/^覚書[:：]\s*/, '');
-      if(rest2) memoLines.push(rest2);
-      continue;
-    }
-
-    // ヘッダー項目（どのモードでも優先して拾う）
-    var kv = line.match(/^(料理名|カテゴリ|ジャンル|説明|URL|公開|食材タグ)[:：]\s*(.*)/);
-    if(kv){
-      flushPart();
-      mode = 'header';
-      var key = kv[1], val = kv[2].trim();
-      if(key==='料理名')   result.name  = val;
-      if(key==='カテゴリ') result.cat   = val;
-      if(key==='ジャンル') result.genre = val;
-      if(key==='説明')     result.desc  = val;
-      if(key==='URL')      result.url   = val;
-      if(key==='食材タグ') result.ings  = val;
-      if(key==='公開')     result.pub   = /^(はい|yes|true|1)$/i.test(val);
-      continue;
-    }
-
-    // モードに応じた処理
     if(mode === 'ing'){
-      // 材料行: 名前, 分量, 備考（カンマ区切り）
-      var parts = line.split(/,|，/).map(function(s){ return s.trim(); });
+      // # パート名 の次の行が材料行
+      var cols = line.split(/,|，/).map(function(s){ return s.trim(); });
       currentRows.push({
-        name: parts[0] || '',
-        amt:  parts[1] || '',
-        note: parts[2] || ''
+        name: cols[0] || '',
+        amt:  cols[1] || '',
+        note: cols[2] || ''
       });
       continue;
     }
 
-    if(mode === 'steps'){
-      stepsLines.push(line);
-      continue;
-    }
-
-    if(mode === 'memo'){
-      memoLines.push(line);
-      continue;
-    }
+    if(mode === 'steps'){ stepsLines.push(line); continue; }
+    if(mode === 'memo') { memoLines.push(line);  continue; }
   }
 
-  // 残りのパートをフラッシュ
+  // 残りをフラッシュ
   flushPart();
 
   result.steps = stepsLines.join('\n').trim();
