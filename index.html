@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1837　-->
+  <!--　260626-1840　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -318,22 +318,24 @@ function updateSelects(){
 
 //function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.heart=!r.heart;save();render();}}
 //function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.fav=!r.fav;save();render();}}
-function toggleHeart(e,id){
+function toggleHeart(e, id) {
   e.stopPropagation();
-  var r = recipes.find(function(x){return String(x.id) === String(id);});
-  if(r){
+  var r = recipes.find(function(x) { return String(x.id) === String(id); });
+  if (r) {
     r.heart = !r.heart;
-    saveRecipe(); // ← 名前を修正
+    // 料理名チェックのない専用関数を呼ぶ
+    saveStatus(r.id, r.heart, r.fav); 
     render();
   }
 }
 
-function toggleStar(e,id){
+function toggleStar(e, id) {
   e.stopPropagation();
-  var r = recipes.find(function(x){return String(x.id) === String(id);});
-  if(r){
+  var r = recipes.find(function(x) { return String(x.id) === String(id); });
+  if (r) {
     r.fav = !r.fav;
-    saveRecipe(); // ← 名前を修正
+    // 料理名チェックのない専用関数を呼ぶ
+    saveStatus(r.id, r.heart, r.fav); 
     render();
   }
 }
@@ -817,6 +819,21 @@ async function saveRecipe() {
   }
 }
 
+// お気に入り状態だけをSupabaseに即座に保存する関数
+async function saveStatus(id, heart, fav) {
+  try {
+    const { error } = await window.supabase
+      .from('recipes')
+      .update({ heart: heart, fav: fav })
+      .eq('id', String(id));
+
+    if (error) throw error;
+    console.log('ステータスを更新しました');
+  } catch (err) {
+    console.error('Status Update Error:', err);
+    alert('状態の保存に失敗しました: ' + err.message);
+  }
+}
 
 // ★修正：Supabaseから直接削除するように変更
 
