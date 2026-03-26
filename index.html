@@ -252,7 +252,7 @@ function toggleFavFilter(){
 function getThumb(r){
   if(r.photos&&r.photos.length){
     var cover=r.photos.find(function(p){return p.cover;});
-    return cover?cover.data:r.photos[0].data;
+    return cover?cover.data:'';
   }
   if(r.img)return r.img;
   return '';
@@ -346,9 +346,7 @@ function handlePhotoAdd(input){
 function renderPhotoList(){
   var list=document.getElementById('photoList');
   list.innerHTML='';
-  // coverフラグが1つもなければ先頭をデフォルトにする
-  var hascover=pendingPhotos.some(function(p){return p.cover;});
-  if(!hascover&&pendingPhotos.length>0) pendingPhotos[0].cover=true;
+
   pendingPhotos.forEach(function(photo,i){
     var item=document.createElement('div');
     item.className='photo-item';
