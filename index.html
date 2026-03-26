@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-2053　-->
+  <!--　260626-2100　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,19 +11,22 @@
 body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
 
 .app {
-  padding: 1.25rem 1.5rem !importan
-t; /* 左右に24px分の余白を強制的に確保 */
+  padding: 1.25rem 1.5rem !important;
   max-width: 960px;
   margin: 0 auto;
-  box-sizing: border-box; /* パディングを含めた幅計算にする */
+  display: block !important; /* blockに戻して左右の余白を有効にします */
+  width: 100%;
+  box-sizing: border-box;
 }
+
+/* ツールバーがはみ出さないように調整 */
 .topbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 1rem;
-  width: 100%;             /* 横幅いっぱい使う */
+  margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 input[type=text]{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;outline:none}
@@ -68,6 +71,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
   justify-content: center; /* 【追加】カード全体を中央に寄せる */
+  width: 100%;             /* 親要素（.app）の幅に合わせる */
 }
 
 .card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s}
@@ -196,24 +200,28 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 </head>
 <body>
 <div class="app">
-  <div class="topbar">
-    <input type="text" id="search" placeholder="料理名・食材で検索..." style="flex:1;min-width:150px">
-    <select id="filterCat"><option value="">カテゴリ：すべて</option></select>
-    <select id="filterPub"><option value="">公開：すべて</option><option value="1">公開</option><option value="0">非公開</option></select>
-    <div class="toolbar-right">
-      <button class="fav-filter" onclick="toggleFavFilter()">
-        <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
-        <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
-        <span id="favFilterCrown">♛</span> </div>
-      </button>
-      <button class="btn" onclick="exportData()">書き出し</button>
-      <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
-      <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
-      <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
-    </div>
+
+<div class="topbar">
+  <input type="text" id="search" placeholder="料理名・食材で検索..." style="flex:1;min-width:150px">
+  <select id="filterCat"><option value="">カテゴリ：すべて</option></select>
+  <select id="filterPub"><option value="">公開：すべて</option><option value="1">公開</option><option value="0">非公開</option></select>
+  
+  <div class="toolbar-right">
+    <button class="fav-filter" onclick="toggleFavFilter()">
+      <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
+      <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
+      <span id="favFilterCrown" style="font-size:14px;color:#ccc">♛</span>
+    </button> 
+
+    <button class="btn" onclick="exportData()">書き出し</button>
+    <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
+    <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
+    <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
   </div>
-  <div class="count-bar" id="countLabel"></div>
-  <div class="grid" id="grid"></div>
+</div>
+<div class="count-bar" id="countLabel"></div>
+<div class="grid" id="grid"></div>
+
 </div>
 
 <div class="overlay" id="overlayAdd">
