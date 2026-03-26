@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-2037　-->
+  <!--　260626-2053　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,11 +11,12 @@
 body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
 
 .app {
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1.5rem !importan
+t; /* 左右に24px分の余白を強制的に確保 */
   max-width: 960px;
   margin: 0 auto;
+  box-sizing: border-box; /* パディングを含めた幅計算にする */
 }
-
 .topbar {
   display: flex;
   gap: 8px;
@@ -296,7 +297,7 @@ function getFiltered(){
   var c=document.getElementById('filterCat').value;
   var p=document.getElementById('filterPub').value;
   return recipes.filter(function(r){
-　　// --- ここを修正 ---
+    // --- ここを修正 ---
     if(favFilter==='heart' && !r.heart) return false;
     if(favFilter==='star' && !r.fav) return false;
     if(favFilter==='crown' && !r.crown) return false; // 王冠フィルタを追加
