@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-2023　-->
+  <!--　260626-2037　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,7 +203,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <button class="fav-filter" onclick="toggleFavFilter()">
         <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
         <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
-　　　　<span id="favFilterCrown">♛</span> </div>
+        <span id="favFilterCrown">♛</span> </div>
       </button>
       <button class="btn" onclick="exportData()">書き出し</button>
       <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
@@ -362,7 +362,7 @@ function render(){
       +'<div class="hearts">'
       +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
       +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-　　　+'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♛</button>' // これを追加！
+      +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♛</button>' // これを追加！
       +'</div></div>'
       +descHtml
       +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
@@ -1013,7 +1013,7 @@ function openDetail(id){
     +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
     +'<button class="star-btn'+(r.fav?' on':'')+'" style="font-size:17px" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
     + '<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♛</button>'
-　　+'</div></div>';
+    +'</div></div>';
   html+='<div class="tags" style="margin-bottom:1rem">'
     +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
     +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
