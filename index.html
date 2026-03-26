@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="ja">
   <!--　260627-0530　-->
@@ -16,12 +14,11 @@ body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
   padding: 1.25rem 1.5rem !important;
   max-width: 960px;
   margin: 0 auto;
-  display: block !important; /* blockに戻して左右の余白を有効にします */
+  display: block !important;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* ツールバーがはみ出さないように調整 */
 .topbar {
   display: flex;
   gap: 8px;
@@ -45,35 +42,34 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   gap: 6px;
   align-items: center;
   margin-left: auto;
-  flex-shrink: 0;          /* ボタンたちが潰れないようにする */
+  flex-shrink: 0;
 }
 
 .fav-filter {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;                /* アイコン同士の隙間を 6px に固定 */
+  gap: 6px;
   font-size: 14px;
   color: #888;
   cursor: pointer;
   height: 36px;
-  padding: 0 10px;         /* 左右の余白を少し詰める */
+  padding: 0 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #fff;
-  width: fit-content;      /* 【重要】幅を中身に合わせる設定 */
-  min-width: 0 !important; /* 強制的に最小幅の設定を消す */
+  width: fit-content;
+  min-width: 0 !important;
 }
 .fav-filter:hover{background:#f0f0f0}
 .count-bar{font-size:13px;color:#888;margin-bottom:10px}
-
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
-  justify-content: center; /* 【追加】カード全体を中央に寄せる */
-  width: 100%;             /* 親要素（.app）の幅に合わせる */
+  justify-content: center;
+  width: 100%;
 }
 
 .card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s}
@@ -84,7 +80,8 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:4px}
 .card-title{font-size:14px;font-weight:500;color:#1a1a1a;line-height:1.4;flex:1}
 .hearts{display:flex;gap:2px;flex-shrink:0}
-.heart-btn,.star-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:0;line-height:1;color:#ccc}
+/* ② ♡★♚を大きく */
+.heart-btn,.star-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:0;line-height:1;color:#ccc}
 .heart-btn.on{color:#D4537E}
 .star-btn.on{color:#BA7517}
 .card-desc{font-size:12px;color:#666;margin-bottom:8px;line-height:1.5}
@@ -166,23 +163,46 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 .lightbox img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
 .lightbox-caption{color:#fff;font-size:13px;text-align:center}
 .lightbox-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1}
-/* --- ここから追加 --- */
+
+/* ② 王冠ボタン（大きく） */
 .crown-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px; /* ♡や★より少し大きくするとバランスが良いです */
+  font-size: 18px;
   padding: 0;
   line-height: 1;
   color: #ccc;
   transition: color 0.2s;
 }
 .crown-btn.on {
-  color: #FFD700; /* 豪華なゴールド！ */
-  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); /* ほんのり光らせる */
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
 }
-/* --- ここまで追加 --- */
 
+/* ③ 関連レシピカード */
+.related-card {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  transition: border-color .15s;
+}
+.related-card:hover { border-color: #aaa; }
+.related-card-thumb { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
+.related-card-placeholder { width: 36px; height: 36px; border-radius: 5px; background: #FBEAF0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.related-card-name { font-size: 13px; color: #1a1a1a; }
+
+/* ③ 材料名リンク */
+.ing-link { color: #185FA5; cursor: pointer; text-decoration: underline; }
+.ing-link:hover { color: #0d3d73; }
+
+/* ③ 編集フォーム：材料名がリンク対象のとき色を変える */
+.ing-name-linked { color: #185FA5 !important; }
 
 @media(max-width:600px){
 .field-row{flex-direction:column}
@@ -213,12 +233,16 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
       <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
       <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
-    </button> 
+    </button>
 
     <button class="btn" onclick="exportData()">書き出し</button>
-    <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
-    <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
-    <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
+
+    <!-- ① 編集ツール：シークレットURLのときだけ表示 -->
+    <span id="editorTools" style="display:none;gap:6px;align-items:center">
+      <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
+      <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
+      <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
+    </span>
   </div>
 </div>
 <div class="count-bar" id="countLabel"></div>
@@ -278,6 +302,10 @@ window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
 window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
 window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
 
+// ① シークレットURL判定
+var SECRET_KEY = 'okashi2024';  // ← ここを好きな文字列に変えてください
+var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
+
 var recipes = [];
 var editId = null;
 var favFilter = null;
@@ -293,6 +321,9 @@ async function loadRecipes() {
       r.desc     = r.desc      || '';
       return r;
     });
+    // ① 編集ツールの表示切り替え
+    var et = document.getElementById('editorTools');
+    if (isEditor) et.style.display = 'flex';
     render();
   }
 }
@@ -307,11 +338,9 @@ function getFiltered(){
   var c=document.getElementById('filterCat').value;
   var p=document.getElementById('filterPub').value;
   return recipes.filter(function(r){
-    // --- ここを修正 ---
     if(favFilter==='heart' && !r.heart) return false;
     if(favFilter==='star' && !r.fav) return false;
-    if(favFilter==='crown' && !r.crown) return false; // 王冠フィルタを追加
-    // ----------------
+    if(favFilter==='crown' && !r.crown) return false;
     if(c&&r.cat!==c)return false;
     if(p==='1'&&!r.pub)return false;
     if(p==='0'&&r.pub)return false;
@@ -320,20 +349,14 @@ function getFiltered(){
   });
 }
 
-
-
 function toggleFavFilter(){
-  // サイクル：なし -> heart -> star -> crown -> なし
   if(!favFilter) favFilter = 'heart';
   else if(favFilter === 'heart') favFilter = 'star';
-  else if(favFilter === 'star') favFilter = 'crown'; // 星の次に王冠を追加
+  else if(favFilter === 'star') favFilter = 'crown';
   else favFilter = null;
 
-  // アイコンの色更新（王冠用のID：favFilterCrown を想定）
   document.getElementById('favFilterIcon').style.color = (favFilter==='heart'?'#D4537E':'#ccc');
   document.getElementById('favFilterStar').style.color = (favFilter==='star'?'#BA7517':'#ccc');
-  
-  // 王冠アイコンの色も変える（後ほどHTMLにIDを追加します）
   var crownIcon = document.getElementById('favFilterCrown');
   if(crownIcon) crownIcon.style.color = (favFilter==='crown'?'#FFD700':'#ccc');
 
@@ -373,7 +396,7 @@ function render(){
       +'<div class="hearts">'
       +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
       +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-      +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>' // これを追加！
+      +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
       +'</div></div>'
       +descHtml
       +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
@@ -404,41 +427,31 @@ function updateSelects(){
   document.getElementById('genreList').innerHTML=genres.map(function(g){return '<option value="'+esc(g)+'">';}).join('');
 }
 
-//function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.heart=!r.heart;save();render();}}
-//function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return x.id===id;});if(r){r.fav=!r.fav;save();render();}}
-// 💛
 function toggleHeart(e, id) {
   e.stopPropagation();
   var r = recipes.find(function(x) { return String(x.id) === String(id); });
   if (r) {
     r.heart = !r.heart;
-    // 料理名チェックのない専用関数を呼ぶ
-    saveStatus(r.id, r.heart, r.fav); 
+    saveStatus(r.id, r.heart, r.fav, r.crown);
     render();
   }
 }
-// ★
 function toggleStar(e, id) {
   e.stopPropagation();
   var r = recipes.find(function(x) { return String(x.id) === String(id); });
   if (r) {
     r.fav = !r.fav;
-    // 料理名チェックのない専用関数を呼ぶ
-    saveStatus(r.id, r.heart, r.fav); 
+    saveStatus(r.id, r.heart, r.fav, r.crown);
     render();
   }
 }
-// ♚
 function toggleCrown(e, id) {
   e.stopPropagation();
   var r = recipes.find(function(x) { return String(x.id) === String(id); });
   if (r) {
-    // もしデータに crown プロパティがなければ false から始める
     if (r.crown === undefined) r.crown = false;
-    
     r.crown = !r.crown;
-    // 既存の heart, fav と一緒に crown も保存
-    saveStatus(r.id, r.heart, r.fav, r.crown); 
+    saveStatus(r.id, r.heart, r.fav, r.crown);
     render();
   }
 }
@@ -451,27 +464,17 @@ function handlePhotoAdd(input){
     img.onload=function(){
       var MAX=1200;
       var w=img.width, h=img.height;
-      var dataUrl;
-      
-      // 画像が大きくても小さくても、必ずCanvasを通してWebPに変換する
       var scale = (w > MAX || h > MAX) ? MAX / Math.max(w, h) : 1;
       var cw = Math.round(w * scale);
       var ch = Math.round(h * scale);
-      
       var canvas = document.createElement('canvas');
       canvas.width = cw;
       canvas.height = ch;
       var ctx = canvas.getContext('2d');
-      
-      // 背景を白にする（透過画像が黒くならないための工夫）
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, cw, ch);
-      
       ctx.drawImage(img, 0, 0, cw, ch);
-      
-      // ここを image/webp に変更！
-      dataUrl = canvas.toDataURL('image/webp', 0.85); 
-      
+      var dataUrl = canvas.toDataURL('image/webp', 0.85);
       pendingPhotos.push({title:'', data:dataUrl});
       renderPhotoList();
     };
@@ -484,7 +487,6 @@ function handlePhotoAdd(input){
 function renderPhotoList(){
   var list=document.getElementById('photoList');
   list.innerHTML='';
-
   pendingPhotos.forEach(function(photo,i){
     var item=document.createElement('div');
     item.className='photo-item';
@@ -499,7 +501,6 @@ function renderPhotoList(){
     (function(idx){
       titleInput.oninput=function(){pendingPhotos[idx].title=this.value;};
     })(i);
-    // 一覧用チェックボックス（排他：1枚だけ）
     var coverLabel=document.createElement('label');
     coverLabel.className='photo-cover-label';
     var coverCb=document.createElement('input');
@@ -616,12 +617,37 @@ function removePart(btn){
 function addRowToTbody(tbody,name,amt,note){
   var tr=document.createElement('tr');
   var tdN=document.createElement('td');tdN.className='col-name';
-  var iN=document.createElement('input');iN.type='text';iN.placeholder='例：薄力粉';iN.value=name||'';tdN.appendChild(iN);
+  var iN=document.createElement('input');iN.type='text';iN.placeholder='例：薄力粉';iN.value=name||'';
+
+  // ③ 材料名がレシピ名と一致したらリンク色にする
+  iN.addEventListener('blur', function() {
+    var matched = recipes.find(function(r) {
+      return r.name === iN.value.trim() && String(r.id) !== String(editId);
+    });
+    if (matched) {
+      iN.classList.add('ing-name-linked');
+      iN.title = '「' + matched.name + '」のレシピにリンクされます';
+    } else {
+      iN.classList.remove('ing-name-linked');
+      iN.title = '';
+    }
+  });
+  // 既存データを読み込んだ時もチェック
+  if (name) {
+    var matched = recipes.find(function(r) {
+      return r.name === name && String(r.id) !== String(editId);
+    });
+    if (matched) {
+      iN.classList.add('ing-name-linked');
+      iN.title = '「' + matched.name + '」のレシピにリンクされます';
+    }
+  }
+
+  tdN.appendChild(iN);
   var tdA=document.createElement('td');tdA.className='col-amt';
   var iA=document.createElement('input');iA.type='text';iA.placeholder='例：200g';iA.value=amt||'';tdA.appendChild(iA);
   var tdNo=document.createElement('td');tdNo.className='col-note';
   var iNo=document.createElement('input');iNo.type='text';iNo.placeholder='備考';iNo.value=note||'';tdNo.appendChild(iNo);
-  // ↑↓ 並び替えボタン
   var tdM=document.createElement('td');tdM.className='col-move';
   tdM.style.cssText='padding:0 2px;vertical-align:middle';
   var bUp=document.createElement('button');bUp.className='btn-move-row';bUp.textContent='▲';bUp.title='上へ';
@@ -716,12 +742,10 @@ function openEdit(id){
   openOverlay('overlayAdd');
 }
 
-
-// --- ヘルパー関数 WebP対応版: Base64をBlobに変換 ---
+// --- WebP対応：Base64をBlobに変換（WebP固定） ---
 function base64ToBlob(base64) {
   const parts = base64.split(';base64,');
-  // 元が何であれ、アプリ側でWebPとして扱う指示を出す
-  const contentType = 'image/webp'; 
+  const contentType = 'image/webp';
   const raw = window.atob(parts[1]);
   const rawLength = raw.length;
   const uInt8Array = new Uint8Array(rawLength);
@@ -731,135 +755,69 @@ function base64ToBlob(base64) {
   return new Blob([uInt8Array], { type: contentType });
 }
 
-// --- ヘルパー関数(お掃除機能付き): Storageへ1枚アップロードしてURLを返す ---
+// --- Storageへ1枚アップロードしてURLを返す ---
 async function uploadToStorage(photo) {
   if (photo.data && photo.data.startsWith('http')) {
     return photo.data;
   }
-
   const blob = base64ToBlob(photo.data);
-  // 拡張子を .webp に固定
   const fileName = `${Date.now()}_${Math.random().toString(36).slice(-5)}.webp`;
-  
   const { data, error } = await window.supabase.storage
     .from('recipe-photos')
     .upload(fileName, blob, {
-      contentType: 'image/webp', // 明示的にWebPとしてアップロード
+      contentType: 'image/webp',
       upsert: true
     });
-
   if (error) throw error;
-
   const { data: { publicUrl } } = window.supabase.storage
     .from('recipe-photos')
     .getPublicUrl(fileName);
-
   return publicUrl;
 }
 
-// --- 【新規】Storageから画像を削除する関数 ---
+// --- Storageから画像を削除 ---
 async function deleteStoragePhotos(photoUrls) {
   if (!photoUrls || photoUrls.length === 0) return;
-
-  // URLからファイル名だけを抽出
   const fileNames = photoUrls.map(url => {
     const parts = url.split('/');
     return parts[parts.length - 1];
   });
-
   const { error } = await window.supabase.storage
     .from('recipe-photos')
     .remove(fileNames);
-
   if (error) console.warn('Storage delete error:', error);
 }
 
-
-// ---260326-1556 add
-// 1. Base64データを「ファイル（Blob）」に変換する関数
-function base64ToBlob(base64) {
-  const parts = base64.split(';base64,');
-  const contentType = parts[0].split(':')[1];
-  const raw = window.atob(parts[1]);
-  const rawLength = raw.length;
-  const uInt8Array = new Uint8Array(rawLength);
-  for (let i = 0; i < rawLength; ++i) {
-    uInt8Array[i] = raw.charCodeAt(i);
-  }
-  return new Blob([uInt8Array], { type: contentType });
-}
-
-// 2. Storageにアップロードして「URL」を返してもらう関数
-// (内部で上の base64ToBlob を使います)
-async function uploadToStorage(photo) {
-  // すでにURL（http...）なら、もうStorageにあるのでそのまま返す
-  if (photo.data && photo.data.startsWith('http')) {
-    return photo.data;
-  }
-
-  const blob = base64ToBlob(photo.data);
-  const ext = blob.type.split('/')[1] || 'jpg';
-  // ファイル名が重ならないように「時間＋ランダム文字列」にする
-  const fileName = `${Date.now()}_${Math.random().toString(36).slice(-5)}.${ext}`;
-  
-  const { data, error } = await window.supabase.storage
-    .from('recipe-photos') // ← ここ、Supabaseで作ったバケット名と合わせてくださいね！
-    .upload(fileName, blob);
-
-  if (error) throw error;
-
-  // 公開用URLを取得
-  const { data: { publicUrl } } = window.supabase.storage
-    .from('recipe-photos')
-    .getPublicUrl(fileName);
-
-  return publicUrl;
-}
-
-
-
-
-// --- メインの保存関数 --- 260326-1556 edit
+// --- メインの保存関数 ---
 async function saveRecipe() {
   const name = document.getElementById('fName').value.trim();
   if (!name) { alert('料理名を入力してください'); return; }
 
-  // 保存ボタンを一時的に無効化（二重送信防止）
   const saveBtn = document.querySelector('.modal-btns-right .btn-accent');
   const originalText = saveBtn.textContent;
   saveBtn.disabled = true;
   saveBtn.textContent = '保存中...';
 
   try {
-    // --- 1. 古い画像のURLを特定（お掃除準備） ---
     let oldPhotoUrls = [];
     if (editId) {
       const oldRecipe = recipes.find(r => String(r.id) === String(editId));
       if (oldRecipe && oldRecipe.photos) {
-        // 現在Storageにある（httpから始まる）URLだけを抽出
         oldPhotoUrls = oldRecipe.photos.map(p => p.data).filter(url => url && url.startsWith('http'));
       }
     }
 
-    // --- 2. 画像をすべてStorageにアップロード（WebP変換含む） ---
     const uploadedPhotos = await Promise.all(pendingPhotos.map(async (p) => {
-      // すでにURLならそのまま、Base64ならWebPとしてアップロードしてURLを取得
       const url = await uploadToStorage(p);
-      return {
-        title: p.title || '',
-        data: url,
-        cover: !!p.cover
-      };
+      return { title: p.title || '', data: url, cover: !!p.cover };
     }));
 
-    // --- 3. 不要になった古い画像をStorageから削除 ---
     const newUrls = uploadedPhotos.map(p => p.data);
     const urlsToDelete = oldPhotoUrls.filter(url => !newUrls.includes(url));
     if (urlsToDelete.length > 0) {
       await deleteStoragePhotos(urlsToDelete);
     }
 
-    // --- 4. レシピデータの作成 ---
     const ings = document.getElementById('fIngs').value.split(',').map(s => s.trim()).filter(Boolean);
     const ingParts = getIngData();
     const newId = editId || String(Date.now());
@@ -877,30 +835,26 @@ async function saveRecipe() {
       steps: document.getElementById('fSteps').value,
       memo: document.getElementById('fMemo').value,
       pub: document.getElementById('fPub').checked,
-      photos: uploadedPhotos, // WebPのURLリスト
+      photos: uploadedPhotos,
       fav: false,
       heart: false,
+      crown: false,
       date: currentDate
     };
 
-    // 編集時は既存のステータスを維持
     if (editId) {
       const old = recipes.find(x => String(x.id) === String(editId));
       if (old) {
-        recipeData.fav = !!old.fav;
+        recipeData.fav   = !!old.fav;
         recipeData.heart = !!old.heart;
-        recipeData.date = old.date || currentDate;
+        recipeData.crown = !!old.crown;
+        recipeData.date  = old.date || currentDate;
       }
     }
 
-    // --- 5. Supabase DBへ保存 (upsert) ---
-    const { error } = await window.supabase
-      .from('recipes')
-      .upsert(recipeData);
-
+    const { error } = await window.supabase.from('recipes').upsert(recipeData);
     if (error) throw error;
 
-    // --- 6. ローカルの配列を更新して再描画 ---
     if (editId) {
       const idx = recipes.findIndex(x => String(x.id) === String(editId));
       if (idx !== -1) recipes[idx] = recipeData;
@@ -916,55 +870,37 @@ async function saveRecipe() {
     console.error('Save Error:', err);
     alert('保存に失敗しました: ' + err.message);
   } finally {
-    // ボタンを元に戻す
     saveBtn.disabled = false;
     saveBtn.textContent = originalText;
   }
 }
 
-// お気に入り状態だけをSupabaseに即座に保存する関数
-// 引数に crown を追加します
+// お気に入り状態をSupabaseに保存
 async function saveStatus(id, heart, fav, crown) {
   try {
     const { error } = await window.supabase
       .from('recipes')
-      .update({ 
-        heart: heart, 
-        fav: fav,
-        crown: crown // 王冠の状態も保存
-      })
+      .update({ heart: heart, fav: fav, crown: crown })
       .eq('id', String(id));
-
     if (error) throw error;
-    console.log('ステータスを更新しました');
   } catch (err) {
     console.error('Status Update Error:', err);
     alert('状態の保存に失敗しました: ' + err.message);
   }
 }
 
-// ★修正：Supabaseから直接削除するように変更
-
 async function deleteRecipe(){
   if(!confirm('このレシピを削除しますか？')) return;
-
   try {
     const targetId = String(editId);
     const targetRecipe = recipes.find(r => String(r.id) === targetId);
-
-    // 1. Storageの画像を削除
     if (targetRecipe && targetRecipe.photos) {
       const urls = targetRecipe.photos.map(p => p.data).filter(url => url.startsWith('http'));
       await deleteStoragePhotos(urls);
     }
-
-    // 2. DBから削除
     const { error } = await window.supabase.from('recipes').delete().eq('id', targetId);
     if(error) throw error;
-
-    // 3. ローカル配列から削除
     recipes = recipes.filter(r => String(r.id) !== targetId);
-
     alert('削除しました');
     closeOverlay('overlayAdd');
     render();
@@ -974,8 +910,18 @@ async function deleteRecipe(){
   }
 }
 
+// ③ 材料名をリンク付きで返すヘルパー
+function ingNameHtml(name, currentId) {
+  var found = recipes.find(function(x) { return x.name === name && String(x.id) !== String(currentId); });
+  if (found) {
+    return '<span class="ing-link" onclick="event.stopPropagation();openDetail(\'' + found.id + '\')">' + esc(name) + '</span>';
+  }
+  return esc(name);
+}
+
 function renderIngSection(r){
   if(!r)return '';
+  var currentId = r.id;
   var parts=r.ingParts||r.ing_parts||[];
   if(Array.isArray(parts)&&parts.length>0){
     var hasLabels=parts.some(function(p){return p&&p.label;});
@@ -983,7 +929,9 @@ function renderIngSection(r){
       if(!p||!p.rows)return '';
       var lh=hasLabels&&p.label?'<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>':'';
       var rh=(p.rows||[]).map(function(row){
-        return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
+        return '<tr>'
+          // ③ 材料名セル：リンク対応
+          +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+ingNameHtml(row.name, currentId)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
       }).join('');
@@ -997,7 +945,8 @@ function renderIngSection(r){
   }
   if(r.ingRows&&r.ingRows.length){
     var rh2=r.ingRows.map(function(row){
-      return '<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+esc(row.name)+'</td>'
+      return '<tr>'
+        +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+ingNameHtml(row.name, currentId)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
         +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
     }).join('');
@@ -1012,6 +961,20 @@ function renderIngSection(r){
   return '';
 }
 
+// ③ 関連レシピを材料欄から自動検出
+function getRelatedRecipes(r) {
+  var relatedIds = [];
+  var parts = r.ing_parts || r.ingParts || [];
+  var allRows = [];
+  parts.forEach(function(p) { (p.rows || []).forEach(function(row) { allRows.push(row.name); }); });
+  if (r.ingRows) r.ingRows.forEach(function(row) { allRows.push(row.name); });
+  allRows.forEach(function(name) {
+    var found = recipes.find(function(x) { return x.name === name && String(x.id) !== String(r.id); });
+    if (found && relatedIds.indexOf(found.id) < 0) relatedIds.push(found.id);
+  });
+  return relatedIds.map(function(id) { return recipes.find(function(x) { return x.id === id; }); }).filter(Boolean);
+}
+
 function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
   if(!r){console.error('Recipe not found for ID:',id);return;}
@@ -1023,7 +986,7 @@ function openDetail(id){
     +'<div style="display:flex;gap:4px;flex-shrink:0">'
     +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
     +'<button class="star-btn'+(r.fav?' on':'')+'" style="font-size:17px" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
-    + '<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♚</button>'
+    +'<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♚</button>'
     +'</div></div>';
   html+='<div class="tags" style="margin-bottom:1rem">'
     +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
@@ -1047,10 +1010,28 @@ function openDetail(id){
   }
   if(r.memo)html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
   if(r.url)html+='<div class="detail-section"><h3>元レシピ</h3><a href="'+esc(r.url)+'" style="font-size:13px;color:#185FA5;word-break:break-all">'+esc(r.url)+'</a></div>';
+
+  // ③ 関連レシピセクション
+  var related = getRelatedRecipes(r);
+  if (related.length) {
+    html += '<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    related.forEach(function(rel) {
+      var thumb = getThumb(rel);
+      html += '<div class="related-card" onclick="openDetail(\'' + rel.id + '\')">'
+        + (thumb
+          ? '<img class="related-card-thumb" src="' + thumb + '" alt="">'
+          : '<div class="related-card-placeholder">' + getCatEmoji(rel.cat) + '</div>')
+        + '<span class="related-card-name">' + esc(rel.name) + '</span>'
+        + '</div>';
+    });
+    html += '</div></div>';
+  }
+
   html+='<div style="font-size:11px;color:#aaa;margin-bottom:1rem">'+(r.date||'')+'</div>';
   html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
     +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
-    +'<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>'
+    // ① 編集ボタンはエディターのみ表示
+    +(isEditor ? '<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>' : '')
     +'</div></div>';
   document.getElementById('detailContent').innerHTML=html;
   openOverlay('overlayDetail');
@@ -1082,9 +1063,7 @@ function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
 }
 
-// -----------------------------------------------
 // テキストファイルからレシピを読み込む
-// -----------------------------------------------
 function openFromTextFile(input){
   var file = input.files[0];
   if(!file) return;
@@ -1097,7 +1076,6 @@ function openFromTextFile(input){
       input.value = '';
       return;
     }
-    // フォームをクリアして開く
     editId = null;
     pendingPhotos = [];
     document.getElementById('formTitle').textContent = 'レシピを追加（テキストから）';
@@ -1124,16 +1102,12 @@ function parseRecipeText(text){
     name:'', desc:'', cat:'', genre:'', ings:'',
     url:'', steps:'', memo:'', pub:false, ingParts:[]
   };
-
   var lines = text.split(/\r?\n/);
-
-  // モード: 'none' | 'name' | 'cat' | 'genre' | 'desc' | 'ings' | 'url' | 'pub' | 'ing' | 'steps' | 'memo'
   var mode = 'none';
   var currentPartLabel = '';
   var currentRows = [];
   var stepsLines = [];
   var memoLines = [];
-  var contentLines = []; // 単一行項目の一時バッファ
 
   function flushPart(){
     if(currentRows.length > 0){
@@ -1143,35 +1117,17 @@ function parseRecipeText(text){
     }
   }
 
-  function flushContent(){
-    var val = contentLines.join('\n').trim();
-    contentLines = [];
-    return val;
-  }
-
   for(var i = 0; i < lines.length; i++){
     var line = lines[i].trim();
-
-    // ※ 始まりの行はコメント・但し書きなので無視
     if(/^※/.test(line)) continue;
-
-    // # 見出し行の処理
     if(/^#\s+/.test(line)){
       var heading = line.replace(/^#\s+/, '').trim();
-
-      // 前のモードの後処理
       if(mode === 'ing') flushPart();
-
-      // # パート名: xxx （材料モード中の行）
       if(/^パート名[:：]/.test(heading)){
-        // 直前の材料パートを確定してから新パートを開始
         flushPart();
         currentPartLabel = heading.replace(/^パート名[:：]\s*/, '').trim();
-        // modeはingのまま
         continue;
       }
-
-      // 各見出しに応じてモード切り替え
       if(heading === '料理名')   { mode = 'name';   continue; }
       if(heading === 'カテゴリ') { mode = 'cat';    continue; }
       if(heading === 'ジャンル') { mode = 'genre';  continue; }
@@ -1182,20 +1138,14 @@ function parseRecipeText(text){
       if(heading === '手順')     { mode = 'steps';  continue; }
       if(heading === '覚書')     { mode = 'memo';   continue; }
       if(heading === '材料')     { mode = 'ing'; currentPartLabel = ''; continue; }
-
-      // 未知の見出しは無視
       mode = 'none';
       continue;
     }
-
-    // 空行スキップ（手順・覚書内の空行は保持）
     if(line === ''){
       if(mode === 'steps') stepsLines.push('');
       if(mode === 'memo')  memoLines.push('');
       continue;
     }
-
-    // モードに応じてコンテンツ行を処理
     if(mode === 'name')  { result.name  = line; mode = 'none'; continue; }
     if(mode === 'cat')   { result.cat   = line; mode = 'none'; continue; }
     if(mode === 'genre') { result.genre = line; mode = 'none'; continue; }
@@ -1203,28 +1153,18 @@ function parseRecipeText(text){
     if(mode === 'ings')  { result.ings  = line; mode = 'none'; continue; }
     if(mode === 'url')   { result.url   = line; mode = 'none'; continue; }
     if(mode === 'pub')   { result.pub   = /^(はい|yes|true|1)$/i.test(line); mode = 'none'; continue; }
-
     if(mode === 'ing'){
-      // # パート名 の次の行が材料行
       var cols = line.split(/,|，/).map(function(s){ return s.trim(); });
-      currentRows.push({
-        name: cols[0] || '',
-        amt:  cols[1] || '',
-        note: cols[2] || ''
-      });
+      currentRows.push({ name: cols[0] || '', amt: cols[1] || '', note: cols[2] || '' });
       continue;
     }
-
     if(mode === 'steps'){ stepsLines.push(line); continue; }
     if(mode === 'memo') { memoLines.push(line);  continue; }
   }
 
-  // 残りをフラッシュ
   flushPart();
-
   result.steps = stepsLines.join('\n').trim();
   result.memo  = memoLines.join('\n').trim();
-
   return result;
 }
 </script>
