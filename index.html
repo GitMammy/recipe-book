@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260626-1500　-->
+  <!--　260626-1507　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -371,7 +371,7 @@ function renderPhotoList(){
     (function(idx){
       coverCb.onchange=function(){
         pendingPhotos.forEach(function(p){p.cover=false;});
-        pendingPhotos[idx].cover=true;
+        pendingPhotos[idx].cover=this.checked;
         renderPhotoList();
       };
     })(i);
