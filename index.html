@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1510　チップス機能等追加試験中　-->
+  <!--　260627-1530　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -305,6 +305,42 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   overflow: hidden;
 }
 
+/* --- 1. 管理画面を最前面に浮かせる設定 --- */
+.overlay {
+  position: fixed; 
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); 
+  display: none; 
+  z-index: 9999; 
+  align-items: center;
+  justify-content: center;
+}
+/* 表示する時だけ flex に切り替える */
+.overlay.active {
+  display: flex !important;
+}
+
+/* --- 2. レシピカード：ピンクの太枠＆ごく薄い背景 --- */
+.grid .card:not(.card-tip) {
+  background-color: #fffafd !important; /* ★ここを薄くしました */
+  border-color: #ffb6c1 !important;     /* 枠線はそのまま */
+  border-width: 3px !important;
+}
+
+/* --- 3. チップスカード：緑の太枠＆写真対応 --- */
+.grid .card.card-tip {
+  background-color: #f0fff4 !important;
+  border-color: #98fb98 !important;
+  border-width: 3px !important;
+  cursor: pointer;
+}
+.card-tip .tip-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-bottom: 2px solid #98fb98;
+}
 </style>
 /* =========================================
    　　　　 ここまで　ｓｔｙｌｅ 
@@ -563,17 +599,24 @@ async function render(){
     }).join('');
   }
 
-  // --- 3. 共通チップスカードの組み立て（レシピの下に並ぶ） ---
-  // 検索中（絞り込み中）でない時だけ表示します
+
+// --- 3. 共通チップスカードの組み立て（レシピの下に並ぶ） ---
   if (tips && tips.length > 0 && !isSearching) {
     tips.forEach(function(t) {
+      // ★ 写真があれば表示、なければ表示しないHTML
+      var tipImg = t.image_url ? `<img src="${t.image_url}" class="tip-img">` : '';
+      
       html += `
         <div class="card card-tip" onclick="openCommonTipsManager()">
-          <div class="tip-title">💡 ${esc(t.title)}</div>
-          <div class="tip-content">${esc(t.content)}</div>
+          ${tipImg}
+          <div style="padding:15px;">
+            <div class="tip-title">💡 ${esc(t.title)}</div>
+            <div class="tip-content">${esc(t.content)}</div>
+          </div>
         </div>`;
     });
   }
+
 
   // レシピもチップスも何もない場合
   if (html === '') {
@@ -1471,40 +1514,53 @@ function openCommonTipsManager() {
   renderCommonTipList();
   openOverlay('overlayCommonTips');
 }
-
-// 一覧を表示
 async function renderCommonTipList() {
   const listDiv = document.getElementById('commonTipList');
   const { data: tips } = await window.supabase.from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
   if (!tips || tips.length === 0) { listDiv.innerHTML = '<p style="font-size:11px;color:#999;text-align:center;">なし</p>'; return; }
-  listDiv.innerHTML = tips.map(t => `
-    <div style="font-size:12px; border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between;">
-      <div><strong>${esc(t.title)}</strong><div style="font-size:11px;color:#666;">${esc(t.content)}</div></div>
-      <button onclick="deleteCommonTip('${t.id}')" style="background:none; border:none; color:#638C3E; cursor:pointer; font-size:11px;">削除</button>
-    </div>
-  `).join('');
+  
+  listDiv.innerHTML = tips.map(t => {
+    // リストに小さなプレビュー画像を表示
+    const imgHtml = t.image_url ? `<img src="${t.image_url}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;margin-right:5px;flex-shrink:0;">` : '';
+    return `
+      <div style="font-size:12px; border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between; align-items:start;">
+        <div style="display:flex;align-items:start;">
+          ${imgHtml}
+          <div><strong>${esc(t.title)}</strong><div style="font-size:11px;color:#666;">${esc(t.content)}</div></div>
+        </div>
+        <button onclick="deleteCommonTip('${t.id}')" style="background:none; border:none; color:#638C3E; cursor:pointer; font-size:11px;flex-shrink:0;">削除</button>
+      </div>
+    `;
+  }).join('');
 }
 
-// 追加
 async function addCommonTip() {
   const title = document.getElementById('commonTipTitle').value.trim();
   const content = document.getElementById('commonTipContent').value.trim();
+  const photoUrl = document.getElementById('commonTipPhotoUrl').value.trim(); // ★URLを取得
   if (!title || !content) return;
-  await window.supabase.from('notes_and_tips').insert({ recipe_id: null, title: title, content: content, category: 'tips' });
+
+  await window.supabase.from('notes_and_tips').insert({ 
+    recipe_id: null, 
+    title: title, 
+    content: content, 
+    image_url: photoUrl, // ★URLを保存
+    category: 'tips' 
+  });
+
   document.getElementById('commonTipTitle').value = '';
   document.getElementById('commonTipContent').value = '';
+  document.getElementById('commonTipPhotoUrl').value = ''; // ★空にする
   renderCommonTipList();
-  render(); // メイン画面の一覧も更新
+  render(); 
 }
 
-// 削除
 async function deleteCommonTip(id) {
   if (!confirm('削除しますか？')) return;
   await window.supabase.from('notes_and_tips').delete().eq('id', id);
   renderCommonTipList();
   render();
 }
-
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -1513,15 +1569,23 @@ async function deleteCommonTip(id) {
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
 
+
 <div class="overlay" id="overlayCommonTips">
-  <div class="overlay-content" style="max-width:400px;">
+  <div class="overlay-content" style="max-width:400px; background:white; padding:20px; border-radius:15px;">
     <h3 style="color:#638C3E; border-bottom:2px solid #638C3E; padding-bottom:5px;">💡 共通チップス管理</h3>
+    
     <div style="background:#f9fbf7; padding:10px; border-radius:8px; border:1px solid #e0e6d8; margin:15px 0;">
       <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px;">
-      <textarea id="commonTipContent" placeholder="内容（コツや豆知識など）" style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
+      
+      <input type="text" id="commonTipPhotoUrl" placeholder="写真のURL（任意）" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px;">
+      
+      <textarea id="commonTipContent" placeholder="内容..." style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
+      
       <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white;">共通チップスを追加</button>
     </div>
-    <div id="commonTipList" style="max-height:200px; overflow-y:auto;"></div>
+
+    <div id="commonTipList" style="max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px;"></div>
+    
     <div class="modal-btns" style="margin-top:15px;">
       <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
     </div>
