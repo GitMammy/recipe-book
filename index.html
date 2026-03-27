@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0935　カテゴリ・ジャンル 編集時リストが出ない問題-->
+  <!--　260627-0940　カテゴリ・ジャンル 編集時リストが出ない問題-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -763,6 +763,9 @@ function openEdit(id){
 
 document.getElementById('fCat').value=r.cat||'';
 document.getElementById('fGenre').value=r.genre||'';
+// 【追加】クリック（フォーカス）時に中身を全選択する
+document.getElementById('fCat').onfocus = function() { this.select(); };
+document.getElementById('fGenre').onfocus = function() { this.select(); };
 
   document.getElementById('fIngs').value=(r.ings||[]).join(', ');
   document.getElementById('fUrl').value=r.url||'';
