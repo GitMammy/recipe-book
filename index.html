@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1747　チップス機能等追加試験中　-->
+  <!--　260627-1854　チップス機能等追加試験中見切れ対応　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -319,11 +319,23 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   background-color: rgba(0, 0, 0, 0.6); 
   display: none; 
   z-index: 9999; 
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
+  padding: 2rem 1rem;
 }
-.overlay.active {
+.overlay.active, .overlay.open {
   display: flex !important;
+}
+
+/* チップス詳細モーダル */
+.tip-detail-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e0e6d8;
 }
 </style>
 
@@ -343,9 +355,9 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
     </button>
 
-    <button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE; color:#27500A; border:1px solid #638C3E;">💡 チップス</button>
-
+    <!-- ① 閲覧モードでは「チップス」ボタンを非表示 → editorToolsの中に移動 -->
     <span id="editorTools" style="display:none;gap:6px;align-items:center">
+      <button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE; color:#27500A; border:1px solid #638C3E;">💡 チップス</button>
       <button class="btn" onclick="exportData()">書き出し</button>
       <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
       <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
@@ -358,8 +370,9 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 </div>
 
+<!-- ② レシピ追加・編集モーダル：スクロール対応 -->
 <div class="overlay" id="overlayAdd">
-  <div class="modal">
+  <div class="modal" style="margin: auto;">
     <button class="modal-close" onclick="closeOverlay('overlayAdd')">✕</button>
     <h2 id="formTitle">レシピを追加</h2>
     <div class="field"><label>料理名</label><input type="text" id="fName" placeholder="例：鶏の唐揚げ"></div>
@@ -438,9 +451,17 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 </div>
 
 <div class="overlay" id="overlayDetail">
-  <div class="modal">
+  <div class="modal" style="margin: auto;">
     <button class="modal-close" onclick="closeOverlay('overlayDetail')">✕</button>
     <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ③ チップス詳細表示モーダル -->
+<div class="overlay" id="overlayTipDetail">
+  <div class="modal" style="max-width:480px; margin: auto;">
+    <button class="modal-close" onclick="closeOverlay('overlayTipDetail')">✕</button>
+    <div id="tipDetailContent"></div>
   </div>
 </div>
 
@@ -459,10 +480,6 @@ var favFilter = null;
 var dragSrc = null;
 var pendingPhotos = [];
 
-// =====================================================
-// 【修正①】マークダウン → HTML 変換ヘルパー
-// **太字**、・箇条書き、改行に対応
-// =====================================================
 function markdownToHtml(text) {
   if (!text) return '';
   var lines = text.split('\n');
@@ -470,7 +487,6 @@ function markdownToHtml(text) {
   var inUl = false;
 
   lines.forEach(function(line) {
-    // 箇条書き行（・ または • または - で始まる）
     if (/^[・•\-]\s*/.test(line)) {
       if (!inUl) { result.push('<ul>'); inUl = true; }
       var content = line.replace(/^[・•\-]\s*/, '');
@@ -490,9 +506,7 @@ function markdownToHtml(text) {
 }
 
 function applyInlineMarkdown(text) {
-  // **太字** → <strong>
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // `コード` → <code>
   text = text.replace(/`(.+?)`/g, '<code style="background:#f0f0f0;padding:0 3px;border-radius:3px;font-size:11px">$1</code>');
   return text;
 }
@@ -506,6 +520,7 @@ async function loadRecipes() {
       r.desc     = r.desc      || '';
       return r;
     });
+    // ① 編集モードのときだけeditorToolsを表示
     var et = document.getElementById('editorTools');
     if (isEditor) et.style.display = 'flex';
     render();
@@ -564,9 +579,6 @@ async function render(){
   var filterCat = document.getElementById('filterCat').value;
   var isSearching = searchWord !== '' || filterCat !== '';
 
-  // =====================================================
-  // 【修正③】favFilter中はチップスを取得しない
-  // =====================================================
   var tips = [];
   if (!isSearching && !favFilter) {
     const { data: tipData } = await window.supabase
@@ -612,16 +624,13 @@ async function render(){
     }).join('');
   }
 
-  // =====================================================
-  // 【修正①②③】チップスカード：markdownToHtml適用＋条件整理
-  // =====================================================
+  // ③ チップスカード：クリックで詳細表示（管理画面は開かない）
   if (tips.length > 0) {
     tips.forEach(function(t) {
       var tipImg = t.image_url ? '<img src="' + t.image_url + '" class="tip-img">' : '';
-      // ★ マークダウンをHTMLに変換して表示
       var tipContentHtml = markdownToHtml(t.content);
       
-      html += '<div class="card card-tip" onclick="openCommonTipsManager()">'
+      html += '<div class="card card-tip" onclick="openTipDetail(\'' + t.id + '\')">'
         + tipImg
         + '<div style="padding:15px;">'
         + '<div class="tip-title">💡 ' + esc(t.title) + '</div>'
@@ -636,6 +645,45 @@ async function render(){
   }
 
   g.innerHTML = html;
+}
+
+// ③ チップス詳細表示
+async function openTipDetail(tipId) {
+  const { data: t, error } = await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .eq('id', tipId)
+    .single();
+  
+  if (error || !t) return;
+
+  var html = '';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+    + '<span style="font-size:20px;">💡</span>'
+    + '<h2 style="font-size:17px;font-weight:600;color:#2e8b57;margin:0;">' + esc(t.title) + '</h2>'
+    + '</div>';
+
+  if (t.image_url) {
+    html += '<img src="' + t.image_url + '" class="tip-detail-img">';
+  }
+
+  html += '<div style="font-size:13px;color:#333;line-height:1.8;">' + markdownToHtml(t.content) + '</div>';
+
+  if (t.created_at) {
+    var d = new Date(t.created_at);
+    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    html += '<div style="font-size:11px;color:#aaa;margin-top:16px;">' + dateStr + '</div>';
+  }
+
+  html += '<div class="modal-btns" style="margin-top:12px;">'
+    + '<div></div>'
+    + '<div class="modal-btns-right">'
+    + '<button class="btn btn-sm" onclick="closeOverlay(\'overlayTipDetail\')">閉じる</button>'
+    + (isEditor ? '<button class="btn btn-sm" style="background:#EAF3DE;color:#27500A;border-color:#638C3E;" onclick="closeOverlay(\'overlayTipDetail\');openCommonTipsManager()">管理</button>' : '')
+    + '</div></div>';
+
+  document.getElementById('tipDetailContent').innerHTML = html;
+  openOverlay('overlayTipDetail');
 }
 
 function getCatEmoji(cat){
@@ -938,6 +986,9 @@ function openAdd(){
   document.getElementById('btnDelete').style.display='none';
   renderPhotoList();
   setIngData(null,null,null);
+  // ② モーダルを開く前に先頭にスクロール
+  var overlay = document.getElementById('overlayAdd');
+  overlay.scrollTop = 0;
   openOverlay('overlayAdd');
 }
 
@@ -964,6 +1015,9 @@ function openEdit(id){
   renderPhotoList();
   setIngData(r.ingParts||r.ing_parts,r.ingRows,r.ingDetail);
   renderEditNoteList();
+  // ② モーダルを開く前に先頭にスクロール
+  var overlay = document.getElementById('overlayAdd');
+  overlay.scrollTop = 0;
   openOverlay('overlayAdd');
 }
 
@@ -1226,10 +1280,6 @@ function getRelatedRecipes(r) {
   return relatedIds.map(function(id) { return recipes.find(function(x) { return x.id === id; }); }).filter(Boolean);
 }
 
-// =====================================================
-// 【修正②】openDetail：レシピ専用メモのみ取得
-// recipe_idがこのレシピのもの「だけ」を取得する
-// =====================================================
 async function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
   if(!r){console.error('Recipe not found for ID:',id);return;}
@@ -1237,7 +1287,7 @@ async function openDetail(id){
   const { data: notes } = await window.supabase
     .from('notes_and_tips')
     .select('*')
-    .eq('recipe_id', id)   // ← このレシピのメモだけ（共通チップスは含まない）
+    .eq('recipe_id', id)
     .order('created_at', { ascending: true });
 
   let notesHtml = '';
@@ -1319,13 +1369,20 @@ async function openDetail(id){
     +'</div></div>';
 
   document.getElementById('detailContent').innerHTML=html;
+  // ② 詳細モーダルも先頭にスクロール
+  document.getElementById('overlayDetail').scrollTop = 0;
   openOverlay('overlayDetail');
 }
 
-function openOverlay(id){document.getElementById(id).classList.add('open');}
-function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function openOverlay(id){
+  document.getElementById(id).classList.add('open');
+}
+function closeOverlay(id){
+  document.getElementById(id).classList.remove('open');
+}
 
 document.getElementById('overlayDetail').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayDetail');});
+document.getElementById('overlayTipDetail').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayTipDetail');});
 document.getElementById('search').addEventListener('input',render);
 document.getElementById('filterCat').addEventListener('change',render);
 document.getElementById('filterPub').addEventListener('change',render);
@@ -1375,6 +1432,8 @@ function openFromTextFile(input){
     document.getElementById('btnDelete').style.display = 'none';
     renderPhotoList();
     setIngData(parsed.ingParts, null, null);
+    var overlay = document.getElementById('overlayAdd');
+    overlay.scrollTop = 0;
     openOverlay('overlayAdd');
     input.value = '';
   };
@@ -1452,9 +1511,6 @@ function parseRecipeText(text){
   return result;
 }
 
-// =====================================================
-// 【修正④】共通チップス管理：写真をファイル選択方式に統一
-// =====================================================
 var pendingCommonTipPhoto = null;
 
 function handleCommonTipPhoto(input) {
@@ -1529,7 +1585,6 @@ async function addCommonTip() {
 
   try {
     let imageUrl = null;
-    // ★ ファイルからアップロードした場合はStorageへ
     if (pendingCommonTipPhoto) {
       imageUrl = await uploadToStorage({ data: pendingCommonTipPhoto });
     }
@@ -1557,7 +1612,6 @@ async function addCommonTip() {
 
 async function deleteCommonTip(id) {
   if (!confirm('削除しますか？')) return;
-  // Storageの画像も削除
   const { data: tip } = await window.supabase.from('notes_and_tips').select('image_url').eq('id', id).single();
   if (tip && tip.image_url) await deleteStoragePhotos([tip.image_url]);
   await window.supabase.from('notes_and_tips').delete().eq('id', id);
@@ -1572,24 +1626,19 @@ async function deleteCommonTip(id) {
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
 
-<!-- =====================================================
-  【修正④】共通チップス管理モーダル：写真をファイル選択方式に統一
-===================================================== -->
 <div class="overlay" id="overlayCommonTips">
-  <div class="modal" style="max-width:420px;">
+  <div class="modal" style="max-width:420px; margin: auto;">
     <button class="modal-close" onclick="closeOverlay('overlayCommonTips')">✕</button>
     <h2 style="color:#638C3E; font-size:16px; border-bottom:2px solid #638C3E; padding-bottom:8px; margin-bottom:14px;">💡 共通チップス管理</h2>
     
     <div style="background:#f9fbf7; padding:12px; border-radius:8px; border:1px solid #e0e6d8; margin-bottom:12px;">
       <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:6px;">
       
-      <!-- ★ ファイル選択方式に統一 -->
       <div id="commonTipPhotoPreview"></div>
       <button type="button" class="btn-add-photo" onclick="document.getElementById('commonTipPhotoInput').click()" style="margin-bottom:6px;">📷 写真を追加（任意）</button>
       <input type="file" id="commonTipPhotoInput" accept="image/*" style="display:none" onchange="handleCommonTipPhoto(this)">
       
       <textarea id="commonTipContent" placeholder="内容..." style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical; margin-bottom:8px; outline:none;"></textarea>
-      <textarea onfocus="this.style.borderColor='#638C3E'" onblur="this.style.borderColor='#ddd'"></textarea>
       
       <button type="button" id="commonTipAddBtn" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white; border-color:#638C3E;">共通チップスを追加</button>
     </div>
