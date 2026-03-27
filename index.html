@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1530　チップス機能等追加試験中　-->
+  <!--　260627-1545　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -602,19 +602,23 @@ async function render(){
 
 // --- 3. 共通チップスカードの組み立て（レシピの下に並ぶ） ---
   if (tips && tips.length > 0 && !isSearching) {
-    tips.forEach(function(t) {
-      // ★ 写真があれば表示、なければ表示しないHTML
-      var tipImg = t.image_url ? `<img src="${t.image_url}" class="tip-img">` : '';
-      
-      html += `
-        <div class="card card-tip" onclick="openCommonTipsManager()">
-          ${tipImg}
-          <div style="padding:15px;">
-            <div class="tip-title">💡 ${esc(t.title)}</div>
-            <div class="tip-content">${esc(t.content)}</div>
-          </div>
-        </div>`;
-    });
+
+
+// render() 関数内のチップス描画部分を修正
+tips.forEach(function(t) {
+  var tipImg = t.image_url ? `<img src="${t.image_url}" class="tip-img">` : '';
+  
+  html += `
+    <div class="card card-tip" onclick="viewTip('${t.id}')">
+      ${tipImg}
+      <div style="padding:15px;">
+        <div class="tip-title">💡 ${esc(t.title)}</div>
+        <div class="tip-content">${esc(t.content)}</div>
+      </div>
+    </div>`;
+});
+
+
   }
 
 
@@ -627,6 +631,31 @@ async function render(){
   // 最後に画面へ反映！
   g.innerHTML = html;
 }
+
+
+// チップスを閲覧する画面を開く
+async function viewTip(tipId) {
+  // Supabaseから該当のチップスを1件取得
+  const { data: t, error } = await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .eq('id', tipId)
+    .single();
+
+  if (!t) return;
+
+  const imgHtml = t.image_url ? `<img src="${t.image_url}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:15px;">` : '';
+  
+  const html = `
+    <h3 style="color:#2e8b57; border-bottom:2px solid #98fb98; padding-bottom:8px; margin-bottom:15px; font-size:18px;">💡 ${esc(t.title)}</h3>
+    ${imgHtml}
+    <div style="font-size:15px; line-height:1.8; color:#333; white-space:pre-wrap; word-break:break-all;">${esc(t.content)}</div>
+  `;
+
+  document.getElementById('tipViewContent').innerHTML = html;
+  openOverlay('overlayViewTip'); // 閲覧用画面を開く
+}
+
 
 // 変更後
 function getCatEmoji(cat){
@@ -1588,6 +1617,16 @@ async function deleteCommonTip(id) {
     
     <div class="modal-btns" style="margin-top:15px;">
       <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlayViewTip">
+  <div class="overlay-content" style="max-width:450px; background:white; padding:25px; border-radius:15px;">
+    <div id="tipViewContent">
+      </div>
+    <div class="modal-btns" style="margin-top:20px;">
+      <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayViewTip')">閉じる</button>
     </div>
   </div>
 </div>
