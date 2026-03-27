@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0905　カテゴリ・ジャンル リスト固定-->
+  <!--　260627-0912　カテゴリ・ジャンル リスト固定-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -755,10 +755,11 @@ function openEdit(id){
 
 document.getElementById('fCat').value=r.cat||'';
 document.getElementById('fGenre').value=r.genre||'';
-// ↓ここに追加
-document.getElementById('fCat').setAttribute('list', 'catList');
-document.getElementById('fGenre').setAttribute('list', 'genreList');
-
+// ↓ setAttributeをsetTimeoutで遅らせる
+setTimeout(function(){
+  document.getElementById('fCat').setAttribute('list', 'catList');
+  document.getElementById('fGenre').setAttribute('list', 'genreList');
+}, 50);
   document.getElementById('fIngs').value=(r.ings||[]).join(', ');
   document.getElementById('fUrl').value=r.url||'';
   document.getElementById('fSteps').value=r.steps||'';
