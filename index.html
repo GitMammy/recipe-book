@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1427　チップス機能等追加-->
+  <!--　260627-1435　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1368,6 +1368,10 @@ function parseRecipeText(text){
   result.memo  = memoLines.join('\n').trim();
   return result;
 }
+// ★ ここ（一番下）にステップ2を入れる！ ★
+async function renderEditNoteList() { ... }
+async function addNote() { ... }
+async function deleteNote(noteId) { ... }
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
