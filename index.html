@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1438　チップス機能等追加試験中　-->
+  <!--　260627-1510　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -259,7 +259,58 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   margin-bottom: 8px;
   border: 1px solid rgba(0,0,0,0.1);
 }
+
+/* --- カード全体の共通設定（太枠） --- */
+.grid .card {
+  border-width: 3px !important; 
+  border-style: solid !important;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* --- レシピカード：ピンクの太枠 --- */
+.grid .card:not(.card-tip) {
+  background-color: #fff0f5 !important; /* 淡いピンク背景 */
+  border-color: #ffb6c1 !important;     /* 少し濃いピンクの太枠 */
+}
+.grid .card:not(.card-tip) .card-img {
+  border-bottom: 2px solid #ffb6c1;
+}
+
+/* --- チップスカード：やさしい緑の太枠 --- */
+.grid .card.card-tip {
+  background-color: #f0fff4 !important; /* やさしい緑背景 */
+  border-color: #98fb98 !important;     /* 緑の太枠 */
+  cursor: pointer;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 15px;
+}
+.card-tip .tip-title {
+  color: #2e8b57;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.card-tip .tip-content {
+  color: #555;
+  font-size: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 </style>
+/* =========================================
+   　　　　 ここまで　ｓｔｙｌｅ 
+   ========================================= */
+
+
 </head>
 <body>
 <div class="app">
@@ -276,11 +327,12 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
     </button>
 
-
+<button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE; color:#27500A; border:1px solid #638C3E;">💡 チップス</button>
 
     <!-- ① 編集ツール：シークレットURLのときだけ表示 -->
     <span id="editorTools" style="display:none;gap:6px;align-items:center">
       <button class="btn" onclick="exportData()">書き出し</button>
+      
       <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
       <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
       <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
@@ -456,37 +508,81 @@ function getThumb(r){
   return '';
 }
 
-function render(){
+//　非同期対応: Supabaseからデータを取ってくるので、関数の頭に async を付けました。
+async function render(){
   updateSelects();
-  var list=getFiltered();
-  document.getElementById('countLabel').textContent=list.length+'件';
-  var g=document.getElementById('grid');
-  if(!list.length){g.innerHTML='<div class="empty">レシピがありません</div>';return;}
-  g.innerHTML=list.map(function(r){
-    var thumb=getThumb(r);
-    var imgHtml=thumb
-      ?'<img class="card-img" src="'+thumb+'" alt="">'
-      :'<div class="card-img-placeholder">'+getCatEmoji(r.cat)+'</div>';
-    var photoCount=(r.photos&&r.photos.length>1)?'<span style="font-size:10px;color:#aaa;margin-left:4px">📷'+r.photos.length+'</span>':'';
-    var descHtml=r.desc?'<div class="card-desc">'+esc(r.desc)+'</div>':'';
-    var catTag=r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'';
-    var ingTags=(r.ings||[]).slice(0,2).map(function(i){return '<span class="tag t-ing">'+esc(i.trim())+'</span>';}).join('');
-    var moreTag=(r.ings||[]).length>2?'<span class="tag t-ing">+'+(r.ings.length-2)+'</span>':'';
-    var pubTag='<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
-    return '<div class="card" onclick="openDetail(\''+r.id+'\')">'
-      +imgHtml
-      +'<div class="card-body">'
-      +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
-      +'<div class="hearts">'
-      +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
-      +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-      +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
-      +'</div></div>'
-      +descHtml
-      +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
-      +'<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
-      +'</div></div>';
-  }).join('');
+  var list = getFiltered(); // フィルタ（検索など）済みのレシピ一覧
+  
+  // --- 1. Supabaseから共通チップスを取得 ---
+  const { data: tips } = await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .is('recipe_id', null)
+    .order('created_at', { ascending: true });
+
+  // 件数表示
+  document.getElementById('countLabel').textContent = list.length + '件';
+  var g = document.getElementById('grid');
+
+  // 検索中やカテゴリ絞り込み中かどうかの判定
+  var searchWord = document.getElementById('search').value.trim();
+  var filterCat = document.getElementById('filterCat').value;
+  var isSearching = searchWord !== '' || filterCat !== '';
+
+  var html = '';
+
+  // --- 2. レシピカードの組み立て（上側に並ぶ） ---
+  if (list.length > 0) {
+    html += list.map(function(r){
+      var thumb = getThumb(r);
+      var imgHtml = thumb
+        ? '<img class="card-img" src="'+thumb+'" alt="">'
+        : '<div class="card-img-placeholder">'+getCatEmoji(r.cat)+'</div>';
+      
+      var photoCount = (r.photos && r.photos.length > 1) ? '<span style="font-size:10px;color:#aaa;margin-left:4px">📷'+r.photos.length+'</span>' : '';
+      var descHtml = r.desc ? '<div class="card-desc">'+esc(r.desc)+'</div>' : '';
+      var catTag = r.cat ? '<span class="tag t-cat">'+esc(r.cat)+'</span>' : '';
+      var ingTags = (r.ings || []).slice(0, 2).map(function(i){ return '<span class="tag t-ing">'+esc(i.trim())+'</span>'; }).join('');
+      var moreTag = (r.ings || []).length > 2 ? '<span class="tag t-ing">+'+(r.ings.length-2)+'</span>' : '';
+      var pubTag = '<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
+      
+      // レシピカード（CSSの効果でピンクの太枠になります）
+      return '<div class="card" onclick="openDetail(\''+r.id+'\')">'
+        + imgHtml
+        + '<div class="card-body">'
+        + '<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
+        + '<div class="hearts">'
+        + '<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
+        + '<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
+        + '<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
+        + '</div></div>'
+        + descHtml
+        + '<div class="tags">'+catTag+ingTags+moreTag+'</div>'
+        + '<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  // --- 3. 共通チップスカードの組み立て（レシピの下に並ぶ） ---
+  // 検索中（絞り込み中）でない時だけ表示します
+  if (tips && tips.length > 0 && !isSearching) {
+    tips.forEach(function(t) {
+      html += `
+        <div class="card card-tip" onclick="openCommonTipsManager()">
+          <div class="tip-title">💡 ${esc(t.title)}</div>
+          <div class="tip-content">${esc(t.content)}</div>
+        </div>`;
+    });
+  }
+
+  // レシピもチップスも何もない場合
+  if (html === '') {
+    g.innerHTML = '<div class="empty">レシピもチップスもありません</div>';
+    return;
+  }
+
+  // 最後に画面へ反映！
+  g.innerHTML = html;
 }
 
 // 変更後
@@ -1130,11 +1226,12 @@ function getRelatedRecipes(r) {
   return relatedIds.map(function(id) { return recipes.find(function(x) { return x.id === id; }); }).filter(Boolean);
 }
 
+
 async function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
   if(!r){console.error('Recipe not found for ID:',id);return;}
 
-  // --- 1. Supabaseからこのレシピの「メモ」と「共通チップス」を取得 ---
+  // --- 1. メモと共通チップスを取得 ---
   const { data: notes, error } = await window.supabase
     .from('notes_and_tips')
     .select('*')
@@ -1158,13 +1255,13 @@ async function openDetail(id){
     }).join('');
   }
 
-  // --- 2. HTMLの組み立て開始 ---
+  // --- 2. HTML組み立て ---
   var ingHtml=renderIngSection(r);
   var photos=(r.photos&&r.photos.length)?r.photos:(r.img?[{title:'',data:r.img}]:[]);
   currentPhotos=photos;
   
   var html='';
-  // タイトルと星・ハート・王冠ボタン
+  // タイトル部
   html+='<div class="detail-top"><h2>'+esc(r.name)+'</h2>'
     +'<div style="display:flex;gap:4px;flex-shrink:0">'
     +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
@@ -1172,30 +1269,23 @@ async function openDetail(id){
     +'<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♚</button>'
     +'</div></div>';
 
-  // カテゴリ・ジャンルのタグ
+  // タグ
   html+='<div class="tags" style="margin-bottom:1rem">'
     +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
     +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
-    +'<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
+    + '<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
     +'</div>';
 
-  // 説明
   if(r.desc) html+='<div class="detail-section"><h3>説明</h3><p>'+esc(r.desc)+'</p></div>';
 
-  // --- 3. 【新機能】メモとコツ（ピンクと緑のカード）を表示 ---
-  if(notesHtml) {
-    html += '<div class="detail-section"><h3>💡 メモとコツ</h3>' + notesHtml + '</div>';
-  }
-
-  // 食材タグ（これは消さずに残しています！）
+  // 食材タグ・材料・手順
   if(r.ings&&r.ings.length){
     html+='<div class="detail-section"><h3>食材タグ</h3><div class="tags">'+r.ings.map(function(i){return '<span class="tag t-ing">'+esc(i)+'</span>';}).join('')+'</div></div>';
   }
-
-  // 材料・手順・写真
   if(ingHtml)html+='<div class="detail-section"><h3>材料</h3>'+ingHtml+'</div>';
   if(r.steps)html+='<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
   
+  // 写真
   if(photos.length){
     html+='<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
     photos.forEach(function(p,i){
@@ -1210,7 +1300,7 @@ async function openDetail(id){
   if(r.memo)html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
   if(r.url)html+='<div class="detail-section"><h3>元レシピ</h3><a href="'+esc(r.url)+'" style="font-size:13px;color:#185FA5;word-break:break-all">'+esc(r.url)+'</a></div>';
 
-  // 関連レシピ（これも残しています！）
+  // 関連レシピ
   var related = getRelatedRecipes(r);
   if (related.length) {
     html += '<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">';
@@ -1226,17 +1316,23 @@ async function openDetail(id){
     html += '</div></div>';
   }
 
-  // フッター（日付と閉じる/編集ボタン）
-  html+='<div style="font-size:11px;color:#aaa;margin-bottom:1rem">'+(r.date||'')+'</div>';
+  // --- ★ 【新機能】ピンクと緑のカードを一番最後に表示（見出し無し） ---
+  if(notesHtml) {
+    html += '<div class="detail-section" style="margin-top:20px">' + notesHtml + '</div>';
+  }
+
+  // フッター
+  html+='<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">'+(r.date||'')+'</div>';
   html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
     +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
     +(isEditor ? '<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>' : '')
     +'</div></div>';
 
-  // 最後に画面へ反映！
   document.getElementById('detailContent').innerHTML=html;
   openOverlay('overlayDetail');
 }
+
+
 
 function openOverlay(id){document.getElementById(id).classList.add('open');}
 function closeOverlay(id){document.getElementById(id).classList.remove('open');}
@@ -1369,6 +1465,46 @@ function parseRecipeText(text){
   return result;
 }
 
+
+// 管理画面を開く
+function openCommonTipsManager() {
+  renderCommonTipList();
+  openOverlay('overlayCommonTips');
+}
+
+// 一覧を表示
+async function renderCommonTipList() {
+  const listDiv = document.getElementById('commonTipList');
+  const { data: tips } = await window.supabase.from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
+  if (!tips || tips.length === 0) { listDiv.innerHTML = '<p style="font-size:11px;color:#999;text-align:center;">なし</p>'; return; }
+  listDiv.innerHTML = tips.map(t => `
+    <div style="font-size:12px; border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between;">
+      <div><strong>${esc(t.title)}</strong><div style="font-size:11px;color:#666;">${esc(t.content)}</div></div>
+      <button onclick="deleteCommonTip('${t.id}')" style="background:none; border:none; color:#638C3E; cursor:pointer; font-size:11px;">削除</button>
+    </div>
+  `).join('');
+}
+
+// 追加
+async function addCommonTip() {
+  const title = document.getElementById('commonTipTitle').value.trim();
+  const content = document.getElementById('commonTipContent').value.trim();
+  if (!title || !content) return;
+  await window.supabase.from('notes_and_tips').insert({ recipe_id: null, title: title, content: content, category: 'tips' });
+  document.getElementById('commonTipTitle').value = '';
+  document.getElementById('commonTipContent').value = '';
+  renderCommonTipList();
+  render(); // メイン画面の一覧も更新
+}
+
+// 削除
+async function deleteCommonTip(id) {
+  if (!confirm('削除しますか？')) return;
+  await window.supabase.from('notes_and_tips').delete().eq('id', id);
+  renderCommonTipList();
+  render();
+}
+
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -1376,5 +1512,21 @@ function parseRecipeText(text){
   <img id="lightboxImg" src="" alt="">
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
+
+<div class="overlay" id="overlayCommonTips">
+  <div class="overlay-content" style="max-width:400px;">
+    <h3 style="color:#638C3E; border-bottom:2px solid #638C3E; padding-bottom:5px;">💡 共通チップス管理</h3>
+    <div style="background:#f9fbf7; padding:10px; border-radius:8px; border:1px solid #e0e6d8; margin:15px 0;">
+      <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+      <textarea id="commonTipContent" placeholder="内容（コツや豆知識など）" style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
+      <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white;">共通チップスを追加</button>
+    </div>
+    <div id="commonTipList" style="max-height:200px; overflow-y:auto;"></div>
+    <div class="modal-btns" style="margin-top:15px;">
+      <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
