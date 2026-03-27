@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0855　カテゴリ・ジャンル リスト固定-->
+  <!--　260627-0905　カテゴリ・ジャンル リスト固定-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -264,7 +264,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
         <datalist id="catList">
           <option value="焼き菓子">
           <option value="おやつ">
-          <option value="パーツ">
+          <option value="パート">
           <option value="揚げ菓子">
           <option value="パン">
           <option value="冷菓">
@@ -429,15 +429,17 @@ function render(){
   }).join('');
 }
 
+// 変更後
 function getCatEmoji(cat){
-  if(!cat)return '🍽';
-  if(cat.indexOf('主菜')>=0)return '🍖';
-  if(cat.indexOf('副菜')>=0)return '🥗';
-  if(cat.indexOf('汁')>=0||cat.indexOf('スープ')>=0)return '🍲';
-  if(cat.indexOf('デザート')>=0||cat.indexOf('お菓子')>=0||cat.indexOf('焼き菓子')>=0)return '🍰';
-  if(cat.indexOf('主食')>=0||cat.indexOf('麺')>=0||cat.indexOf('パスタ')>=0)return '🍜';
+  if(!cat)return '🍰';
+  if(cat.indexOf('焼き菓子')>=0)return '🍪';
+  if(cat.indexOf('おやつ')>=0)return '🥞';
+  if(cat.indexOf('揚げ菓子')>=0)return '🍩';
+  if(cat.indexOf('パン')>=0)return '🥐';
+  if(cat.indexOf('冷菓')>=0)return '🍮';
+  if(cat.indexOf('氷菓')>=0)return '🍧';
   if(cat.indexOf('飲み')>=0)return '🥤';
-  return '🍽';
+  return '🍰';
 }
 
 // 変更後
