@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1605　チップス機能等追加試験中　-->
+  <!--　260627-1616　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -342,17 +342,23 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   border-bottom: 2px solid #98fb98;
 }
 
-/* --- 閲覧画面（チップスを読む画面）の見切れ防止 --- */
+/* --- 閲覧画面（チップスを読む画面）を中央に寄せる --- */
 #overlayViewTip .overlay-content {
-  margin-top: 50px;    /* ★画面の上側に余裕を作る */
-  max-height: 85vh;    /* ★高さを少し抑えて、画面内に収める */
+  /* ★ margin-top: 50px; を削除して、以下に変更 */
+  margin: auto;            /* ★ 上下左右の余白を自動調整（中央に寄る） */
+  
+  max-height: 85vh;        /* 高さを少し抑える */
   background: white;
   padding: 25px;
   border-radius: 15px;
   width: 90%;
   max-width: 450px;
-  overflow-y: auto;    /* ★中身が長くてもスクロールできるようにする */
+  overflow-y: auto;        /* 中身が長くてもスクロール可能 */
   position: relative;
+  
+  /* 中央寄せをより確実にするため、以下を追加 */
+  display: flex;
+  flex-direction: column;
 }
 /* =========================================
    　　　　 ここまで　ｓｔｙｌｅ 
