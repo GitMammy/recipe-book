@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-0912　カテゴリ・ジャンル リスト固定-->
+  <!--　260627-0928　カテゴリ・ジャンル 編集時リストが出ない問題-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -260,8 +260,9 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
     <div class="field"><label>説明</label><input type="text" id="fDesc" placeholder="一言メモ"></div>
     <div class="field-row">
       <div class="field">
-        <label>カテゴリ</label><input type="text" id="fCat" list="catList" placeholder="例：主菜">
-        <datalist id="catList">
+        <label>カテゴリ</label>
+        <input type="text" id="fCat" list="catList" placeholder="カテゴリを入力または選択">
+
           <option value="焼き菓子">
           <option value="おやつ">
           <option value="パート">
@@ -270,17 +271,22 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
           <option value="冷菓">
           <option value="氷菓">
           <option value="飲み物">
+
+        <datalist id="catList">
         </datalist>
       </div>
       <div class="field">
-        <label>ジャンル</label><input type="text" id="fGenre" list="genreList" placeholder="例：和食">
+        <label>ジャンル</label><input type="text" id="fGenre" list="genreList" placeholder="ジャンルを入力または選択">
         <datalist id="genreList">
+
           <option value="フランス">
           <option value="ドイツ">
           <option value="日本">
           <option value="イタリア">
           <option value="アメリカ">
           <option value="アジア">
+          <option value="洋菓子">
+
         </datalist>
       </div>
     </div>
@@ -753,13 +759,10 @@ function openEdit(id){
   document.getElementById('fName').value=r.name||'';
   document.getElementById('fDesc').value=r.desc||'';
 
+
 document.getElementById('fCat').value=r.cat||'';
 document.getElementById('fGenre').value=r.genre||'';
-// ↓ setAttributeをsetTimeoutで遅らせる
-setTimeout(function(){
-  document.getElementById('fCat').setAttribute('list', 'catList');
-  document.getElementById('fGenre').setAttribute('list', 'genreList');
-}, 50);
+
   document.getElementById('fIngs').value=(r.ings||[]).join(', ');
   document.getElementById('fUrl').value=r.url||'';
   document.getElementById('fSteps').value=r.steps||'';
