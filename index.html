@@ -487,20 +487,15 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
-window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-
-// ① シークレットURL判定
-var SECRET_KEY = 'sakuramoti';  // ← ここを好きな文字列に変えてください
-var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
-
 var recipes = [];
 var editId = null;
 var favFilter = null;
 var dragSrc = null;
 var pendingPhotos = [];
+// --- 💡 共通チップス用の写真一時保持 ---
+let commonTipPendingPhoto = null;
 
 async function loadRecipes() {
   const { data, error } = await window.supabase.from('recipes').select('*').order('date', { ascending: false });
@@ -511,7 +506,6 @@ async function loadRecipes() {
       r.desc     = r.desc      || '';
       return r;
     });
-    // ① 編集ツールの表示切り替え
     var et = document.getElementById('editorTools');
     if (isEditor) et.style.display = 'flex';
     render();
@@ -562,30 +556,25 @@ function getThumb(r){
   return '';
 }
 
-//　非同期対応: Supabaseからデータを取ってくるので、関数の頭に async を付けました。
 async function render(){
   updateSelects();
-  var list = getFiltered(); // フィルタ（検索など）済みのレシピ一覧
+  var list = getFiltered();
   
-  // --- 1. Supabaseから共通チップスを取得 ---
   const { data: tips } = await window.supabase
     .from('notes_and_tips')
     .select('*')
     .is('recipe_id', null)
     .order('created_at', { ascending: true });
 
-  // 件数表示
   document.getElementById('countLabel').textContent = list.length + '件';
   var g = document.getElementById('grid');
 
-  // 検索中やカテゴリ絞り込み中かどうかの判定
   var searchWord = document.getElementById('search').value.trim();
   var filterCat = document.getElementById('filterCat').value;
   var isSearching = searchWord !== '' || filterCat !== '';
 
   var html = '';
 
-  // --- 2. レシピカードの組み立て（上側に並ぶ） ---
   if (list.length > 0) {
     html += list.map(function(r){
       var thumb = getThumb(r);
@@ -600,7 +589,6 @@ async function render(){
       var moreTag = (r.ings || []).length > 2 ? '<span class="tag t-ing">+'+(r.ings.length-2)+'</span>' : '';
       var pubTag = '<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
       
-      // レシピカード（CSSの効果でピンクの太枠になります）
       return '<div class="card" onclick="openDetail(\''+r.id+'\')">'
         + imgHtml
         + '<div class="card-body">'
@@ -617,43 +605,28 @@ async function render(){
     }).join('');
   }
 
-
-// --- 3. 共通チップスカードの組み立て（レシピの下に並ぶ） ---
   if (tips && tips.length > 0 && !isSearching) {
-
-
-// render() 関数内のチップス描画部分を修正
-tips.forEach(function(t) {
-  var tipImg = t.image_url ? `<img src="${t.image_url}" class="tip-img">` : '';
-  
-  html += `
-    <div class="card card-tip" onclick="viewTip('${t.id}')">
-      ${tipImg}
-      <div style="padding:15px;">
-        <div class="tip-title">💡 ${esc(t.title)}</div>
-        <div class="tip-content">${esc(t.content)}</div>
-      </div>
-    </div>`;
-});
-
-
+    tips.forEach(function(t) {
+      var tipImg = t.image_url ? `<img src="${t.image_url}" class="tip-img">` : '';
+      html += `
+        <div class="card card-tip" onclick="viewTip('${t.id}')">
+          ${tipImg}
+          <div style="padding:15px;">
+            <div class="tip-title">💡 ${esc(t.title)}</div>
+            <div class="tip-content">${esc(t.content)}</div>
+          </div>
+        </div>`;
+    });
   }
 
-
-  // レシピもチップスも何もない場合
   if (html === '') {
     g.innerHTML = '<div class="empty">レシピもチップスもありません</div>';
     return;
   }
-
-  // 最後に画面へ反映！
   g.innerHTML = html;
 }
 
-
-// チップスを閲覧する画面を開く
 async function viewTip(tipId) {
-  // Supabaseから該当のチップスを1件取得
   const { data: t, error } = await window.supabase
     .from('notes_and_tips')
     .select('*')
@@ -661,21 +634,16 @@ async function viewTip(tipId) {
     .single();
 
   if (!t) return;
-
   const imgHtml = t.image_url ? `<img src="${t.image_url}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:15px;">` : '';
-  
   const html = `
     <h3 style="color:#2e8b57; border-bottom:2px solid #98fb98; padding-bottom:8px; margin-bottom:15px; font-size:18px;">💡 ${esc(t.title)}</h3>
     ${imgHtml}
     <div style="font-size:15px; line-height:1.8; color:#333; white-space:pre-wrap; word-break:break-all;">${esc(t.content)}</div>
   `;
-
   document.getElementById('tipViewContent').innerHTML = html;
-  openOverlay('overlayViewTip'); // 閲覧用画面を開く
+  openOverlay('overlayViewTip');
 }
 
-
-// 変更後
 function getCatEmoji(cat){
   if(!cat)return '🍰';
   if(cat.indexOf('焼き菓子')>=0)return '🍪';
@@ -689,14 +657,12 @@ function getCatEmoji(cat){
   return '🍰';
 }
 
-// 変更後
 function updateSelects(){
   var cats=[]; recipes.forEach(function(r){if(r.cat&&cats.indexOf(r.cat)<0)cats.push(r.cat);});
   var sc=document.getElementById('filterCat');
   var cv=sc.value;
   sc.innerHTML='<option value="">カテゴリ：すべて</option>'+cats.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
   sc.value=cv;
-  // datalistは固定なので更新しない
 }
 
 function toggleHeart(e, id) {
@@ -891,7 +857,6 @@ function addRowToTbody(tbody,name,amt,note){
   var tdN=document.createElement('td');tdN.className='col-name';
   var iN=document.createElement('input');iN.type='text';iN.placeholder='例：薄力粉';iN.value=name||'';
 
-  // ③ 材料名がレシピ名と一致したらリンク色にする
   iN.addEventListener('blur', function() {
     var matched = recipes.find(function(r) {
       return r.name === iN.value.trim() && String(r.id) !== String(editId);
@@ -904,7 +869,6 @@ function addRowToTbody(tbody,name,amt,note){
       iN.title = '';
     }
   });
-  // 既存データを読み込んだ時もチェック
   if (name) {
     var matched = recipes.find(function(r) {
       return r.name === name && String(r.id) !== String(editId);
@@ -999,13 +963,10 @@ function openEdit(id){
   document.getElementById('formTitle').textContent='レシピを編集';
   document.getElementById('fName').value=r.name||'';
   document.getElementById('fDesc').value=r.desc||'';
-
-
-document.getElementById('fCat').value=r.cat||'';
-document.getElementById('fGenre').value=r.genre||'';
-// 【追加】クリック（フォーカス）時に中身を全選択する
-document.getElementById('fCat').onfocus = function() { this.select(); };
-document.getElementById('fGenre').onfocus = function() { this.select(); };
+  document.getElementById('fCat').value=r.cat||'';
+  document.getElementById('fGenre').value=r.genre||'';
+  document.getElementById('fCat').onfocus = function() { this.select(); };
+  document.getElementById('fGenre').onfocus = function() { this.select(); };
 
   document.getElementById('fIngs').value=(r.ings||[]).join(', ');
   document.getElementById('fUrl').value=r.url||'';
@@ -1017,14 +978,10 @@ document.getElementById('fGenre').onfocus = function() { this.select(); };
   if(!pendingPhotos.length&&r.img)pendingPhotos=[{title:'',data:r.img}];
   renderPhotoList();
   setIngData(r.ingParts||r.ing_parts,r.ingRows,r.ingDetail);
-
-// ★これを通録！★
   renderEditNoteList();
-
   openOverlay('overlayAdd');
 }
 
-// --- WebP対応：Base64をBlobに変換（WebP固定） ---
 function base64ToBlob(base64) {
   const parts = base64.split(';base64,');
   const contentType = 'image/webp';
@@ -1037,7 +994,6 @@ function base64ToBlob(base64) {
   return new Blob([uInt8Array], { type: contentType });
 }
 
-// --- Storageへ1枚アップロードしてURLを返す ---
 async function uploadToStorage(photo) {
   if (photo.data && photo.data.startsWith('http')) {
     return photo.data;
@@ -1057,7 +1013,6 @@ async function uploadToStorage(photo) {
   return publicUrl;
 }
 
-// --- Storageから画像を削除 ---
 async function deleteStoragePhotos(photoUrls) {
   if (!photoUrls || photoUrls.length === 0) return;
   const fileNames = photoUrls.map(url => {
@@ -1070,7 +1025,6 @@ async function deleteStoragePhotos(photoUrls) {
   if (error) console.warn('Storage delete error:', error);
 }
 
-// --- メインの保存関数 ---
 async function saveRecipe() {
   const name = document.getElementById('fName').value.trim();
   if (!name) { alert('料理名を入力してください'); return; }
@@ -1147,7 +1101,6 @@ async function saveRecipe() {
     alert('保存しました！');
     closeOverlay('overlayAdd');
     render();
-
   } catch (err) {
     console.error('Save Error:', err);
     alert('保存に失敗しました: ' + err.message);
@@ -1157,7 +1110,6 @@ async function saveRecipe() {
   }
 }
 
-// お気に入り状態をSupabaseに保存
 async function saveStatus(id, heart, fav, crown) {
   try {
     const { error } = await window.supabase
@@ -1192,27 +1144,18 @@ async function deleteRecipe(){
   }
 }
 
-
-// 1. 編集画面を開いた時に、既存のメモを表示する
 async function renderEditNoteList() {
   const listDiv = document.getElementById('editNoteList');
   listDiv.innerHTML = '<p style="font-size:11px;color:#999;">読み込み中...</p>';
-  
   if (!editId) {
     listDiv.innerHTML = '<p style="font-size:11px;color:#999;">新規作成時は保存後にメモを追加できます。</p>';
     return;
   }
-
-  const { data: notes } = await window.supabase
-    .from('notes_and_tips')
-    .select('*')
-    .eq('recipe_id', editId);
-
+  const { data: notes } = await window.supabase.from('notes_and_tips').select('*').eq('recipe_id', editId);
   if (!notes || notes.length === 0) {
     listDiv.innerHTML = '<p style="font-size:11px;color:#999;">登録されたメモはありません。</p>';
     return;
   }
-
   listDiv.innerHTML = notes.map(n => `
     <div style="font-size:12px; border-bottom:1px solid #eee; padding:5px 0; display:flex; justify-content:space-between; align-items:center;">
       <span><strong>${esc(n.title)}</strong></span>
@@ -1221,37 +1164,30 @@ async function renderEditNoteList() {
   `).join('');
 }
 
-// 2. メモを新規追加する
 async function addNote() {
   const title = document.getElementById('noteTitle').value.trim();
   const content = document.getElementById('noteContent').value.trim();
-  
   if (!editId) { alert('先にレシピ本体を保存してください'); return; }
   if (!title || !content) { alert('タイトルと内容を入力してください'); return; }
-
   const { error } = await window.supabase.from('notes_and_tips').insert({
     recipe_id: editId,
     title: title,
     content: content,
     category: 'recipe'
   });
-
   if (error) { alert('メモの保存に失敗しました'); } else {
     document.getElementById('noteTitle').value = '';
     document.getElementById('noteContent').value = '';
-    renderEditNoteList(); // 一覧を更新
+    renderEditNoteList();
   }
 }
 
-// 3. メモを削除する
 async function deleteNote(noteId) {
   if (!confirm('このメモを削除しますか？')) return;
   const { error } = await window.supabase.from('notes_and_tips').delete().eq('id', noteId);
   if (error) alert('削除に失敗しました'); else renderEditNoteList();
 }
 
-
-// ③ 材料名をリンク付きで返すヘルパー
 function ingNameHtml(name, currentId) {
   var found = recipes.find(function(x) { return x.name === name && String(x.id) !== String(currentId); });
   if (found) {
@@ -1271,7 +1207,6 @@ function renderIngSection(r){
       var lh=hasLabels&&p.label?'<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>':'';
       var rh=(p.rows||[]).map(function(row){
         return '<tr>'
-          // ③ 材料名セル：リンク対応
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+ingNameHtml(row.name, currentId)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td>'
           +'<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';
@@ -1302,7 +1237,6 @@ function renderIngSection(r){
   return '';
 }
 
-// ③ 関連レシピを材料欄から自動検出
 function getRelatedRecipes(r) {
   var relatedIds = [];
   var parts = r.ing_parts || r.ingParts || [];
@@ -1316,12 +1250,10 @@ function getRelatedRecipes(r) {
   return relatedIds.map(function(id) { return recipes.find(function(x) { return x.id === id; }); }).filter(Boolean);
 }
 
-
 async function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
   if(!r){console.error('Recipe not found for ID:',id);return;}
 
-  // --- 1. メモと共通チップスを取得 ---
   const { data: notes, error } = await window.supabase
     .from('notes_and_tips')
     .select('*')
@@ -1345,13 +1277,11 @@ async function openDetail(id){
     }).join('');
   }
 
-  // --- 2. HTML組み立て ---
   var ingHtml=renderIngSection(r);
   var photos=(r.photos&&r.photos.length)?r.photos:(r.img?[{title:'',data:r.img}]:[]);
   currentPhotos=photos;
   
   var html='';
-  // タイトル部
   html+='<div class="detail-top"><h2>'+esc(r.name)+'</h2>'
     +'<div style="display:flex;gap:4px;flex-shrink:0">'
     +'<button class="heart-btn'+(r.heart?' on':'')+'" style="font-size:18px" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
@@ -1359,7 +1289,6 @@ async function openDetail(id){
     +'<button class="crown-btn'+(r.crown?' on':'')+'" style="font-size:18px" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♚</button>'
     +'</div></div>';
 
-  // タグ
   html+='<div class="tags" style="margin-bottom:1rem">'
     +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
     +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
@@ -1368,14 +1297,12 @@ async function openDetail(id){
 
   if(r.desc) html+='<div class="detail-section"><h3>説明</h3><p>'+esc(r.desc)+'</p></div>';
 
-  // 食材タグ・材料・手順
   if(r.ings&&r.ings.length){
     html+='<div class="detail-section"><h3>食材タグ</h3><div class="tags">'+r.ings.map(function(i){return '<span class="tag t-ing">'+esc(i)+'</span>';}).join('')+'</div></div>';
   }
   if(ingHtml)html+='<div class="detail-section"><h3>材料</h3>'+ingHtml+'</div>';
   if(r.steps)html+='<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
   
-  // 写真
   if(photos.length){
     html+='<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
     photos.forEach(function(p,i){
@@ -1386,11 +1313,9 @@ async function openDetail(id){
     html+='</div></div>';
   }
 
-  // アレンジ・元レシピURL
   if(r.memo)html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
   if(r.url)html+='<div class="detail-section"><h3>元レシピ</h3><a href="'+esc(r.url)+'" style="font-size:13px;color:#185FA5;word-break:break-all">'+esc(r.url)+'</a></div>';
 
-  // 関連レシピ
   var related = getRelatedRecipes(r);
   if (related.length) {
     html += '<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">';
@@ -1406,12 +1331,10 @@ async function openDetail(id){
     html += '</div></div>';
   }
 
-  // --- ★ 【新機能】ピンクと緑のカードを一番最後に表示（見出し無し） ---
   if(notesHtml) {
     html += '<div class="detail-section" style="margin-top:20px">' + notesHtml + '</div>';
   }
 
-  // フッター
   html+='<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">'+(r.date||'')+'</div>';
   html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
     +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
@@ -1422,10 +1345,9 @@ async function openDetail(id){
   openOverlay('overlayDetail');
 }
 
-
-
 function openOverlay(id){document.getElementById(id).classList.add('open');}
-function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function closeOverlay(id){document.getElementById(id).classList.remove('remove'); // ここ修正: remove -> classList.remove
+document.getElementById(id).classList.remove('open');}
 
 document.getElementById('overlayDetail').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayDetail');});
 document.getElementById('search').addEventListener('input',render);
@@ -1450,7 +1372,6 @@ function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
 }
 
-// テキストファイルからレシピを読み込む
 function openFromTextFile(input){
   var file = input.files[0];
   if(!file) return;
@@ -1459,51 +1380,40 @@ function openFromTextFile(input){
     var text = e.target.result;
     var parsed = parseRecipeText(text);
     if(!parsed.name){
-      alert('「料理名:」が見つかりませんでした。\nフォーマットを確認してください。');
+      alert('「料理名:」が見つかりませんでした。');
       input.value = '';
       return;
     }
-    editId = null;
-    pendingPhotos = [];
-    document.getElementById('formTitle').textContent = 'レシピを追加（テキストから）';
-    document.getElementById('fName').value    = parsed.name;
-    document.getElementById('fDesc').value    = parsed.desc;
-    document.getElementById('fCat').value     = parsed.cat;
-    document.getElementById('fGenre').value   = parsed.genre;
-    document.getElementById('fIngs').value    = parsed.ings;
-    document.getElementById('fUrl').value     = parsed.url;
-    document.getElementById('fSteps').value   = parsed.steps;
-    document.getElementById('fMemo').value    = parsed.memo;
-    document.getElementById('fPub').checked   = parsed.pub;
-    document.getElementById('btnDelete').style.display = 'none';
-    renderPhotoList();
+    openAdd();
+    document.getElementById('fName').value = parsed.name;
+    document.getElementById('fDesc').value = parsed.desc;
+    document.getElementById('fCat').value = parsed.cat;
+    document.getElementById('fGenre').value = parsed.genre;
+    document.getElementById('fIngs').value = parsed.ings;
+    document.getElementById('fUrl').value = parsed.url;
+    document.getElementById('fSteps').value = parsed.steps;
+    document.getElementById('fMemo').value = parsed.memo;
+    document.getElementById('fPub').checked = parsed.pub;
     setIngData(parsed.ingParts, null, null);
-    openOverlay('overlayAdd');
     input.value = '';
   };
   reader.readAsText(file, 'UTF-8');
 }
 
 function parseRecipeText(text){
-  var result = {
-    name:'', desc:'', cat:'', genre:'', ings:'',
-    url:'', steps:'', memo:'', pub:false, ingParts:[]
-  };
+  var result = { name:'', desc:'', cat:'', genre:'', ings:'', url:'', steps:'', memo:'', pub:false, ingParts:[] };
   var lines = text.split(/\r?\n/);
   var mode = 'none';
   var currentPartLabel = '';
   var currentRows = [];
   var stepsLines = [];
   var memoLines = [];
-
   function flushPart(){
     if(currentRows.length > 0){
       result.ingParts.push({ label: currentPartLabel, rows: currentRows });
-      currentRows = [];
-      currentPartLabel = '';
+      currentRows = []; currentPartLabel = '';
     }
   }
-
   for(var i = 0; i < lines.length; i++){
     var line = lines[i].trim();
     if(/^※/.test(line)) continue;
@@ -1515,113 +1425,143 @@ function parseRecipeText(text){
         currentPartLabel = heading.replace(/^パート名[:：]\s*/, '').trim();
         continue;
       }
-      if(heading === '料理名')   { mode = 'name';   continue; }
-      if(heading === 'カテゴリ') { mode = 'cat';    continue; }
-      if(heading === 'ジャンル') { mode = 'genre';  continue; }
-      if(heading === '説明')     { mode = 'desc';   continue; }
-      if(heading === '食材タグ') { mode = 'ings';   continue; }
-      if(heading === 'URL')      { mode = 'url';    continue; }
-      if(heading === '公開')     { mode = 'pub';    continue; }
-      if(heading === '手順')     { mode = 'steps';  continue; }
-      if(heading === '覚書')     { mode = 'memo';   continue; }
-      if(heading === '材料')     { mode = 'ing'; currentPartLabel = ''; continue; }
-      mode = 'none';
-      continue;
+      if(heading === '料理名') { mode = 'name'; continue; }
+      if(heading === 'カテゴリ') { mode = 'cat'; continue; }
+      if(heading === 'ジャンル') { mode = 'genre'; continue; }
+      if(heading === '説明') { mode = 'desc'; continue; }
+      if(heading === '食材タグ') { mode = 'ings'; continue; }
+      if(heading === 'URL') { mode = 'url'; continue; }
+      if(heading === '公開') { mode = 'pub'; continue; }
+      if(heading === '手順') { mode = 'steps'; continue; }
+      if(heading === '覚書') { mode = 'memo'; continue; }
+      if(heading === '材料') { mode = 'ing'; currentPartLabel = ''; continue; }
+      mode = 'none'; continue;
     }
     if(line === ''){
       if(mode === 'steps') stepsLines.push('');
-      if(mode === 'memo')  memoLines.push('');
+      if(mode === 'memo') memoLines.push('');
       continue;
     }
-    if(mode === 'name')  { result.name  = line; mode = 'none'; continue; }
-    if(mode === 'cat')   { result.cat   = line; mode = 'none'; continue; }
+    if(mode === 'name') { result.name = line; mode = 'none'; continue; }
+    if(mode === 'cat') { result.cat = line; mode = 'none'; continue; }
     if(mode === 'genre') { result.genre = line; mode = 'none'; continue; }
-    if(mode === 'desc')  { result.desc  = line; mode = 'none'; continue; }
-    if(mode === 'ings')  { result.ings  = line; mode = 'none'; continue; }
-    if(mode === 'url')   { result.url   = line; mode = 'none'; continue; }
-    if(mode === 'pub')   { result.pub   = /^(はい|yes|true|1)$/i.test(line); mode = 'none'; continue; }
+    if(mode === 'desc') { result.desc = line; mode = 'none'; continue; }
+    if(mode === 'ings') { result.ings = line; mode = 'none'; continue; }
+    if(mode === 'url') { result.url = line; mode = 'none'; continue; }
+    if(mode === 'pub') { result.pub = /^(はい|yes|true|1)$/i.test(line); mode = 'none'; continue; }
     if(mode === 'ing'){
       var cols = line.split(/,|，/).map(function(s){ return s.trim(); });
       currentRows.push({ name: cols[0] || '', amt: cols[1] || '', note: cols[2] || '' });
       continue;
     }
     if(mode === 'steps'){ stepsLines.push(line); continue; }
-    if(mode === 'memo') { memoLines.push(line);  continue; }
+    if(mode === 'memo') { memoLines.push(line); continue; }
   }
-
   flushPart();
   result.steps = stepsLines.join('\n').trim();
-  result.memo  = memoLines.join('\n').trim();
+  result.memo = memoLines.join('\n').trim();
   return result;
 }
 
-
-// 管理画面を開く
+// --- 💡 共通チップス管理 ---
 function openCommonTipsManager() {
   renderCommonTipList();
   openOverlay('overlayCommonTips');
 }
+
 async function renderCommonTipList() {
   const listDiv = document.getElementById('commonTipList');
-  const { data: tips } = await window.supabase.from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
-  if (!tips || tips.length === 0) { listDiv.innerHTML = '<p style="font-size:11px;color:#999;text-align:center;">なし</p>'; return; }
-  
+  const { data: tips } = await window.supabase.from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: false });
+  if (!tips || tips.length === 0) { listDiv.innerHTML = '<p style="font-size:11px;color:#999;text-align:center;">登録なし</p>'; return; }
   listDiv.innerHTML = tips.map(t => {
-    // リストに小さなプレビュー画像を表示
-    const imgHtml = t.image_url ? `<img src="${t.image_url}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;margin-right:5px;flex-shrink:0;">` : '';
+    const imgHtml = t.image_url ? `<img src="${t.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:8px;flex-shrink:0;">` : '<div style="width:40px;height:40px;background:#eee;border-radius:4px;margin-right:8px;flex-shrink:0;"></div>';
     return `
-      <div style="font-size:12px; border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between; align-items:start;">
-        <div style="display:flex;align-items:start;">
+      <div style="font-size:12px; border-bottom:1px solid #eee; padding:10px 0; display:flex; justify-content:space-between; align-items:start;">
+        <div style="display:flex; align-items:start; overflow:hidden;">
           ${imgHtml}
-          <div><strong>${esc(t.title)}</strong><div style="font-size:11px;color:#666;">${esc(t.content)}</div></div>
+          <div style="overflow:hidden;">
+            <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(t.title)}</strong>
+            <div style="font-size:11px; color:#666; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(t.content)}</div>
+          </div>
         </div>
-        <button onclick="deleteCommonTip('${t.id}')" style="background:none; border:none; color:#638C3E; cursor:pointer; font-size:11px;flex-shrink:0;">削除</button>
+        <button onclick="deleteCommonTip('${t.id}')" style="background:none; border:none; color:#638C3E; cursor:pointer; font-size:11px; flex-shrink:0; margin-left:10px;">削除</button>
       </div>
     `;
   }).join('');
 }
 
+// チップス用写真選択ハンドラ
+function handleCommonTipPhoto(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var MAX = 1200;
+      var w = img.width, h = img.height;
+      var scale = (w > MAX || h > MAX) ? MAX / Math.max(w, h) : 1;
+      var cw = Math.round(w * scale);
+      var ch = Math.round(h * scale);
+      var canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(img, 0, 0, cw, ch);
+      var dataUrl = canvas.toDataURL('image/webp', 0.85);
+      commonTipPendingPhoto = { data: dataUrl };
+      var prev = document.getElementById('commonTipPreview');
+      prev.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
 async function addCommonTip() {
   const title = document.getElementById('commonTipTitle').value.trim();
   const content = document.getElementById('commonTipContent').value.trim();
-  const photoUrl = document.getElementById('commonTipPhotoUrl').value.trim(); // ★URLを取得
   if (!title || !content) return;
-
-  await window.supabase.from('notes_and_tips').insert({ 
-    recipe_id: null, 
-    title: title, 
-    content: content, 
-    image_url: photoUrl, // ★URLを保存
-    category: 'tips' 
-  });
-
-  document.getElementById('commonTipTitle').value = '';
-  document.getElementById('commonTipContent').value = '';
-  document.getElementById('commonTipPhotoUrl').value = ''; // ★空にする
-  renderCommonTipList();
-  render(); 
+  const btn = document.querySelector('#tipSectionAdd .btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+  try {
+    let photoUrl = '';
+    if (commonTipPendingPhoto) photoUrl = await uploadToStorage(commonTipPendingPhoto);
+    const { error } = await window.supabase.from('notes_and_tips').insert({
+      recipe_id: null, title: title, content: content, image_url: photoUrl, category: 'tips'
+    });
+    if (error) throw error;
+    document.getElementById('commonTipTitle').value = '';
+    document.getElementById('commonTipContent').value = '';
+    commonTipPendingPhoto = null;
+    document.getElementById('commonTipPreview').innerHTML = '<span style="color:#ccc;font-size:10px">なし</span>';
+    alert('登録しました！');
+    renderCommonTipList(); render(); switchTipTab('list');
+  } catch (err) {
+    alert('失敗: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
 }
 
 async function deleteCommonTip(id) {
   if (!confirm('削除しますか？')) return;
   await window.supabase.from('notes_and_tips').delete().eq('id', id);
-  renderCommonTipList();
-  render();
+  renderCommonTipList(); render();
 }
-
 
 function switchTipTab(mode) {
   const isAdd = mode === 'add';
   document.getElementById('tipSectionAdd').style.display = isAdd ? 'block' : 'none';
   document.getElementById('tipSectionList').style.display = isAdd ? 'none' : 'block';
-  
-  // ボタンの色を変える
   document.getElementById('tabBtnAdd').style.background = isAdd ? '#638C3E' : '#eee';
   document.getElementById('tabBtnAdd').style.color = isAdd ? 'white' : '#666';
   document.getElementById('tabBtnList').style.background = isAdd ? '#eee' : '#638C3E';
   document.getElementById('tabBtnList').style.color = isAdd ? '#666' : 'white';
 }
-
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -1630,44 +1570,38 @@ function switchTipTab(mode) {
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
 
-
 <div class="overlay" id="overlayCommonTips">
   <div class="overlay-content" style="max-width:400px; background:white; padding:20px; border-radius:15px;">
     <h3 style="color:#638C3E; border-bottom:2px solid #638C3E; padding-bottom:5px; margin-bottom:10px;">💡 共通チップス管理</h3>
-    
     <div style="display:flex; gap:5px; margin-bottom:15px;">
       <button onclick="switchTipTab('add')" id="tabBtnAdd" style="flex:1; padding:8px; border:none; border-radius:5px; cursor:pointer; background:#638C3E; color:white;">＋ 新規登録</button>
       <button onclick="switchTipTab('list')" id="tabBtnList" style="flex:1; padding:8px; border:none; border-radius:5px; cursor:pointer; background:#eee; color:#666;">📝 編集・削除</button>
     </div>
-
     <div id="tipSectionAdd">
       <div style="background:#f9fbf7; padding:10px; border-radius:8px; border:1px solid #e0e6d8;">
-        <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px;">
-        <input type="text" id="commonTipPhotoUrl" placeholder="写真のURL（任意）" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px;">
-        <textarea id="commonTipContent" placeholder="内容..." style="width:100%; height:120px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
-        <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white;">この内容で登録</button>
+        <input type="text" id="commonTipTitle" placeholder="タイトル（例：オレンジの煮詰め方）" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+          <div id="commonTipPreview" style="width:50px; height:50px; border:1px dashed #ccc; border-radius:4px; display:flex; align-items:center; justify-content:center; background:#eee; flex-shrink:0;"><span style="color:#ccc; font-size:10px">なし</span></div>
+          <div style="flex:1">
+            <button type="button" class="btn btn-sm" onclick="document.getElementById('tipPhotoInput').click()" style="background:#fff; border:1px solid #638C3E; color:#638C3E; font-size:11px; width:100%;">＋ 写真を選択</button>
+            <input type="file" id="tipPhotoInput" hidden accept="image/*" onchange="handleCommonTipPhoto(this)">
+          </div>
+        </div>
+        <textarea id="commonTipContent" placeholder="コツを記入..." style="width:100%; height:120px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:10px;"></textarea>
+        <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white; font-weight:bold;">この内容で登録</button>
       </div>
     </div>
-
     <div id="tipSectionList" style="display:none;">
-      <div id="commonTipList" style="max-height:300px; overflow-y:auto; border:1px solid #eee; padding:10px; border-radius:8px;"></div>
+      <div id="commonTipList" style="max-height:350px; overflow-y:auto; border:1px solid #eee; padding:10px; border-radius:8px;"></div>
     </div>
-    
-    <div class="modal-btns" style="margin-top:15px;">
-      <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
-    </div>
+    <div class="modal-btns" style="margin-top:15px;"><button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button></div>
   </div>
 </div>
 
-
-
 <div class="overlay" id="overlayViewTip">
   <div class="overlay-content" style="max-width:450px; background:white; padding:25px; border-radius:15px;">
-    <div id="tipViewContent">
-      </div>
-    <div class="modal-btns" style="margin-top:20px;">
-      <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayViewTip')">閉じる</button>
-    </div>
+    <div id="tipViewContent"></div>
+    <div class="modal-btns" style="margin-top:20px;"><button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayViewTip')">閉じる</button></div>
   </div>
 </div>
 
