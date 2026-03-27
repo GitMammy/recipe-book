@@ -395,7 +395,7 @@ var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
 (function() {
   if (!isEditor) return;
   document.title = '🔑 おかしなぺぇじ【編集モード】';
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🖊</text></svg>';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔑</text></svg>';
   var link = document.getElementById('faviconLink');
   if (link) {
     link.rel = 'icon';
