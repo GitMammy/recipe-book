@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260627-1545　チップス機能等追加試験中　-->
+  <!--　260627-1605　チップス機能等追加試験中　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -341,11 +341,23 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   object-fit: cover;
   border-bottom: 2px solid #98fb98;
 }
-</style>
+
+/* --- 閲覧画面（チップスを読む画面）の見切れ防止 --- */
+#overlayViewTip .overlay-content {
+  margin-top: 50px;    /* ★画面の上側に余裕を作る */
+  max-height: 85vh;    /* ★高さを少し抑えて、画面内に収める */
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 450px;
+  overflow-y: auto;    /* ★中身が長くてもスクロールできるようにする */
+  position: relative;
+}
 /* =========================================
    　　　　 ここまで　ｓｔｙｌｅ 
    ========================================= */
-
+</style>
 
 </head>
 <body>
@@ -363,7 +375,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
     </button>
 
-<button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE; color:#27500A; border:1px solid #638C3E;">💡 チップス</button>
+<button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE; color:#27500A; border:1px solid #638C3E;">💡チップス📄</button>
 
     <!-- ① 編集ツール：シークレットURLのときだけ表示 -->
     <span id="editorTools" style="display:none;gap:6px;align-items:center">
@@ -1590,6 +1602,20 @@ async function deleteCommonTip(id) {
   renderCommonTipList();
   render();
 }
+
+
+function switchTipTab(mode) {
+  const isAdd = mode === 'add';
+  document.getElementById('tipSectionAdd').style.display = isAdd ? 'block' : 'none';
+  document.getElementById('tipSectionList').style.display = isAdd ? 'none' : 'block';
+  
+  // ボタンの色を変える
+  document.getElementById('tabBtnAdd').style.background = isAdd ? '#638C3E' : '#eee';
+  document.getElementById('tabBtnAdd').style.color = isAdd ? 'white' : '#666';
+  document.getElementById('tabBtnList').style.background = isAdd ? '#eee' : '#638C3E';
+  document.getElementById('tabBtnList').style.color = isAdd ? '#666' : 'white';
+}
+
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -1601,25 +1627,33 @@ async function deleteCommonTip(id) {
 
 <div class="overlay" id="overlayCommonTips">
   <div class="overlay-content" style="max-width:400px; background:white; padding:20px; border-radius:15px;">
-    <h3 style="color:#638C3E; border-bottom:2px solid #638C3E; padding-bottom:5px;">💡 共通チップス管理</h3>
+    <h3 style="color:#638C3E; border-bottom:2px solid #638C3E; padding-bottom:5px; margin-bottom:10px;">💡 共通チップス管理</h3>
     
-    <div style="background:#f9fbf7; padding:10px; border-radius:8px; border:1px solid #e0e6d8; margin:15px 0;">
-      <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px;">
-      
-      <input type="text" id="commonTipPhotoUrl" placeholder="写真のURL（任意）" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px;">
-      
-      <textarea id="commonTipContent" placeholder="内容..." style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
-      
-      <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white;">共通チップスを追加</button>
+    <div style="display:flex; gap:5px; margin-bottom:15px;">
+      <button onclick="switchTipTab('add')" id="tabBtnAdd" style="flex:1; padding:8px; border:none; border-radius:5px; cursor:pointer; background:#638C3E; color:white;">＋ 新規登録</button>
+      <button onclick="switchTipTab('list')" id="tabBtnList" style="flex:1; padding:8px; border:none; border-radius:5px; cursor:pointer; background:#eee; color:#666;">📝 編集・削除</button>
     </div>
 
-    <div id="commonTipList" style="max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px;"></div>
+    <div id="tipSectionAdd">
+      <div style="background:#f9fbf7; padding:10px; border-radius:8px; border:1px solid #e0e6d8;">
+        <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <input type="text" id="commonTipPhotoUrl" placeholder="写真のURL（任意）" style="width:100%; margin-bottom:5px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px;">
+        <textarea id="commonTipContent" placeholder="内容..." style="width:100%; height:120px; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></textarea>
+        <button type="button" class="btn btn-sm" onclick="addCommonTip()" style="width:100%; background:#638C3E; color:white;">この内容で登録</button>
+      </div>
+    </div>
+
+    <div id="tipSectionList" style="display:none;">
+      <div id="commonTipList" style="max-height:300px; overflow-y:auto; border:1px solid #eee; padding:10px; border-radius:8px;"></div>
+    </div>
     
     <div class="modal-btns" style="margin-top:15px;">
       <button class="btn btn-sm" style="width:100%" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
     </div>
   </div>
 </div>
+
+
 
 <div class="overlay" id="overlayViewTip">
   <div class="overlay-content" style="max-width:450px; background:white; padding:25px; border-radius:15px;">
