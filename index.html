@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260628-0626　チップス編集機能・編集モードファビコン/タイトル対応　-->
+  <!--　260628-1950　チップス編集機能・編集モードファビコン/タイトル対応　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -395,13 +395,17 @@ var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
 (function() {
   if (!isEditor) return;
   document.title = '🔑 おかしなぺぇじ【編集モード】';
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔑</text></svg>';
-  var link = document.getElementById('faviconLink');
-  if (link) {
-    link.rel = 'icon';
-    link.type = 'image/svg+xml';
-    link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
-  }
+
+  
+// 変更後
+var link = document.getElementById('faviconLink');
+if (link) {
+  link.rel = 'icon';
+  link.type = 'image/x-icon';
+  link.href = 'favicon-edit.ico';
+}
+
+  
 })();
 
 var recipes = [];
