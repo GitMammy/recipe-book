@@ -453,6 +453,18 @@ async function loadRecipes() {
     });
     if (isEditor) document.getElementById('editorTools').style.display = 'flex';
     render();
+
+	//loadRecipes() の末尾、render() の後に追加：
+
+	  // detail.html の「編集」ボタンから戻ってきたとき自動で編集モーダルを開く
+	  var editTarget = (new URLSearchParams(location.search)).get('edit');
+	  if (isEditor && editTarget) {
+	    var targetRecipe = recipes.find(function(r){ return String(r.id) === String(editTarget); });
+	    if (targetRecipe) openEdit(targetRecipe.id);
+	  }
+
+
+
   }
 }
 
@@ -519,17 +531,21 @@ async function render(){
       var ingTags=(r.ings||[]).slice(0,2).map(function(i){return'<span class="tag t-ing">'+esc(i.trim())+'</span>';}).join('');
       var moreTag=(r.ings||[]).length>2?'<span class="tag t-ing">+'+(r.ings.length-2)+'</span>':'';
       var pubTag='<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
-      return '<div class="card" onclick="openDetail(\''+r.id+'\')">'
-        +imgHtml+'<div class="card-body">'
-        +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
-        +'<div class="hearts">'
-        +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
-        +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-        +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
-        +'</div></div>'+descHtml
-        +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
-        +'<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
-        +'</div></div>';
+
+      //return '<div class="card" onclick="openDetail(\''+r.id+'\')">'
+	// ✅ 正しい形
+	return '<div class="card" onclick="goToDetail(\''+r.id+'\')">'+imgHtml+'<div class="card-body">'
+	  +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
+	  +'<div class="hearts">'
+	  +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
+	  +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
+	  +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
+	  +'</div></div>'+descHtml
+	  +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
+	  +'<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
+	  +'</div></div>';
+
+
     }).join('');
   }
   if(tips.length>0){
@@ -976,6 +992,11 @@ function getRelatedRecipes(r){
   if(r.ingRows)r.ingRows.forEach(function(row){allRows.push(row.name);});
   allRows.forEach(function(name){var found=recipes.find(function(x){return x.name===name&&String(x.id)!==String(r.id);});if(found&&relatedIds.indexOf(found.id)<0)relatedIds.push(found.id);});
   return relatedIds.map(function(id){return recipes.find(function(x){return x.id===id;});}).filter(Boolean);
+}
+
+function goToDetail(id) {
+  var keyStr = isEditor ? '&key=' + SECRET_KEY : '';
+  window.location.href = 'detail.html?id=' + id + keyStr;
 }
 
 async function openDetail(id){
