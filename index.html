@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260630-1655　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!--　260330-1948　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -409,27 +409,65 @@ var pendingPhotos = [];
 var tipEditPendingPhoto = null;
 var tipEditPhotoCleared = false;
 
+
 function markdownToHtml(text) {
   if (!text) return '';
-  var lines = text.split('\n'), result = [], inUl = false;
+
+  var lines = text.split('\n');
+  var result = [];
+  var inUl = false;
+
   lines.forEach(function(line) {
-    if (/^[・•\-]\s*/.test(line)) {
-      if (!inUl) { result.push('<ul>'); inUl = true; }
-      result.push('<li>' + applyInlineMarkdown(line.replace(/^[・•\-]\s*/, '')) + '</li>');
-    } else {
-      if (inUl) { result.push('</ul>'); inUl = false; }
-      if (line.trim() === '') result.push('<br>');
-      else result.push('<span>' + applyInlineMarkdown(line) + '</span><br>');
+    var trimmed = line.trim();
+
+    // リスト
+    if (/^[・•\-]\s*/.test(trimmed)) {
+      if (!inUl) {
+        result.push('<ul>');
+        inUl = true;
+      }
+      var content = trimmed.replace(/^[・•\-]\s*/, '');
+      result.push('<li>' + applyInlineMarkdown(content) + '</li>');
+      return;
     }
+
+    // リスト終了
+    if (inUl) {
+      result.push('</ul>');
+      inUl = false;
+    }
+
+    // 空行
+    if (trimmed === '') {
+      result.push('<br>');
+      return;
+    }
+
+    // 通常段落
+    result.push('<p>' + applyInlineMarkdown(trimmed) + '</p>');
   });
+
   if (inUl) result.push('</ul>');
+
   return '<div class="tip-md">' + result.join('') + '</div>';
 }
+
 function applyInlineMarkdown(text) {
+  if (!text) return '';
+
+  // ① 先にエスケープ（重要）
+  text = esc(text);
+
+  // ② Markdown適用
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/`(.+?)`/g, '<code style="background:#f0f0f0;padding:0 3px;border-radius:3px;font-size:11px">$1</code>');
+  text = text.replace(/`(.+?)`/g,
+    '<code style="background:#f0f0f0;padding:0 3px;border-radius:3px;font-size:11px">$1</code>'
+  );
+
   return text;
 }
+
+
 
 async function loadRecipes() {
   const { data, error } = await window.supabase.from('recipes').select('*').order('date', { ascending: false });
