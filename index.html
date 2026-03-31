@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1615　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1720　出来上がり量表示/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1000,39 +1000,63 @@ function ingNameHtml(name,currentId){
   return esc(name);
 }
 
+//*********************************************************
+
 function renderIngSection(r){
-  if(!r)return'';
-  var currentId=r.id;var parts=r.ingParts||r.ing_parts||[];
-  if(Array.isArray(parts)&&parts.length>0){
-    var hasLabels=parts.some(function(p){return p&&p.label;});
+  if(!r) return '';
+  var currentId = r.id;
+  var parts = r.ingParts || r.ing_parts || [];
+
+  // パートあり
+  if(Array.isArray(parts) && parts.length > 0){
+    var hasLabels = parts.some(p => p && p.label);
     return parts.map(function(p){
-      if(!p||!p.rows)return'';
-      var lh=hasLabels&&p.label?'<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px"><span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'+esc(p.label)+'</span></div>':'';
-      var rh=(p.rows||[]).map(function(row){return'<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+ingNameHtml(row.name,currentId)+'</td><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';}).join('');
-      return lh+'<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px"><thead><tr><th style="text-align:left;padding:3px 6px;font-size:11px;color:#555;font-weight:700;border-bottom:2px solid #ddd">材料名</th><th style="text-align:left;padding:3px 6px;font-size:11px;color:#555;font-weight:700;border-bottom:2px solid #ddd">分量</th><th style="text-align:left;padding:3px 6px;font-size:11px;color:#555;font-weight:700;border-bottom:2px solid #ddd">備考</th></tr></thead><tbody>'+rh+'</tbody></table>';
+      if(!p || !p.rows) return '';
+
+      var lh = hasLabels && p.label
+        ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">'
+          + '<span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'
+          + esc(p.label)
+          + '</span></div>'
+        : '';
+
+      var rh = (p.rows || []).map(function(row){
+        return '<tr>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">' + ingNameHtml(row.name,currentId) + '</td>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">' + esc(row.amt) + '</td>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">' + esc(row.note) + '</td>'
+          + '</tr>';
+      }).join('');
+
+      // ★★ ここで thead を削除して tbody のみ返す ★★
+      return lh
+        + '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px">'
+        + '<tbody>' + rh + '</tbody></table>';
     }).join('');
   }
-  if(r.ingRows&&r.ingRows.length){
-    var rh2=r.ingRows.map(function(row){return'<tr><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">'+ingNameHtml(row.name,currentId)+'</td><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">'+esc(row.amt)+'</td><td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">'+esc(row.note)+'</td></tr>';}).join('');
-    return'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="text-align:left;padding:3px 6px;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #eee">材料名</th><th style="text-align:left;padding:3px 6px;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #eee">分量</th><th style="text-align:left;padding:3px 6px;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #eee">備考</th></tr></thead><tbody>'+rh2+'</tbody></table>';
+
+  // パートなし（ingRows）
+  if(r.ingRows && r.ingRows.length){
+    var rh2 = r.ingRows.map(function(row){
+      return '<tr>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">' + ingNameHtml(row.name,currentId) + '</td>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">' + esc(row.amt) + '</td>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">' + esc(row.note) + '</td>'
+        + '</tr>';
+    }).join('');
+
+    // ★★ ここも thead を削除 ★★
+    return '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+      + '<tbody>' + rh2 + '</tbody></table>';
   }
-  if(r.ingDetail)return'<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(r.ingDetail)+'</p>';
-  return'';
+
+  if(r.ingDetail)
+    return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + esc(r.ingDetail) + '</p>';
+
+  return '';
 }
 
-function getRelatedRecipes(r){
-  var relatedIds=[];var parts=r.ing_parts||r.ingParts||[];var allRows=[];
-  parts.forEach(function(p){(p.rows||[]).forEach(function(row){allRows.push(row.name);});});
-  if(r.ingRows)r.ingRows.forEach(function(row){allRows.push(row.name);});
-  allRows.forEach(function(name){var found=recipes.find(function(x){return x.name===name&&String(x.id)!==String(r.id);});if(found&&relatedIds.indexOf(found.id)<0)relatedIds.push(found.id);});
-  return relatedIds.map(function(id){return recipes.find(function(x){return x.id===id;});}).filter(Boolean);
-}
-
-function goToDetail(id) {
-  var keyStr = isEditor ? '&key=' + SECRET_KEY : '';
-  window.location.href = 'detail.html?id=' + id + keyStr;
-}
-
+//\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 async function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
   if(!r){console.error('Recipe not found for ID:',id);return;}
