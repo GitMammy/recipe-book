@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1956　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-2021　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -714,18 +714,20 @@ function updateSelects(){
   sc.value=cv;
 }
 
+
 function isEditMode(){
   return (
     document.getElementById('overlayAdd')?.classList.contains('open') ||
     document.getElementById('overlayTipEdit')?.classList.contains('open')
   );
 }
+
 //♡★♚
 function toggleHeart(e,id){
-  if (!isEditMode()) return; // ← 閲覧モードでは無効化
+  if (!isEditMode()) return;
 
   e.stopPropagation();
-  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  var r=recipes.find(x => String(x.id)===String(id));
   if(r){
     r.heart=!r.heart;
     saveStatus(r.id,r.heart,r.fav,r.crown);
@@ -755,6 +757,8 @@ function toggleCrown(e,id){
     render();
   }
 }
+
+
 
 
 //function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.heart=!r.heart;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
