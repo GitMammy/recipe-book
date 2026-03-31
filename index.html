@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-2021　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-2031　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -588,9 +588,14 @@ async function render(){
       return '<div class="card" onclick="goToDetail(\''+r.id+'\')">'+imgHtml+'<div class="card-body">'
         +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
         +'<div class="hearts">'
-        +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
-        +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-        +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
+        +'<button type="button" class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
+        +'<button type="button" class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
+        +'<button type="button" class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
+
+        //+'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
+        //+'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
+        //+'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
+
         +'</div></div>'+descHtml
         +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
         +'<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
@@ -724,6 +729,8 @@ function isEditMode(){
 
 //♡★♚
 function toggleHeart(e,id){
+  e.preventDefault();
+  e.stopPropagation();
   if (!isEditMode()) return;
 
   e.stopPropagation();
@@ -735,6 +742,8 @@ function toggleHeart(e,id){
   }
 }
 function toggleStar(e,id){
+  e.preventDefault();
+  e.stopPropagation();
   if (!isEditMode()) return;
 
   e.stopPropagation();
@@ -746,6 +755,8 @@ function toggleStar(e,id){
   }
 }
 function toggleCrown(e,id){
+  e.preventDefault();
+  e.stopPropagation();
   if (!isEditMode()) return;
 
   e.stopPropagation();
