@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!--　260630-2016  参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1530　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -472,23 +472,55 @@ function applyInlineMarkdown(text) {
 
 
 async function loadRecipes() {
-  const { data, error } = await window.supabase.from('recipes').select('*').order('date', { ascending: false });
-  if (!error && data) {
-    recipes = data.map(function(r) {
-      r.ingParts = r.ing_parts || [];
-      r.ingRows  = r.ing_rows  || [];
-      r.desc     = r.desc      || '';
-      return r;
-    });
-    if (isEditor) document.getElementById('editorTools').style.display = 'flex';
-    render();
-    var editTarget = (new URLSearchParams(location.search)).get('edit');
-    if (isEditor && editTarget) {
-      var targetRecipe = recipes.find(function(r){ return String(r.id) === String(editTarget); });
-      if (targetRecipe) openEdit(targetRecipe.id);
+  console.log("=== loadRecipes 開始 ===");   // デバッグ用（後で消してもOK）
+
+  const { data, error } = await window.supabase
+    .from('recipes')
+    .select(`
+      id, name, desc, cat, genre, ings, ing_parts, ing_rows,
+      steps, memo, url, url_label, photos, img,
+      pub, fav, heart, crown, date, yield_amount,
+      created_at
+    `)
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Supabase エラー詳細:', error);   // ← これで詳細が見えるようになります
+    alert('レシピの読み込みに失敗しました: ' + (error.message || JSON.stringify(error)));
+    return;
+  }
+
+  console.log("取得できたレシピ数:", data ? data.length : 0);
+
+  recipes = data.map(function(r) {
+    r.ingParts = r.ing_parts || [];        // 正しいカラム（ing_parts）
+    r.ingRows  = r.ing_rows || [];         // 正しいカラム（ing_rows）
+    r.desc     = r.desc || '';
+    r.yield_amount = r.yield_amount || '';
+
+    // 古いデータ対策
+    if ((!r.ingParts || r.ingParts.length === 0) && r.ingRows && r.ingRows.length > 0) {
+      r.ingParts = [{ label: '', rows: r.ingRows }];
     }
+    return r;
+  });
+
+  if (isEditor) {
+    document.getElementById('editorTools').style.display = 'flex';
+  }
+
+  render();
+
+  // 編集モードで直接開く場合の処理
+  var editTarget = (new URLSearchParams(location.search)).get('edit');
+  if (isEditor && editTarget) {
+    var targetRecipe = recipes.find(function(r){ 
+      return String(r.id) === String(editTarget); 
+    });
+    if (targetRecipe) openEdit(targetRecipe.id);
   }
 }
+
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -800,20 +832,34 @@ function getIngData(){
   return parts;
 }
 
-function setIngData(ingParts,ingRows,ingDetail){
-  var container=document.getElementById('ingParts');container.innerHTML='';
-  if(ingParts&&ingParts.length){
-    var hasLabels=ingParts.some(function(p){return p.label;});
-    ingParts.forEach(function(p){container.appendChild(makePartEl(p.label,p.rows,hasLabels));});
-  } else if(ingRows&&ingRows.length){
-    container.appendChild(makePartEl('',ingRows,false));
-  } else if(ingDetail){
-    var rows=ingDetail.split('\n').filter(Boolean).map(function(line){var pts=line.split(/\s+/);return{name:pts[0]||'',amt:pts.slice(1).join(' ')||'',note:''};});
-    container.appendChild(makePartEl('',rows,false));
-  } else {
-    container.appendChild(makePartEl('',null,false));
+
+function setIngData(ingParts, ingRows, ingDetail) {
+  var container = document.getElementById('ingParts');
+  container.innerHTML = '';
+
+  if (ingParts && ingParts.length > 0) {
+    var hasLabels = ingParts.some(function(p) { return p && p.label; });
+    ingParts.forEach(function(p) {
+      container.appendChild(makePartEl(p.label || '', p.rows || [], hasLabels));
+    });
+  } 
+  else if (ingRows && ingRows.length > 0) {
+    container.appendChild(makePartEl('', ingRows, false));
+  } 
+  else if (ingDetail) {
+    // 古い形式のフォールバック
+    var rows = ingDetail.split('\n').filter(Boolean).map(function(line) {
+      var pts = line.split(/\s+/);
+      return { name: pts[0] || '', amt: pts.slice(1).join(' ') || '', note: '' };
+    });
+    container.appendChild(makePartEl('', rows, false));
+  } 
+  else {
+    container.appendChild(makePartEl('', null, false));
   }
 }
+
+
 
 function openAdd(){
   editId=null;pendingPhotos=[];
