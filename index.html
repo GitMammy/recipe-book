@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1720　出来上がり量表示/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1733　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1056,6 +1056,11 @@ function renderIngSection(r){
   return '';
 }
 
+function goToDetail(id) {
+  var keyStr = isEditor ? '&key=' + SECRET_KEY : '';
+  window.location.href = 'detail.html?id=' + id + keyStr;
+}
+
 //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 async function openDetail(id){
   var r=recipes.find(function(x){return String(x.id)===String(id);});
@@ -1318,6 +1323,7 @@ async function deleteCommonTip(id){
   await window.supabase.from('notes_and_tips').delete().eq('id',id);
   renderCommonTipList();render();
 }
+
 </script>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
