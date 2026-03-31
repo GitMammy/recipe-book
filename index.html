@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1820　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1956　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -714,9 +714,53 @@ function updateSelects(){
   sc.value=cv;
 }
 
-function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.heart=!r.heart;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
-function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.fav=!r.fav;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
-function toggleCrown(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){if(r.crown===undefined)r.crown=false;r.crown=!r.crown;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+function isEditMode(){
+  return (
+    document.getElementById('overlayAdd')?.classList.contains('open') ||
+    document.getElementById('overlayTipEdit')?.classList.contains('open')
+  );
+}
+//♡★♚
+function toggleHeart(e,id){
+  if (!isEditMode()) return; // ← 閲覧モードでは無効化
+
+  e.stopPropagation();
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(r){
+    r.heart=!r.heart;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+function toggleStar(e,id){
+  if (!isEditMode()) return;
+
+  e.stopPropagation();
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(r){
+    r.fav=!r.fav;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+function toggleCrown(e,id){
+  if (!isEditMode()) return;
+
+  e.stopPropagation();
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(r){
+    if(r.crown===undefined) r.crown=false;
+    r.crown=!r.crown;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+
+
+//function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.heart=!r.heart;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+//function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.fav=!r.fav;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+//function toggleCrown(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){if(r.crown===undefined)r.crown=false;r.crown=!r.crown;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+
 
 function handlePhotoAdd(input){
   var file=input.files[0];if(!file)return;
@@ -1017,12 +1061,14 @@ function renderIngSection(r){
     return parts.map(function(p){
       if(!p || !p.rows) return '';
 
-      var lh = hasLabels && p.label
-        ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">'
-          + '<span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'
-          + esc(p.label)
-          + '</span></div>'
-        : '';
+    var lh = (hasLabels && p.label && p.label !== "説明")
+      ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">'
+        + '<span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'
+        + esc(p.label)
+        + '</span></div>'
+      : '';
+    
+
 
       var rh = (p.rows || []).map(function(row){
         return '<tr>'
