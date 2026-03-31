@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1545　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1555　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -492,7 +492,7 @@ async function loadRecipes() {
     r.desc     = r.desc || '';
     r.yield_amount = r.yield_amount || '';
 
-    // 念のため両方対応
+    // 古いデータ対策
     if ((!r.ingParts || r.ingParts.length === 0) && r.ingRows && r.ingRows.length > 0) {
       r.ingParts = [{ label: '', rows: r.ingRows }];
     }
@@ -505,13 +505,15 @@ async function loadRecipes() {
 
   render();
 
+  // 編集モードで直接開く場合
   var editTarget = (new URLSearchParams(location.search)).get('edit');
   if (isEditor && editTarget) {
-    var targetRecipe = recipes.find(r => String(r.id) === String(editTarget));
+    var targetRecipe = recipes.find(function(r){ 
+      return String(r.id) === String(editTarget); 
+    });
     if (targetRecipe) openEdit(targetRecipe.id);
   }
 }
-
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
