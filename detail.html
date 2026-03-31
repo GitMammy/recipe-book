@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1905　detail.html　-->
+  <!—260331-2007　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,20 +212,28 @@ async function saveStatus(id, heart, fav, crown){
 }
 
 function toggleHeart(r){
+  if (!isEditMode()) return; // ← 閲覧モードでは無効化
+
   r.heart=!r.heart;
   saveStatus(r.id,r.heart,r.fav,r.crown);
   renderDetail(r);
 }
 function toggleStar(r){
+  if (!isEditMode()) return;
+
   r.fav=!r.fav;
   saveStatus(r.id,r.heart,r.fav,r.crown);
   renderDetail(r);
 }
 function toggleCrown(r){
+  if (!isEditMode()) return;
+
   r.crown=!r.crown;
   saveStatus(r.id,r.heart,r.fav,r.crown);
   renderDetail(r);
 }
+
+
 
 // ─── 詳細レンダリング ────────────────────────────────────
 function renderDetail(r, notes){
@@ -450,6 +458,17 @@ async function loadDetail(){
 
   renderDetail(recipe, notes||[]);
 }
+
+
+//*********************　0331　add
+function isEditMode(){
+  return (
+    document.getElementById('overlayAdd')?.classList.contains('open') ||
+    document.getElementById('overlayTipEdit')?.classList.contains('open')
+  );
+}
+
+
 
 // index.html 側から edit= パラメータ経由で編集を開く対応は
 // index.html 側の loadRecipes() で処理するため detail.html 側は不要
