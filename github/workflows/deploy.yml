@@ -1,1 +1,32 @@
+name: Deploy with Version
 
+on:
+  push:
+    branches: [ main, master ]   # あなたのデフォルトブランチに合わせて変更（main か master）
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # commit履歴を取得
+
+      - name: Get short commit hash
+        id: vars
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Replace placeholder with commit hash
+        run: |
+          sed -i "s/COMMIT_HASH_PLACEHOLDER/${{ env.SHORT_SHA }}/g" index.html
+          # もしファイル名が違う場合はここを変更（例: index.html）
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .   # ルートディレクトリを公開する場合
+          # 必要に応じて publish_branch: gh-pages などを追加
