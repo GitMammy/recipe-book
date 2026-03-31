@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-1733　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260331-1820　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -491,8 +491,12 @@ async function loadRecipes() {
   recipes = data.map(function(r) {
     r.ingParts = r.ing_parts || [];
     r.ingRows  = r.ing_rows || [];
-    r.desc     = r.desc || '';
-    r.yield_amount = r.yield_amount || '';
+    r.desc     = r.desc ?? '';
+    r.yield_amount = r.yield_amount ?? '';
+
+    //r.desc     = r.desc || '';
+    //r.yield_amount = r.yield_amount || '';
+
 
     // 古いデータ対策
     if ((!r.ingParts || r.ingParts.length === 0) && r.ingRows && r.ingRows.length > 0) {
