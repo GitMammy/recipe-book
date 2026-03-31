@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-2007　detail.html　-->
+  <!—260331-2020　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,7 +212,7 @@ async function saveStatus(id, heart, fav, crown){
 }
 
 function toggleHeart(r){
-  if (!isEditMode()) return; // ← 閲覧モードでは無効化
+  if (!isEditMode()) return;
 
   r.heart=!r.heart;
   saveStatus(r.id,r.heart,r.fav,r.crown);
@@ -232,6 +232,9 @@ function toggleCrown(r){
   saveStatus(r.id,r.heart,r.fav,r.crown);
   renderDetail(r);
 }
+
+
+
 
 
 
