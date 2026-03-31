@@ -21,7 +21,7 @@ jobs:
 
       - name: Replace placeholder with commit hash
         run: |
-          sed -i "s/COMMIT_HASH_PLACEHOLDER/${{ env.SHORT_SHA }}/g" 260630-2016-index.html
+          sed -i "s/COMMIT_HASH_PLACEHOLDER/${{ env.SHORT_SHA }}/g" index.html
           # もしファイル名が違う場合はここを変更（例: index.html）
 
       - name: Deploy to GitHub Pages
