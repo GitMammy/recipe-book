@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-2031　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1209　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -167,7 +167,7 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 26px;
   padding: 0;
   line-height: 1;
   color: #ccc;
@@ -251,7 +251,18 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 <div class="topbar">
   <input type="text" id="search" placeholder="料理名・食材で検索..." style="flex:1;min-width:150px">
   <select id="filterCat"><option value="">カテゴリ：すべて</option></select>
-  <select id="filterPub"><option value="">公開：すべて</option><option value="1">公開</option><option value="0">非公開</option></select>
+
+
+  <div id="pubFilterArea" style="display:none">
+    <select id="filterPub">
+      <option value="">公開：すべて</option>
+      <option value="1">公開</option>
+      <option value="0">非公開</option>
+    </select>
+  </div>
+
+
+
   <div class="toolbar-right">
     <button class="fav-filter" onclick="toggleFavFilter()">
       <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
@@ -377,6 +388,12 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
       </div>
       <input type="file" id="tipEditPhotoInput" accept="image/*" style="display:none" onchange="handleTipEditPhoto(this)">
     </div>
+
+<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px">
+  <input type="checkbox" id="tipEditPub"> 公開する
+</label>
+
+
     <div class="modal-btns">
       <button class="btn btn-sm btn-danger" onclick="deleteTipFromEdit()">削除</button>
       <div class="modal-btns-right">
@@ -389,6 +406,12 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+if (!isEditor) {
+  document.getElementById('pubFilterArea').style.display = 'none';
+} else {
+  document.getElementById('pubFilterArea').style.display = 'flex';
+}
+
 window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
 window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
 
@@ -584,7 +607,13 @@ async function render(){
       var catTag=r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'';
       var ingTags=(r.ings||[]).slice(0,2).map(function(i){return'<span class="tag t-ing">'+esc(i.trim())+'</span>';}).join('');
       var moreTag=(r.ings||[]).length>2?'<span class="tag t-ing">+'+(r.ings.length-2)+'</span>':'';
-      var pubTag='<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
+
+
+      var pubTag = isEditor
+        ? '<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>'
+        : '';
+
+//      var pubTag='<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
       return '<div class="card" onclick="goToDetail(\''+r.id+'\')">'+imgHtml+'<div class="card-body">'
         +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
         +'<div class="hearts">'
@@ -637,18 +666,30 @@ async function openTipDetail(tipId) {
 async function openTipEdit(tipId) {
   const{data:t,error}=await window.supabase.from('notes_and_tips').select('*').eq('id',tipId).single();
   if(error||!t){alert('チップスの読み込みに失敗しました');return;}
-  tipEditPendingPhoto=null; tipEditPhotoCleared=false;
+
+  tipEditPendingPhoto=null; 
+  tipEditPhotoCleared=false;
+
   document.getElementById('tipEditId').value=t.id;
   document.getElementById('tipEditTitle').value=t.title||'';
   document.getElementById('tipEditContent').value=t.content||'';
+  document.getElementById('tipEditPub').checked = !!t.pub;   // ← 追加
+
   var prev=document.getElementById('tipEditPhotoPreview');
   var clearBtn=document.getElementById('tipEditPhotoClearBtn');
+
   if(t.image_url){
     prev.innerHTML='<img src="'+t.image_url+'" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">';
-    clearBtn.style.display='inline'; clearBtn.textContent='写真を削除';
-  } else { prev.innerHTML=''; clearBtn.style.display='none'; }
+    clearBtn.style.display='inline'; 
+    clearBtn.textContent='写真を削除';
+  } else { 
+    prev.innerHTML=''; 
+    clearBtn.style.display='none'; 
+  }
+
   openOverlay('overlayTipEdit');
 }
+
 
 function handleTipEditPhoto(input){
   var file=input.files[0];if(!file)return;
@@ -677,22 +718,31 @@ function clearTipEditPhoto(){
 }
 
 async function saveTipEdit(){
-  var tipId=document.getElementById('tipEditId').value;
-  var title=document.getElementById('tipEditTitle').value.trim();
-  var content=document.getElementById('tipEditContent').value.trim();
-  if(!title||!content){alert('タイトルと内容を入力してください');return;}
-  var btn=document.getElementById('tipEditSaveBtn');btn.disabled=true;btn.textContent='保存中...';
-  try{
-    const{data:existing}=await window.supabase.from('notes_and_tips').select('image_url').eq('id',tipId).single();
-    var newImageUrl=existing?existing.image_url:null;
-    if(tipEditPhotoCleared){if(newImageUrl)await deleteStoragePhotos([newImageUrl]);newImageUrl=null;}
-    else if(tipEditPendingPhoto){if(newImageUrl)await deleteStoragePhotos([newImageUrl]);newImageUrl=await uploadToStorage({data:tipEditPendingPhoto});}
-    const{error}=await window.supabase.from('notes_and_tips').update({title,content,image_url:newImageUrl}).eq('id',tipId);
-    if(error)throw error;
-    closeOverlay('overlayTipEdit');render();
-  }catch(err){console.error('Tip save error:',err);alert('保存に失敗しました: '+err.message);}
-  finally{btn.disabled=false;btn.textContent='保存';}
+  const id=document.getElementById('tipEditId').value;
+  const title=document.getElementById('tipEditTitle').value.trim();
+  const content=document.getElementById('tipEditContent').value.trim();
+  const pub=document.getElementById('tipEditPub').checked;   // ← 追加
+
+  const updateData = {
+    title,
+    content,
+    pub
+  };
+
+  if(tipEditPhotoCleared){
+    updateData.image_url = null;
+  } else if(tipEditPendingPhoto){
+    updateData.image_url = tipEditPendingPhoto;
+  }
+
+  await window.supabase.from('notes_and_tips')
+    .update(updateData)
+    .eq('id', id);
+
+  closeOverlay('overlayTipEdit');
+  loadCommonTips();
 }
+
 
 async function deleteTipFromEdit(){
   if(!confirm('このチップスを削除しますか？'))return;
@@ -1362,7 +1412,12 @@ async function renderCommonTipList(){
   listDiv.innerHTML=tips.map(t=>{
     const imgHtml=t.image_url?`<img src="${t.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;margin-right:6px;flex-shrink:0">`:'' ;
     return`<div style="font-size:12px;border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;align-items:center">${imgHtml}<div><strong>${esc(t.title)}</strong><div style="font-size:11px;color:#666;margin-top:2px">${esc(t.content.length>40?t.content.slice(0,40)+'…':t.content)}</div></div></div>
+      <div style="display:flex;align-items:center">${imgHtml}<div><strong>${esc(t.title)}</strong>
+      ${t.pub ? '<span class="tag t-pub">公開</span>' : '<span class="tag t-priv">非公開</span>'}
+
+
+
+      <div style="font-size:11px;color:#666;margin-top:2px">${esc(t.content.length>40?t.content.slice(0,40)+'…':t.content)}</div></div></div>
       <button onclick="deleteCommonTip('${t.id}')" style="background:none;border:none;color:#638C3E;cursor:pointer;font-size:11px;flex-shrink:0;margin-left:8px">削除</button></div>`;
   }).join('');
 }
@@ -1388,6 +1443,7 @@ async function deleteCommonTip(id){
 }
 
 </script>
+
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
