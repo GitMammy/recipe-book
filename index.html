@@ -721,11 +721,9 @@ function updateSelects(){
 
 
 function isEditMode(){
-  return (
-    document.getElementById('overlayAdd')?.classList.contains('open') ||
-    document.getElementById('overlayTipEdit')?.classList.contains('open')
-  );
+  return isEditor;  // URL の key= で判定
 }
+
 
 //♡★♚
 function toggleHeart(e,id){
