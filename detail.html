@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1209　detail.html　-->
+  <!—260401-1613　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -302,21 +302,26 @@ function renderDetail(r, notes){
     // タイトル行
     +'<div class="detail-top">'
     +'<h1>'+esc(r.name)+'</h1>'
+
+
+
     +'<div class="hearts">'
     +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(window._recipe)" title="お気に入り">♡</button>'
     +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(window._recipe)" title="スター">★</button>'
     +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(window._recipe)" title="クラウン">♚</button>'
     +'</div></div>'
 
-    // タグ
-    +'<div class="tags">'
-    +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
-    +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
-    +'<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
-    +'</div>'
+// タグ
++'<div class="tags">'
++(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
++(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
++(isEditor
+    ? '<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
+    : ''
+ )
++'</div>'
 
-    // 説明
-    +(r.desc?'<div class="detail-section"><p>'+esc(r.desc)+'</p></div>':'')
+
 
     // 食材タグ
     +((r.ings&&r.ings.length)?'<div class="detail-section"><h3>食材タグ</h3><div class="tags">'
