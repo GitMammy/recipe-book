@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1036　detail.html　-->
+  <!—260401-1209　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@ body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
 .detail-top h1{font-size:20px;font-weight:600;line-height:1.4;flex:1}
 
 .hearts{display:flex;gap:4px;flex-shrink:0;align-items:center}
-.heart-btn,.star-btn{background:none;border:none;cursor:pointer;font-size:20px;padding:0;line-height:1;color:#ccc}
+.heart-btn,.star-btn{background:none;border:none;cursor:pointer;font-size:26px;padding:0;line-height:1;color:#ccc}
 .heart-btn.on{color:#D4537E}
 .star-btn.on{color:#BA7517}
 .crown-btn{background:none;border:none;cursor:pointer;font-size:20px;padding:0;line-height:1;color:#ccc}
@@ -316,7 +316,7 @@ function renderDetail(r, notes){
     +'</div>'
 
     // 説明
-    +(r.desc?'<div class="detail-section"><h3>説明</h3><p>'+esc(r.desc)+'</p></div>':'')
+    +(r.desc?'<div class="detail-section"><p>'+esc(r.desc)+'</p></div>':'')
 
     // 食材タグ
     +((r.ings&&r.ings.length)?'<div class="detail-section"><h3>食材タグ</h3><div class="tags">'
