@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1547　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1614　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -560,17 +560,34 @@ function getFiltered(){
   var q=(document.getElementById('search').value||'').toLowerCase();
   var c=document.getElementById('filterCat').value;
   var p=document.getElementById('filterPub').value;
+
   return recipes.filter(function(r){
+
+    // ♡★♚ フィルタ
     if(favFilter==='heart'&&!r.heart)return false;
     if(favFilter==='star'&&!r.fav)return false;
     if(favFilter==='crown'&&!r.crown)return false;
+
+    // カテゴリ
     if(c&&r.cat!==c)return false;
-    if(p==='1'&&!r.pub)return false;
-    if(p==='0'&&r.pub)return false;
-    if(q){var hay=(r.name+r.desc+(r.ings||[]).join(' ')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+
+    // ★ 閲覧モードでは公開のみ
+    if (!isEditor && !r.pub) return false;
+
+    // ★ 編集モードの公開/非公開フィルタ
+    if (p==='1' && !r.pub) return false;
+    if (p==='0' && r.pub) return false;
+
+    // 検索
+    if(q){
+      var hay=(r.name+r.desc+(r.ings||[]).join(' ')).toLowerCase();
+      if(hay.indexOf(q)<0)return false;
+    }
+
     return true;
   });
 }
+
 
 function toggleFavFilter(){
   if(!favFilter) favFilter='heart';
