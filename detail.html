@@ -1,6 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260331-2020　detail.html　-->
+  <!—260401-1036　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -465,11 +466,9 @@ async function loadDetail(){
 
 //*********************　0331　add
 function isEditMode(){
-  return (
-    document.getElementById('overlayAdd')?.classList.contains('open') ||
-    document.getElementById('overlayTipEdit')?.classList.contains('open')
-  );
+  return isEditor;  // URL の key= で判定
 }
+
 
 
 
