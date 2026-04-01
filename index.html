@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1209　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1547　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -406,11 +406,17 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+//if (!isEditor) {
+//  document.getElementById('pubFilterArea').style.display = 'none';
+//} else {
+//  document.getElementById('pubFilterArea').style.display = 'flex';
+//}
 if (!isEditor) {
   document.getElementById('pubFilterArea').style.display = 'none';
 } else {
-  document.getElementById('pubFilterArea').style.display = 'flex';
+  document.getElementById('pubFilterArea').style.display = 'block';
 }
+
 
 window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
 window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
