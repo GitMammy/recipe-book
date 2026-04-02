@@ -173,3 +173,10 @@ function closeRecipeModal() {
   hideOverlay();
   document.getElementById('recipeModal').style.display = 'none';
 }
+/* コメント　 
+このファイルが依存しているもの
+config.js → supabase / isEditor
+utils.js → esc() など
+ui.js → showOverlay() / hideOverlay()
+storage.js → 写真アップロード結果（window.currentUploadedPhotos）
+*/
