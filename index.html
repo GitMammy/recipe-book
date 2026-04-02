@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1614　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1517　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1430,20 +1430,49 @@ function openCommonTipsManager(){
 
 async function renderCommonTipList(){
   const listDiv=document.getElementById('commonTipList');
-  const{data:tips}=await window.supabase.from('notes_and_tips').select('*').is('recipe_id',null).order('created_at',{ascending:true});
-  if(!tips||tips.length===0){listDiv.innerHTML='<p style="font-size:11px;color:#999;text-align:center">なし</p>';return;}
-  listDiv.innerHTML=tips.map(t=>{
-    const imgHtml=t.image_url?`<img src="${t.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;margin-right:6px;flex-shrink:0">`:'' ;
-    return`<div style="font-size:12px;border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;align-items:center">${imgHtml}<div><strong>${esc(t.title)}</strong>
-      ${t.pub ? '<span class="tag t-pub">公開</span>' : '<span class="tag t-priv">非公開</span>'}
+  let {data:tips}=await window.supabase.from('notes_and_tips')
+    .select('*')
+    .is('recipe_id',null)
+    .order('created_at',{ascending:true});
 
+  // ★ 閲覧モードでは公開のみ表示
+  if (!isEditor) {
+    tips = tips.filter(t => t.pub);
+  }
 
+  // ★ 編集モードの公開/非公開フィルタ
+  const p = document.getElementById('filterPub').value;
+  if (isEditor) {
+    if (p === '1') tips = tips.filter(t => t.pub);
+    if (p === '0') tips = tips.filter(t => !t.pub);
+  }
 
-      <div style="font-size:11px;color:#666;margin-top:2px">${esc(t.content.length>40?t.content.slice(0,40)+'…':t.content)}</div></div></div>
-      <button onclick="deleteCommonTip('${t.id}')" style="background:none;border:none;color:#638C3E;cursor:pointer;font-size:11px;flex-shrink:0;margin-left:8px">削除</button></div>`;
+  if(!tips || tips.length === 0){
+    listDiv.innerHTML='<p style="font-size:11px;color:#999;text-align:center">なし</p>';
+    return;
+  }
+
+  listDiv.innerHTML = tips.map(t=>{
+    const imgHtml = t.image_url
+      ? `<img src="${t.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;margin-right:6px;flex-shrink:0">`
+      : '';
+
+    return `
+      <div style="font-size:12px;border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center">
+          ${imgHtml}
+          <div>
+            <strong>${esc(t.title)}</strong>
+            <div style="font-size:11px;color:#666;margin-top:2px">
+              ${esc(t.content.length>40 ? t.content.slice(0,40)+'…' : t.content)}
+            </div>
+          </div>
+        </div>
+        <button onclick="deleteCommonTip('${t.id}')" style="background:none;border:none;color:#638C3E;cursor:pointer;font-size:11px;flex-shrink:0;margin-left:8px">削除</button>
+      </div>`;
   }).join('');
 }
+
 
 async function addCommonTip(){
   const title=document.getElementById('commonTipTitle').value.trim();const content=document.getElementById('commonTipContent').value.trim();
