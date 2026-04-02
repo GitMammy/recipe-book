@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1613　detail.html　-->
+  <!—260402-1509　detail.html　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -246,7 +246,9 @@ function renderDetail(r, notes){
   var _notes = window._notes || [];
 
   var ingHtml = renderIngSection(r);
-  var photos = (r.photos&&r.photos.length) ? r.photos : (r.img ? [{title:'',data:r.img}] : []);
+  var photos = (r.photos && r.photos.length)
+    ? r.photos
+    : (r.img ? [{ title:'', data:r.img }] : []);
   currentPhotos = photos;
 
   // 関連レシピ
@@ -255,125 +257,151 @@ function renderDetail(r, notes){
   if(relatedRecipes.length){
     var cards = relatedRecipes.map(function(rel){
       var thumb = getThumb(rel);
-      var href = 'detail.html?id='+rel.id+(keyParam?'&key='+keyParam:'');
+      var href = 'detail.html?id=' + rel.id + (keyParam ? '&key=' + keyParam : '');
       return '<a class="related-card" href="'+href+'">'
-        +(thumb
-          ? '<img class="related-card-thumb" src="'+thumb+'" alt="">'
-          : '<div class="related-card-placeholder">'+getCatEmoji(rel.cat)+'</div>')
-        +'<span class="related-card-name">'+esc(rel.name)+'</span></a>';
+        + (thumb
+            ? '<img class="related-card-thumb" src="'+thumb+'">'
+            : '<div class="related-card-placeholder">'+getCatEmoji(rel.cat)+'</div>')
+        + '<span class="related-card-name">'+esc(rel.name)+'</span></a>';
     }).join('');
-    relatedHtml = '<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">'+cards+'</div></div>';
+    relatedHtml =
+      '<div class="detail-section"><h3>🔗 関連レシピ</h3>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'+cards+'</div></div>';
   }
 
   // メモ
   var notesHtml = '';
   if(_notes.length){
-    notesHtml = '<div class="detail-section" style="margin-top:4px">'
+    notesHtml =
+      '<div class="detail-section" style="margin-top:4px">'
       + _notes.map(function(n){
-          var img = n.image_url ? '<img src="'+n.image_url+'" class="note-image">' : '';
+          var img = n.image_url
+            ? '<img src="'+n.image_url+'" class="note-image">'
+            : '';
           return '<div class="note-card note-recipe">'
-            +'<div class="note-title"><span>📝 レシピメモ</span>: '+esc(n.title)+'</div>'
-            +img
-            +'<div style="white-space:pre-wrap">'+esc(n.content)+'</div></div>';
+            + '<div class="note-title"><span>📝 レシピメモ</span>: '+esc(n.title)+'</div>'
+            + img
+            + '<div style="white-space:pre-wrap">'+esc(n.content)+'</div>'
+            + '</div>';
         }).join('')
-      +'</div>';
+      + '</div>';
   }
 
   // 写真ギャラリー
   var galleryHtml = '';
   if(photos.length){
-    galleryHtml = '<div class="detail-section"><h3>写真</h3><div class="photo-gallery">'
+    galleryHtml =
+      '<div class="detail-section"><h3>写真</h3><div class="photo-gallery">'
       + photos.map(function(p,i){
           return '<div class="photo-gallery-item">'
-            +'<img src="'+p.data+'" alt="'+(p.title?esc(p.title):'')+'" onclick="openLightbox('+i+')" title="クリックで拡大">'
-            +(p.title?'<div class="photo-gallery-caption">'+esc(p.title)+'</div>':'')
-            +'</div>';
+            + '<img src="'+p.data+'" alt="'+(p.title?esc(p.title):'')+'" onclick="openLightbox('+i+')">'
+            + (p.title ? '<div class="photo-gallery-caption">'+esc(p.title)+'</div>' : '')
+            + '</div>';
         }).join('')
-      +'</div></div>';
+      + '</div></div>';
   }
 
-  // 編集ボタン（編集モードのみ）
+  // 編集ボタン
   var editBtn = isEditor
     ? '<a class="btn btn-sm btn-accent" href="index.html?key='+SECRET_KEY+'&edit='+r.id+'">✏️ 編集</a>'
     : '';
 
-  var html = '<div class="detail-card">'
+  // ==========================
+  // ここから HTML 組み立て開始
+  // ==========================
+  var html = '<div class="detail-card">';
 
-    // タイトル行
-    +'<div class="detail-top">'
-    +'<h1>'+esc(r.name)+'</h1>'
+  // タイトル行
+  html +=
+    '<div class="detail-top">'
+    + '<h1>' + esc(r.name) + '</h1>'
+    + '<div class="hearts">'
+    + '<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(window._recipe)">♡</button>'
+    + '<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(window._recipe)">★</button>'
+    + '<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(window._recipe)">♚</button>'
+    + '</div>'
+    + '</div>';
 
+  // ★★★ 説明（タイトル直下）★★★
+  if(r.desc){
+    html +=
+      '<div style="margin-bottom:1rem">'
+      + '<p style="font-size:13px;color:#555;line-height:1.7">'
+      + esc(r.desc)
+      + '</p></div>';
+  }
 
-
-    +'<div class="hearts">'
-    +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(window._recipe)" title="お気に入り">♡</button>'
-    +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(window._recipe)" title="スター">★</button>'
-    +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(window._recipe)" title="クラウン">♚</button>'
-    +'</div></div>'
-
-// タグ
-+'<div class="tags">'
-+(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
-+(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
-+(isEditor
+  // タグ（公開は編集モードのみ）
+  var pubTagHtml = isEditor
     ? '<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
-    : ''
- )
-+'</div>'
+    : '';
 
+  html +=
+    '<div class="tags" style="margin-bottom:1rem">'
+    + (r.cat ? '<span class="tag t-cat">'+esc(r.cat)+'</span>' : '')
+    + (r.genre ? '<span class="tag t-ing">'+esc(r.genre)+'</span>' : '')
+    + pubTagHtml
+    + '</div>';
 
+  // 材料
+  if(ingHtml){
+    html +=
+      '<div class="detail-section">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center">'
+      + '<h3>材料</h3>'
+      + (r.yield_amount ? '<span class="yield-badge">'+esc(r.yield_amount)+'</span>' : '')
+      + '</div>'
+      + ingHtml
+      + '</div>';
+  }
 
-    // 食材タグ
-    +((r.ings&&r.ings.length)?'<div class="detail-section"><h3>食材タグ</h3><div class="tags">'
-      +r.ings.map(function(i){return'<span class="tag t-ing">'+esc(i)+'</span>';}).join('')
-      +'</div></div>':'')
+  // 食材タグ
+  if(r.ings && r.ings.length){
+    html +=
+      '<div class="detail-section"><h3>食材タグ</h3><div class="tags">'
+      + r.ings.map(i => '<span class="tag t-ing">'+esc(i)+'</span>').join('')
+      + '</div></div>';
+  }
 
-    // 材料（★ yield_amount を追加）
-    +(ingHtml
-      ? '<div class="detail-section">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center">'
-        + '<h3>材料</h3>'
-        + (r.yield_amount ? '<span class="yield-badge">'+esc(r.yield_amount)+'</span>' : '')
-        + '</div>'
-        + ingHtml
-        + '</div>'
-      : ''
-    )
+  // 手順
+  if(r.steps){
+    html += '<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
+  }
 
-    // 手順
-    +(r.steps?'<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>':'')
+  // 写真
+  html += galleryHtml;
 
-    // 写真
-    +galleryHtml
+  // アレンジ
+  if(r.memo){
+    html += '<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
+  }
 
-    // アレンジ
-    +(r.memo?'<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>':'')
+  // 参考レシピ
+  if(r.url){
+    html +=
+      '<div class="detail-section"><h3>参考レシピ</h3>'
+      + '<a href="'+esc(r.url)+'" target="_blank" style="color:#185FA5">'
+      + esc(r.url_label || r.url)
+      + '</a></div>';
+  }
 
-    // ★ 参考レシピ（url_label 対応）
-    +(r.url
-      ? '<div class="detail-section"><h3>参考レシピ</h3>'
-        + '<a href="'+esc(r.url)+'" target="_blank" rel="noopener" style="font-size:13px;color:#185FA5;word-break:break-all">'
-        + esc(r.url_label || r.url)
-        + '</a></div>'
-      : ''
-    )
+  // 関連レシピ
+  html += relatedHtml;
 
-    // 関連レシピ
-    +relatedHtml
+  // メモ
+  html += notesHtml;
 
-    // メモ
-    +notesHtml
+  // フッター
+  html +=
+    '<div class="footer-bar">'
+    + '<span class="footer-date">'+(r.date||'')+'</span>'
+    + '<div style="display:flex;gap:8px">'+editBtn+'</div>'
+    + '</div>';
 
-    // フッター
-    +'<div class="footer-bar">'
-    +'<span class="footer-date">'+(r.date||'')+'</span>'
-    +'<div style="display:flex;gap:8px">'+editBtn+'</div>'
-    +'</div>'
-
-    +'</div>';
+  html += '</div>';
 
   document.getElementById('content').innerHTML = html;
-  window._recipe = r; // トグル再描画用に保持
+  window._recipe = r;
 }
 
 
