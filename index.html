@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1517　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1535　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -613,11 +613,46 @@ async function render(){
   var searchWord=document.getElementById('search').value.trim();
   var filterCat=document.getElementById('filterCat').value;
   var isSearching=searchWord!==''||filterCat!=='';
-  var tips=[];
-  if(!isSearching&&!favFilter){
-    const{data:tipData}=await window.supabase.from('notes_and_tips').select('*').is('recipe_id',null).order('created_at',{ascending:true});
-    tips=tipData||[];
+
+  // ★ 表示・非表示に対応
+    var tips=[];
+    if(!isSearching && !favFilter){
+      const {data:tipData} = await window.supabase
+        .from('notes_and_tips')
+        .select('*')
+        .is('recipe_id', null)
+        .order('created_at', {ascending:true});
+
+      tips = tipData || [];
+
+      // ★ 閲覧モードでは公開のみ
+      if (!isEditor) {
+        tips = tips.filter(t => t.pub);
+      }
+
+      // ★ 編集モードの公開/非公開フィルタ（レシピと同じ）
+      const p = document.getElementById('filterPub').value;
+      if (isEditor) {
+        if (p === '1') tips = tips.filter(t => t.pub);
+        if (p === '0') tips = tips.filter(t => !t.pub);
+      }
+    }
+
+
+  // ★ 閲覧モードでは公開のみ
+  if (!isEditor) {
+    tips = tips.filter(t => t.pub);
   }
+
+  // ★ 編集モードの公開/非公開フィルタ
+  const p = document.getElementById('filterPub').value;
+  if (isEditor) {
+    if (p === '1') tips = tips.filter(t => t.pub);
+    if (p === '0') tips = tips.filter(t => !t.pub);
+  }
+}
+
+
   document.getElementById('countLabel').textContent=list.length+'件';
   var g=document.getElementById('grid');
   var html='';
