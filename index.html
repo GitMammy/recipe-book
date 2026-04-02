@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1535　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!—260401-1544　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,6 @@ body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
   padding: 1.25rem 1.5rem !important;
   max-width: 960px;
   margin: 0 auto;
-  display: block !important;
   width: 100%;
   box-sizing: border-box;
 }
@@ -607,99 +606,109 @@ function getThumb(r){
   return '';
 }
 
+
 async function render(){
   updateSelects();
-  var list=getFiltered();
-  var searchWord=document.getElementById('search').value.trim();
-  var filterCat=document.getElementById('filterCat').value;
-  var isSearching=searchWord!==''||filterCat!=='';
+  var list = getFiltered();
+  var searchWord = document.getElementById('search').value.trim();
+  var filterCat = document.getElementById('filterCat').value;
+  var isSearching = searchWord !== '' || filterCat !== '';
 
-  // ★ 表示・非表示に対応
-    var tips=[];
-    if(!isSearching && !favFilter){
-      const {data:tipData} = await window.supabase
-        .from('notes_and_tips')
-        .select('*')
-        .is('recipe_id', null)
-        .order('created_at', {ascending:true});
+  // ★ Tips 読み込み
+  var tips = [];
+  if (!isSearching && !favFilter) {
+    const { data: tipData } = await window.supabase
+      .from('notes_and_tips')
+      .select('*')
+      .is('recipe_id', null)
+      .order('created_at', { ascending: true });
 
-      tips = tipData || [];
+    tips = tipData || [];
 
-      // ★ 閲覧モードでは公開のみ
-      if (!isEditor) {
-        tips = tips.filter(t => t.pub);
-      }
-
-      // ★ 編集モードの公開/非公開フィルタ（レシピと同じ）
-      const p = document.getElementById('filterPub').value;
-      if (isEditor) {
-        if (p === '1') tips = tips.filter(t => t.pub);
-        if (p === '0') tips = tips.filter(t => !t.pub);
-      }
+    // 閲覧モードでは公開のみ
+    if (!isEditor) {
+      tips = tips.filter(t => t.pub);
     }
 
-
-  // ★ 閲覧モードでは公開のみ
-  if (!isEditor) {
-    tips = tips.filter(t => t.pub);
+    // 編集モードの公開/非公開フィルタ
+    const p = document.getElementById('filterPub').value;
+    if (isEditor) {
+      if (p === '1') tips = tips.filter(t => t.pub);
+      if (p === '0') tips = tips.filter(t => !t.pub);
+    }
   }
 
-  // ★ 編集モードの公開/非公開フィルタ
-  const p = document.getElementById('filterPub').value;
-  if (isEditor) {
-    if (p === '1') tips = tips.filter(t => t.pub);
-    if (p === '0') tips = tips.filter(t => !t.pub);
-  }
-}
+  // ★ レシピ件数表示
+  document.getElementById('countLabel').textContent = list.length + '件';
 
+  // ★ カード描画
+  var g = document.getElementById('grid');
+  var html = '';
 
-  document.getElementById('countLabel').textContent=list.length+'件';
-  var g=document.getElementById('grid');
-  var html='';
-  if(list.length>0){
-    html+=list.map(function(r){
-      var thumb=getThumb(r);
-      var imgHtml=thumb?'<img class="card-img" src="'+thumb+'" alt="">':'<div class="card-img-placeholder">'+getCatEmoji(r.cat)+'</div>';
-      var photoCount=(r.photos&&r.photos.length>1)?'<span style="font-size:10px;color:#aaa;margin-left:4px">📷'+r.photos.length+'</span>':'';
-      var descHtml=r.desc?'<div class="card-desc">'+esc(r.desc)+'</div>':'';
-      var catTag=r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'';
-      var ingTags=(r.ings||[]).slice(0,2).map(function(i){return'<span class="tag t-ing">'+esc(i.trim())+'</span>';}).join('');
-      var moreTag=(r.ings||[]).length>2?'<span class="tag t-ing">+'+(r.ings.length-2)+'</span>':'';
+  // レシピカード
+  if (list.length > 0) {
+    html += list.map(function(r){
+      var thumb = getThumb(r);
+      var imgHtml = thumb
+        ? '<img class="card-img" src="'+thumb+'">'
+        : '<div class="card-img-placeholder">'+getCatEmoji(r.cat)+'</div>';
 
+      var descHtml = r.desc ? '<div class="card-desc">'+esc(r.desc)+'</div>' : '';
+      var catTag = r.cat ? '<span class="tag t-cat">'+esc(r.cat)+'</span>' : '';
+      var ingTags = (r.ings||[]).slice(0,2).map(i => '<span class="tag t-ing">'+esc(i)+'</span>').join('');
+      var moreTag = (r.ings||[]).length > 2 ? '<span class="tag t-ing">+'+(r.ings.length-2)+'</span>' : '';
 
       var pubTag = isEditor
         ? '<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>'
         : '';
 
-//      var pubTag='<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>';
-      return '<div class="card" onclick="goToDetail(\''+r.id+'\')">'+imgHtml+'<div class="card-body">'
-        +'<div class="card-top"><div class="card-title">'+esc(r.name)+photoCount+'</div>'
-        +'<div class="hearts">'
-        +'<button type="button" class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
-        +'<button type="button" class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-        +'<button type="button" class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
-
-        //+'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\')">♡</button>'
-        //+'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\')">★</button>'
-        //+'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\')">♚</button>'
-
-        +'</div></div>'+descHtml
-        +'<div class="tags">'+catTag+ingTags+moreTag+'</div>'
-        +'<div class="card-footer">'+pubTag+'<span style="margin-left:4px">'+(r.date||'')+'</span></div>'
-        +'</div></div>';
+      return `
+        <div class="card" onclick="goToDetail('${r.id}')">
+          ${imgHtml}
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-title">${esc(r.name)}</div>
+              <div class="hearts">
+                <button type="button" class="heart-btn${r.heart?' on':''}" onclick="toggleHeart(event,'${r.id}')">♡</button>
+                <button type="button" class="star-btn${r.fav?' on':''}" onclick="toggleStar(event,'${r.id}')">★</button>
+                <button type="button" class="crown-btn${r.crown?' on':''}" onclick="toggleCrown(event,'${r.id}')">♚</button>
+              </div>
+            </div>
+            ${descHtml}
+            <div class="tags">${catTag}${ingTags}${moreTag}</div>
+            <div class="card-footer">${pubTag}<span style="margin-left:4px">${r.date||''}</span></div>
+          </div>
+        </div>
+      `;
     }).join('');
   }
-  if(tips.length>0){
+
+  // Tips カード
+  if (tips.length > 0) {
     tips.forEach(function(t){
-      var tipImg=t.image_url?'<img src="'+t.image_url+'" class="tip-img">':'';
-      html+='<div class="card card-tip" onclick="openTipDetail(\''+t.id+'\')">'+tipImg
-        +'<div style="padding:15px"><div class="tip-title">💡 '+esc(t.title)+'</div>'
-        +'<div class="tip-content">'+markdownToHtml(t.content)+'</div></div></div>';
+      var tipImg = t.image_url ? '<img src="'+t.image_url+'" class="tip-img">' : '';
+      html += `
+        <div class="card card-tip" onclick="openTipDetail('${t.id}')">
+          ${tipImg}
+          <div style="padding:15px">
+            <div class="tip-title">💡 ${esc(t.title)}</div>
+            <div class="tip-content">${markdownToHtml(t.content)}</div>
+          </div>
+        </div>
+      `;
     });
   }
-  if(html===''){g.innerHTML='<div class="empty">レシピもチップスもありません</div>';return;}
-  g.innerHTML=html;
+
+  if (html === '') {
+    g.innerHTML = '<div class="empty">レシピもチップスもありません</div>';
+    return;
+  }
+
+  g.innerHTML = html;
 }
+
+
+
 
 async function openTipDetail(tipId) {
   const{data:t,error}=await window.supabase.from('notes_and_tips').select('*').eq('id',tipId).single();
