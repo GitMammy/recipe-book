@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <!—260401-1544　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+  <!　index.html　だよ～～～　-->
+  <!—260401-1649　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -405,11 +406,9 @@ select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;backgr
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-//if (!isEditor) {
-//  document.getElementById('pubFilterArea').style.display = 'none';
-//} else {
-//  document.getElementById('pubFilterArea').style.display = 'flex';
-//}
+
+/* でコメントの開始
+
 if (!isEditor) {
   document.getElementById('pubFilterArea').style.display = 'none';
 } else {
@@ -431,6 +430,39 @@ var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
   var link = document.getElementById('faviconLink');
   if (link) { link.rel='icon'; link.type='image/x-icon'; link.href='favicon-edit.ico'; }
 })();
+コメントの終了 →　*/ 
+// --- Supabase 設定 ---
+window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+
+window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+// --- 編集モード判定 ---
+var SECRET_KEY = 'sakuramoti';
+var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
+
+// --- 編集モードのタイトル・favicon ---
+(function() {
+  if (!isEditor) return;
+  document.title = '🔑 おかしなぺぇじ【編集モード】';
+  var link = document.getElementById('faviconLink');
+  if (link) { link.rel='icon'; link.type='image/x-icon'; link.href='favicon-edit.ico'; }
+})();
+  
+// --- DOM が読み込まれてから UI 切り替え ---
+document.addEventListener("DOMContentLoaded", function() {
+  var area = document.getElementById('pubFilterArea');
+  if (!area) return;
+
+  if (!isEditor) {
+    area.style.display = 'none';
+  } else {
+    area.style.display = 'block';
+  }
+});
+
+
+
 
 var recipes = [];
 var editId = null;
@@ -606,8 +638,23 @@ function getThumb(r){
   return '';
 }
 
+function applyEditorUI(){
+  const area = document.getElementById('pubFilterArea');
+  const tools = document.getElementById('editorTools');
+  if (!area || !tools) return;
+
+  if (isEditor) {
+    area.style.display = 'flex';   // ← ここが今抜けているはず
+    tools.style.display = 'flex';
+  } else {
+    area.style.display = 'none';
+    tools.style.display = 'none';
+  }
+}
+
 
 async function render(){
+//  applyEditorUI();   // ← ここで毎回呼ぶ
   updateSelects();
   var list = getFiltered();
   var searchWord = document.getElementById('search').value.trim();
@@ -783,7 +830,7 @@ function clearTipEditPhoto(){
   document.getElementById('tipEditPhotoPreview').innerHTML='<p style="font-size:11px;color:#aaa;margin:0">写真なし</p>';
   document.getElementById('tipEditPhotoClearBtn').style.display='none';
 }
-
+//************************
 async function saveTipEdit(){
   const id=document.getElementById('tipEditId').value;
   const title=document.getElementById('tipEditTitle').value.trim();
