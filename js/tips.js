@@ -215,3 +215,9 @@ function closeTipModal() {
   hideOverlay();
   document.getElementById('tipModal').style.display = 'none';
 }
+/* コメント　
+このファイルが依存しているもの
+config.js → supabase / isEditor
+utils.js → esc(), markdownToHtml()
+ui.js → showOverlay(), hideOverlay()
+*/ 
