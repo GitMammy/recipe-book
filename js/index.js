@@ -20,7 +20,7 @@
 // ===== グローバル状態 =====
 let recipes = [];
 let isEditor = false;      // URL の key= で判定
-let SECRET_KEY = '';       // 必要なら埋め込む
+let SECRET_KEY = 'sakuramoti'; 
 let pendingPhotos = [];
 let editId = null;
 let dragSrc = null;
