@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <!　index.html　だよ～～～　-->
+  <!—260401-1649　参考レシピ/出来上がり量/説明ラベル非表示/閲覧モード調整　-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍪 おかしなぺぇじ 🥐</title>
+<link rel="icon" href="favicon.ico" id="faviconLink">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#fafafa;color:#1a1a1a}
+
+.app {
+  padding: 1.25rem 1.5rem !important;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.topbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+input[type=text]{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;outline:none}
+input[type=text]:focus{border-color:#D4537E}
+select{height:36px;padding:0 10px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer}
+.btn{height:36px;padding:0 14px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#f0f0f0}
+.btn-accent{background:#D4537E;color:#fff;border-color:#D4537E}
+.btn-accent:hover{background:#993556}
+.btn-sm{height:28px;padding:0 10px;font-size:12px}
+
+.toolbar-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.fav-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #888;
+  cursor: pointer;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  width: fit-content;
+  min-width: 0 !important;
+}
+.fav-filter:hover{background:#f0f0f0}
+.count-bar{font-size:13px;color:#888;margin-bottom:10px}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+}
+
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:#aaa}
+.card-img{width:100%;height:130px;object-fit:cover;display:block;background:#f5f5f5}
+.card-img-placeholder{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:32px;background:#FBEAF0}
+.card-body{padding:10px 12px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:4px}
+.card-title{font-size:14px;font-weight:500;color:#1a1a1a;line-height:1.4;flex:1}
+.hearts{display:flex;gap:2px;flex-shrink:0}
+.heart-btn,.star-btn{background:none;border:none;cursor:pointer;font-size:26px;padding:0;line-height:1;color:#ccc}
+.heart-btn.on{color:#D4537E}
+.star-btn.on{color:#BA7517}
+.card-desc{font-size:12px;color:#666;margin-bottom:8px;line-height:1.5}
+.tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;font-weight:400;border:none}
+.t-cat{background:#FBEAF0;color:#72243E}
+.t-ing{background:#FAEEDA;color:#633806}
+.t-pub{background:#EAF3DE;color:#27500A}
+.t-priv{background:#F1EFE8;color:#5F5E5A}
+.card-footer{font-size:11px;color:#aaa}
+.empty{text-align:center;padding:3rem;color:#888;font-size:14px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;border:1px solid #e5e5e5;padding:1.5rem;width:100%;max-width:540px;position:relative}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#888;line-height:1}
+.modal-close:hover{color:#1a1a1a}
+.modal h2{font-size:17px;font-weight:500;margin-bottom:1.25rem;padding-right:24px}
+.field{margin-bottom:0.9rem}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:3px;font-weight:500}
+.field input[type=text],.field textarea{width:100%}
+.field textarea{resize:vertical;padding:8px 10px;font-size:13px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;line-height:1.6;outline:none}
+.field textarea:focus{border-color:#D4537E}
+.field-row{display:flex;gap:8px}
+.field-row .field{flex:1}
+.modal-btns{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;gap:8px}
+.modal-btns-right{display:flex;gap:8px}
+.detail-section{margin-bottom:1rem}
+.detail-section h3{font-size:12px;color:#72243E;margin-bottom:6px;font-weight:500;background:#FBEAF0;padding:4px 8px;border-radius:5px}
+.detail-section p{font-size:13px;color:#1a1a1a;line-height:1.7;white-space:pre-wrap}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.detail-top h2{font-size:18px;font-weight:500;flex:1}
+.btn-danger{color:#A32D2D;border-color:#F09595}
+.btn-danger:hover{background:#FCEBEB}
+.pub-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#1a1a1a}
+.ing-table{width:100%;border-collapse:collapse;font-size:13px}
+.ing-table th{font-size:11px;color:#555;font-weight:700;padding:4px 6px;border-bottom:2px solid #ddd;text-align:left}
+.ing-table td{padding:3px 4px;vertical-align:middle}
+.ing-table td input{height:30px;padding:0 6px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;color:#1a1a1a;width:100%;outline:none}
+.ing-table td input:focus{border-color:#D4537E}
+.col-name{width:35%}.col-amt{width:23%}.col-note{width:auto}.col-del{width:24px}.col-move{width:28px}
+.btn-del-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;line-height:1;padding:0 2px}
+.btn-del-row:hover{color:#E24B4A}
+.btn-move-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;line-height:1.1;padding:0;display:block;width:14px;text-align:center}
+.btn-move-row:hover{color:#888}
+.photo-cover-label{display:flex;align-items:center;gap:3px;font-size:11px;color:#888;white-space:nowrap;cursor:pointer}
+.photo-cover-label input{width:auto;height:auto;cursor:pointer}
+.btn-add-row{height:26px;padding:0 10px;font-size:12px;border:1px dashed #D4537E;border-radius:6px;background:#fff;color:#D4537E;cursor:pointer;margin-top:5px}
+.btn-add-row:hover{background:#FBEAF0}
+.btn-add-part{height:26px;padding:0 10px;font-size:12px;border:1px dashed #aaa;border-radius:6px;background:#fff;color:#888;cursor:pointer;margin-top:5px;margin-left:6px}
+.btn-add-part:hover{background:#f5f5f5}
+.ing-part{margin-bottom:10px;border:1px solid #f0e0eb;border-radius:8px;padding:8px 10px;transition:opacity .15s}
+.ing-part.drag-over{border-color:#D4537E;background:#fff8fb}
+.ing-part-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.drag-handle{cursor:grab;color:#ccc;font-size:15px;flex-shrink:0;line-height:1;user-select:none;padding:0 2px}
+.drag-handle:hover{color:#aaa}
+.drag-handle:active{cursor:grabbing}
+.ing-part-name{height:26px;padding:0 6px;border:1px solid #e8d0dc;border-radius:6px;background:#fff8fb;font-size:13px;font-weight:500;color:#993556;outline:none;flex:1;max-width:200px}
+.ing-part-name:focus{border-color:#D4537E}
+.ing-part-label-wrap{display:inline-flex;align-items:center;gap:4px;background:#f0e0eb;padding:2px 8px 2px 6px;border-radius:6px}
+.ing-part-name::placeholder{color:#ccc;font-weight:400}
+.btn-del-part{background:none;border:none;cursor:pointer;color:#ccc;font-size:13px;line-height:1;padding:2px 4px;margin-left:auto;border-radius:4px}
+.btn-del-part:hover{color:#E24B4A;background:#fff0f0}
+.photo-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.photo-item{display:flex;align-items:center;gap:8px;border:1px solid #eee;border-radius:8px;padding:6px 8px;background:#fff}
+.photo-thumb{width:52px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0}
+.photo-title-input{flex:1;height:28px;padding:0 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+.photo-title-input:focus{border-color:#D4537E}
+.btn-del-photo{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:0 2px;line-height:1}
+.btn-del-photo:hover{color:#E24B4A}
+.btn-add-photo{height:28px;padding:0 12px;font-size:12px;border:1px dashed #aaa;border-radius:6px;background:#fff;color:#888;cursor:pointer}
+.btn-add-photo:hover{background:#f5f5f5}
+.photo-gallery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.photo-gallery-item{display:flex;flex-direction:column;align-items:center;gap:3px}
+.photo-gallery-item img{width:90px;height:70px;border-radius:6px;display:block;object-fit:cover;cursor:pointer;border:1px solid #eee;transition:opacity .15s}
+.photo-gallery-item img:hover{opacity:0.8}
+.photo-gallery-caption{font-size:11px;color:#888;text-align:center;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:1rem}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
+.lightbox-caption{color:#fff;font-size:13px;text-align:center}
+.lightbox-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1}
+
+.crown-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 26px;
+  padding: 0;
+  line-height: 1;
+  color: #ccc;
+  transition: color 0.2s;
+}
+.crown-btn.on {
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.related-card {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  transition: border-color .15s;
+}
+.related-card:hover { border-color: #aaa; }
+.related-card-thumb { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
+.related-card-placeholder { width: 36px; height: 36px; border-radius: 5px; background: #FBEAF0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.related-card-name { font-size: 13px; color: #1a1a1a; }
+
+.ing-link { color: #185FA5; cursor: pointer; text-decoration: underline; }
+.ing-link:hover { color: #0d3d73; }
+.ing-name-linked { color: #185FA5 !important; }
+
+/* 出来上がり量バッジ */
+.yield-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#72243E;background:#FBEAF0;padding:3px 10px;border-radius:999px;margin-top:4px;margin-bottom:2px}
+
+@media(max-width:600px){
+.field-row{flex-direction:column}
+.app{padding:1rem 1.25rem}
+.topbar{gap:6px}
+.topbar input[type=text]{min-width:120px}
+.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.card-img,.card-img-placeholder{height:110px}
+.modal{padding:1.25rem 1rem;border-radius:10px}
+.overlay{padding:0.75rem}
+.photo-gallery-item img{width:72px;height:56px}
+.photo-gallery-caption{max-width:72px}
+.btn,.btn-accent{font-size:13px;padding:0 10px}
+.toolbar-right{gap:4px}
+}
+
+/* メモ・チップス */
+.note-card{margin-top:12px;border-radius:10px;padding:12px;font-size:13.5px;line-height:1.6}
+.note-recipe{background-color:#FBEAF0;border:2px solid #D4537E;color:#72243E}
+.note-common{background-color:#EAF3DE;border:2px solid #638C3E;color:#27500A}
+.note-title{font-weight:bold;margin-bottom:6px;display:flex;align-items:center;gap:5px;border-bottom:1px dashed rgba(0,0,0,0.1);padding-bottom:4px}
+.note-image{width:100%;max-height:250px;object-fit:cover;border-radius:6px;margin-bottom:8px;border:1px solid rgba(0,0,0,0.1)}
+.tip-content ul{padding-left:1.4em;margin:3px 0}
+.tip-content li{margin:1px 0}
+.tip-md ul{padding-left:1.4em;margin:4px 0}
+.tip-md li{margin:2px 0;line-height:1.6}
+.tip-md strong{font-weight:700}
+
+/* カード */
+.grid .card{border-width:3px !important;border-style:solid !important;border-radius:12px;overflow:hidden;background:#fff}
+.grid .card:not(.card-tip){background-color:#fffafd !important;border-color:#ffb6c1 !important;border-width:3px !important}
+.grid .card:not(.card-tip) .card-img{border-bottom:2px solid #ffb6c1}
+.grid .card.card-tip{background-color:#f0fff4 !important;border-color:#98fb98 !important;border-width:3px !important;cursor:pointer;min-height:120px;display:flex;flex-direction:column;justify-content:center}
+.card-tip .tip-title{color:#2e8b57;font-weight:bold;font-size:14px;margin-bottom:8px}
+.card-tip .tip-content{color:#555;font-size:12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card-tip .tip-img{width:100%;height:120px;object-fit:cover;border-bottom:2px solid #98fb98}
+
+/* オーバーレイ */
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);display:none;z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem}
+.overlay.active,.overlay.open{display:flex !important}
+
+/* チップス詳細 */
+.tip-detail-img{width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid #e0e6d8}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <input type="text" id="search" placeholder="料理名・食材で検索..." style="flex:1;min-width:150px">
+  <select id="filterCat"><option value="">カテゴリ：すべて</option></select>
+
+
+  <div id="pubFilterArea" style="display:none">
+    <select id="filterPub">
+      <option value="">公開：すべて</option>
+      <option value="1">公開</option>
+      <option value="0">非公開</option>
+    </select>
+  </div>
+
+
+
+  <div class="toolbar-right">
+    <button class="fav-filter" onclick="toggleFavFilter()">
+      <span id="favFilterIcon" style="font-size:15px;color:#ccc">♡</span>
+      <span id="favFilterStar" style="font-size:14px;color:#ccc">★</span>
+      <span id="favFilterCrown" style="font-size:14px;color:#ccc">♚</span>
+    </button>
+    <span id="editorTools" style="display:none;gap:6px;align-items:center">
+      <button class="btn btn-sm" onclick="openCommonTipsManager()" style="background:#EAF3DE;color:#27500A;border:1px solid #638C3E;">💡 チップス</button>
+      <button class="btn" onclick="exportData()">書き出し</button>
+      <button class="btn" onclick="document.getElementById('txtFileInput').click()" title="テキストファイルからレシピを追加">📄 TXTから追加</button>
+      <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display:none" onchange="openFromTextFile(this)">
+      <button class="btn btn-accent" onclick="openAdd()">+ 追加</button>
+    </span>
+  </div>
+</div>
+<div class="count-bar" id="countLabel"></div>
+<div class="grid" id="grid"></div>
+</div>
+
+<!-- レシピ追加・編集 -->
+<div class="overlay" id="overlayAdd">
+  <div class="modal" style="margin:auto">
+    <button class="modal-close" onclick="closeOverlay('overlayAdd')">✕</button>
+    <h2 id="formTitle">レシピを追加</h2>
+    <div class="field"><label>料理名</label><input type="text" id="fName" placeholder="例：鶏の唐揚げ"></div>
+    <div class="field"><label>出来上がり量の目安</label><input type="text" id="fYield" placeholder="例：約20個、直径18cmホール1台分"></div>
+    <div class="field"><label>説明</label><input type="text" id="fDesc" placeholder="一言メモ"></div>
+    <div class="field-row">
+      <div class="field">
+        <label>カテゴリ</label>
+        <input type="text" id="fCat" list="catList" placeholder="カテゴリを入力または選択">
+        <datalist id="catList">
+          <option value="焼き菓子"><option value="おやつ"><option value="パート">
+          <option value="ヘルシー？"><option value="揚げ菓子"><option value="パン">
+          <option value="冷菓"><option value="氷菓"><option value="飲み物">
+        </datalist>
+      </div>
+      <div class="field">
+        <label>ジャンル</label>
+        <input type="text" id="fGenre" list="genreList" placeholder="ジャンルを入力または選択">
+        <datalist id="genreList">
+          <option value="フランス"><option value="ドイツ"><option value="日本">
+          <option value="イタリア"><option value="アメリカ"><option value="アジア"><option value="洋菓子">
+        </datalist>
+      </div>
+    </div>
+    <div class="field"><label>食材タグ（カンマ区切り）</label><input type="text" id="fIngs" placeholder="例：鶏もも肉, にんにく, しょうが"></div>
+<div class="field"><label>参考レシピURL（任意）</label>
+          <input type="text" id="fUrl" placeholder="https://...">
+  	<input type="text" id="fUrlLabel" placeholder="例：辻調おいしいネット">
+</div>    <div class="field">
+      <label>写真（複数可・タイトル付き）</label>
+      <div class="photo-list" id="photoList"></div>
+      <button class="btn-add-photo" onclick="document.getElementById('photoFileInput').click()">+ 写真を追加</button>
+      <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="handlePhotoAdd(this)">
+    </div>
+    <div class="field">
+      <label>材料</label>
+      <div id="ingParts"></div>
+      <div style="display:flex;margin-top:6px">
+        <button class="btn-add-row" onclick="addRowToLastPart()">+ 行を追加</button>
+        <button class="btn-add-part" onclick="addNewPart()">+ パートを追加</button>
+      </div>
+    </div>
+    <div class="field"><label>手順</label><textarea id="fSteps" style="height:100px" placeholder="① 〜&#10;② 〜"></textarea></div>
+    <div class="field"><label>アレンジ・覚書</label><textarea id="fMemo" style="height:60px" placeholder="こうするともっと美味しい、など"></textarea></div>
+    <div style="margin-top:20px;border-top:2px dashed #eee;padding-top:15px">
+      <h4 style="font-size:14px;color:#D4537E;margin-bottom:10px">📝 このレシピのメモを管理</h4>
+      <div style="background:#fff5f8;padding:10px;border-radius:8px;border:1px solid #fbdbe5;margin-bottom:10px">
+        <input type="text" id="noteTitle" placeholder="メモのタイトル（例：煮詰める時のコツ）" style="width:100%;margin-bottom:5px;padding:6px;font-size:13px;border:1px solid #ddd;border-radius:4px">
+        <textarea id="noteContent" placeholder="内容を入力..." style="width:100%;height:60px;padding:6px;font-size:13px;border:1px solid #ddd;border-radius:4px;margin-bottom:5px"></textarea>
+        <button type="button" class="btn btn-sm btn-accent" onclick="addNote()" style="width:100%;background:#D4537E">このメモを追加</button>
+      </div>
+      <div id="editNoteList" style="max-height:150px;overflow-y:auto"></div>
+    </div>
+    <div class="field"><label class="pub-toggle"><input type="checkbox" id="fPub" style="width:auto"> 公開する</label></div>
+    <div class="modal-btns">
+      <button class="btn btn-sm btn-danger" id="btnDelete" style="display:none" onclick="deleteRecipe()">削除</button>
+      <div class="modal-btns-right">
+        <button class="btn btn-sm" onclick="closeOverlay('overlayAdd')">キャンセル</button>
+        <button class="btn btn-sm btn-accent" onclick="saveRecipe()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- レシピ詳細 -->
+<div class="overlay" id="overlayDetail">
+  <div class="modal" style="margin:auto">
+    <button class="modal-close" onclick="closeOverlay('overlayDetail')">✕</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- チップス詳細 -->
+<div class="overlay" id="overlayTipDetail">
+  <div class="modal" style="max-width:480px;margin:auto">
+    <button class="modal-close" onclick="closeOverlay('overlayTipDetail')">✕</button>
+    <div id="tipDetailContent"></div>
+  </div>
+</div>
+
+<!-- チップス編集モーダル -->
+<div class="overlay" id="overlayTipEdit">
+  <div class="modal" style="max-width:480px;margin:auto">
+    <button class="modal-close" onclick="closeOverlay('overlayTipEdit')">✕</button>
+    <h2 style="color:#2e8b57;font-size:16px;margin-bottom:1.25rem">💡 チップスを編集</h2>
+    <input type="hidden" id="tipEditId">
+    <div class="field">
+      <label>タイトル</label>
+      <input type="text" id="tipEditTitle" placeholder="チップスのタイトル" style="width:100%">
+    </div>
+    <div class="field">
+      <label>内容（- や • でリスト、**太字**）</label>
+      <textarea id="tipEditContent" style="width:100%;height:120px;padding:8px 10px;font-size:13px;border:1px solid #ccc;border-radius:8px;font-family:inherit;line-height:1.6;outline:none;resize:vertical" placeholder="内容を入力..."></textarea>
+    </div>
+    <div class="field">
+      <label>写真（任意）</label>
+      <div id="tipEditPhotoPreview" style="margin-bottom:6px"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" class="btn-add-photo" onclick="document.getElementById('tipEditPhotoInput').click()">📷 写真を選択</button>
+        <button type="button" id="tipEditPhotoClearBtn" onclick="clearTipEditPhoto()" style="display:none;background:none;border:none;color:#aaa;cursor:pointer;font-size:12px">写真を削除</button>
+      </div>
+      <input type="file" id="tipEditPhotoInput" accept="image/*" style="display:none" onchange="handleTipEditPhoto(this)">
+    </div>
+
+<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px">
+  <input type="checkbox" id="tipEditPub"> 公開する
+</label>
+
+
+    <div class="modal-btns">
+      <button class="btn btn-sm btn-danger" onclick="deleteTipFromEdit()">削除</button>
+      <div class="modal-btns-right">
+        <button class="btn btn-sm" onclick="closeOverlay('overlayTipEdit')">キャンセル</button>
+        <button class="btn btn-sm" id="tipEditSaveBtn" onclick="saveTipEdit()" style="background:#638C3E;color:#fff;border-color:#638C3E">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+/* でコメントの開始
+
+if (!isEditor) {
+  document.getElementById('pubFilterArea').style.display = 'none';
+} else {
+  document.getElementById('pubFilterArea').style.display = 'block';
+}
+
+
+window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+
+window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+var SECRET_KEY = 'sakuramoti';
+var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
+
+(function() {
+  if (!isEditor) return;
+  document.title = '🔑 おかしなぺぇじ【編集モード】';
+  var link = document.getElementById('faviconLink');
+  if (link) { link.rel='icon'; link.type='image/x-icon'; link.href='favicon-edit.ico'; }
+})();
+コメントの終了 →　*/ 
+// --- Supabase 設定 ---
+window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
+
+window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+// --- 編集モード判定 ---
+var SECRET_KEY = 'sakuramoti';
+var isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
+
+// --- 編集モードのタイトル・favicon ---
+(function() {
+  if (!isEditor) return;
+  document.title = '🔑 おかしなぺぇじ【編集モード】';
+  var link = document.getElementById('faviconLink');
+  if (link) { link.rel='icon'; link.type='image/x-icon'; link.href='favicon-edit.ico'; }
+})();
+  
+// --- DOM が読み込まれてから UI 切り替え ---
+document.addEventListener("DOMContentLoaded", function() {
+  var area = document.getElementById('pubFilterArea');
+  if (!area) return;
+
+  if (!isEditor) {
+    area.style.display = 'none';
+  } else {
+    area.style.display = 'block';
+  }
+});
+
+
+
+
+var recipes = [];
+var editId = null;
+var favFilter = null;
+var dragSrc = null;
+var pendingPhotos = [];
+var tipEditPendingPhoto = null;
+var tipEditPhotoCleared = false;
+
+
+function markdownToHtml(text) {
+  if (!text) return '';
+
+  var lines = text.split('\n');
+  var result = [];
+  var inUl = false;
+
+  lines.forEach(function(line) {
+    var trimmed = line.trim();
+
+    // リスト
+    if (/^[・•\-]\s*/.test(trimmed)) {
+      if (!inUl) {
+        result.push('<ul>');
+        inUl = true;
+      }
+      var content = trimmed.replace(/^[・•\-]\s*/, '');
+      result.push('<li>' + applyInlineMarkdown(content) + '</li>');
+      return;
+    }
+
+    // リスト終了
+    if (inUl) {
+      result.push('</ul>');
+      inUl = false;
+    }
+
+    // 空行
+    if (trimmed === '') {
+      result.push('<br>');
+      return;
+    }
+
+    // 通常段落
+    result.push('<p>' + applyInlineMarkdown(trimmed) + '</p>');
+  });
+
+  if (inUl) result.push('</ul>');
+
+  return '<div class="tip-md">' + result.join('') + '</div>';
+}
+
+function applyInlineMarkdown(text) {
+  if (!text) return '';
+
+  // ① 先にエスケープ（重要）
+  text = esc(text);
+
+  // ② Markdown適用
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/`(.+?)`/g,
+    '<code style="background:#f0f0f0;padding:0 3px;border-radius:3px;font-size:11px">$1</code>'
+  );
+
+  return text;
+}
+
+//------------------------------------------------
+async function loadRecipes() {
+  console.log("=== loadRecipes 開始 ===");
+
+  const { data, error } = await window.supabase
+    .from('recipes')
+    .select('id, name, desc, cat, genre, ings, ing_parts, ing_rows, steps, memo, url, url_label, photos, pub, fav, heart, crown, date, yield_amount, created_at')
+    // ↑ ここから "img" を完全に削除しました
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Supabase エラー詳細:', error);
+    alert('レシピ読み込みエラー: ' + (error.message || JSON.stringify(error)));
+    return;
+  }
+
+  console.log("取得できたレシピ数:", data ? data.length : 0);
+
+  recipes = data.map(function(r) {
+    r.ingParts = r.ing_parts || [];
+    r.ingRows  = r.ing_rows || [];
+    r.desc     = r.desc ?? '';
+    r.yield_amount = r.yield_amount ?? '';
+
+    //r.desc     = r.desc || '';
+    //r.yield_amount = r.yield_amount || '';
+
+
+    // 古いデータ対策
+    if ((!r.ingParts || r.ingParts.length === 0) && r.ingRows && r.ingRows.length > 0) {
+      r.ingParts = [{ label: '', rows: r.ingRows }];
+    }
+    return r;
+  });
+
+  if (isEditor) {
+    document.getElementById('editorTools').style.display = 'flex';
+  }
+
+  render();
+
+  // 編集モードで直接開く場合
+  var editTarget = (new URLSearchParams(location.search)).get('edit');
+  if (isEditor && editTarget) {
+    var targetRecipe = recipes.find(function(r){ 
+      return String(r.id) === String(editTarget); 
+    });
+    if (targetRecipe) openEdit(targetRecipe.id);
+  }
+}
+
+//------------------------------------------------
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.addEventListener('load', loadRecipes);
+
+function getFiltered(){
+  var q=(document.getElementById('search').value||'').toLowerCase();
+  var c=document.getElementById('filterCat').value;
+  var p=document.getElementById('filterPub').value;
+
+  return recipes.filter(function(r){
+
+    // ♡★♚ フィルタ
+    if(favFilter==='heart'&&!r.heart)return false;
+    if(favFilter==='star'&&!r.fav)return false;
+    if(favFilter==='crown'&&!r.crown)return false;
+
+    // カテゴリ
+    if(c&&r.cat!==c)return false;
+
+    // ★ 閲覧モードでは公開のみ
+    if (!isEditor && !r.pub) return false;
+
+    // ★ 編集モードの公開/非公開フィルタ
+    if (p==='1' && !r.pub) return false;
+    if (p==='0' && r.pub) return false;
+
+    // 検索
+    if(q){
+      var hay=(r.name+r.desc+(r.ings||[]).join(' ')).toLowerCase();
+      if(hay.indexOf(q)<0)return false;
+    }
+
+    return true;
+  });
+}
+
+
+function toggleFavFilter(){
+  if(!favFilter) favFilter='heart';
+  else if(favFilter==='heart') favFilter='star';
+  else if(favFilter==='star') favFilter='crown';
+  else favFilter=null;
+  document.getElementById('favFilterIcon').style.color=(favFilter==='heart'?'#D4537E':'#ccc');
+  document.getElementById('favFilterStar').style.color=(favFilter==='star'?'#BA7517':'#ccc');
+  var ci=document.getElementById('favFilterCrown');
+  if(ci) ci.style.color=(favFilter==='crown'?'#FFD700':'#ccc');
+  render();
+}
+
+function getThumb(r){
+  if(r.photos&&r.photos.length){var cover=r.photos.find(function(p){return p.cover;});return cover?cover.data:'';}
+  if(r.img)return r.img;
+  return '';
+}
+
+function applyEditorUI(){
+  const area = document.getElementById('pubFilterArea');
+  const tools = document.getElementById('editorTools');
+  if (!area || !tools) return;
+
+  if (isEditor) {
+    area.style.display = 'flex';   // ← ここが今抜けているはず
+    tools.style.display = 'flex';
+  } else {
+    area.style.display = 'none';
+    tools.style.display = 'none';
+  }
+}
+
+
+async function render(){
+//  applyEditorUI();   // ← ここで毎回呼ぶ
+  updateSelects();
+  var list = getFiltered();
+  var searchWord = document.getElementById('search').value.trim();
+  var filterCat = document.getElementById('filterCat').value;
+  var isSearching = searchWord !== '' || filterCat !== '';
+
+  // ★ Tips 読み込み
+  var tips = [];
+  if (!isSearching && !favFilter) {
+    const { data: tipData } = await window.supabase
+      .from('notes_and_tips')
+      .select('*')
+      .is('recipe_id', null)
+      .order('created_at', { ascending: true });
+
+    tips = tipData || [];
+
+    // 閲覧モードでは公開のみ
+    if (!isEditor) {
+      tips = tips.filter(t => t.pub);
+    }
+
+    // 編集モードの公開/非公開フィルタ
+    const p = document.getElementById('filterPub').value;
+    if (isEditor) {
+      if (p === '1') tips = tips.filter(t => t.pub);
+      if (p === '0') tips = tips.filter(t => !t.pub);
+    }
+  }
+
+  // ★ レシピ件数表示
+  document.getElementById('countLabel').textContent = list.length + '件';
+
+  // ★ カード描画
+  var g = document.getElementById('grid');
+  var html = '';
+
+  // レシピカード
+  if (list.length > 0) {
+    html += list.map(function(r){
+      var thumb = getThumb(r);
+      var imgHtml = thumb
+        ? '<img class="card-img" src="'+thumb+'">'
+        : '<div class="card-img-placeholder">'+getCatEmoji(r.cat)+'</div>';
+
+      var descHtml = r.desc ? '<div class="card-desc">'+esc(r.desc)+'</div>' : '';
+      var catTag = r.cat ? '<span class="tag t-cat">'+esc(r.cat)+'</span>' : '';
+      var ingTags = (r.ings||[]).slice(0,2).map(i => '<span class="tag t-ing">'+esc(i)+'</span>').join('');
+      var moreTag = (r.ings||[]).length > 2 ? '<span class="tag t-ing">+'+(r.ings.length-2)+'</span>' : '';
+
+      var pubTag = isEditor
+        ? '<span class="tag '+(r.pub?'t-pub':'t-priv')+'" style="font-size:10px">'+(r.pub?'公開':'非公開')+'</span>'
+        : '';
+
+      return `
+        <div class="card" onclick="goToDetail('${r.id}')">
+          ${imgHtml}
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-title">${esc(r.name)}</div>
+              <div class="hearts">
+                <button type="button" class="heart-btn${r.heart?' on':''}" onclick="toggleHeart(event,'${r.id}')">♡</button>
+                <button type="button" class="star-btn${r.fav?' on':''}" onclick="toggleStar(event,'${r.id}')">★</button>
+                <button type="button" class="crown-btn${r.crown?' on':''}" onclick="toggleCrown(event,'${r.id}')">♚</button>
+              </div>
+            </div>
+            ${descHtml}
+            <div class="tags">${catTag}${ingTags}${moreTag}</div>
+            <div class="card-footer">${pubTag}<span style="margin-left:4px">${r.date||''}</span></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Tips カード
+  if (tips.length > 0) {
+    tips.forEach(function(t){
+      var tipImg = t.image_url ? '<img src="'+t.image_url+'" class="tip-img">' : '';
+      html += `
+        <div class="card card-tip" onclick="openTipDetail('${t.id}')">
+          ${tipImg}
+          <div style="padding:15px">
+            <div class="tip-title">💡 ${esc(t.title)}</div>
+            <div class="tip-content">${markdownToHtml(t.content)}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  if (html === '') {
+    g.innerHTML = '<div class="empty">レシピもチップスもありません</div>';
+    return;
+  }
+
+  g.innerHTML = html;
+}
+
+
+
+
+async function openTipDetail(tipId) {
+  const{data:t,error}=await window.supabase.from('notes_and_tips').select('*').eq('id',tipId).single();
+  if(error||!t)return;
+  var html='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
+    +'<span style="font-size:20px">💡</span>'
+    +'<h2 style="font-size:17px;font-weight:600;color:#2e8b57;margin:0">'+esc(t.title)+'</h2></div>';
+  if(t.image_url) html+='<img src="'+t.image_url+'" class="tip-detail-img">';
+  html+='<div style="font-size:13px;color:#333;line-height:1.8">'+markdownToHtml(t.content)+'</div>';
+  if(t.created_at){
+    var d=new Date(t.created_at);
+    html+='<div style="font-size:11px;color:#aaa;margin-top:16px">'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'</div>';
+  }
+  html+='<div class="modal-btns" style="margin-top:12px"><div></div><div class="modal-btns-right">'
+    +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayTipDetail\')">閉じる</button>'
+    +(isEditor?'<button class="btn btn-sm" style="background:#EAF3DE;color:#27500A;border-color:#638C3E" onclick="closeOverlay(\'overlayTipDetail\');openTipEdit(\''+t.id+'\')">✏️ 編集</button>':'')
+    +'</div></div>';
+  document.getElementById('tipDetailContent').innerHTML=html;
+  openOverlay('overlayTipDetail');
+}
+
+async function openTipEdit(tipId) {
+  const{data:t,error}=await window.supabase.from('notes_and_tips').select('*').eq('id',tipId).single();
+  if(error||!t){alert('チップスの読み込みに失敗しました');return;}
+
+  tipEditPendingPhoto=null; 
+  tipEditPhotoCleared=false;
+
+  document.getElementById('tipEditId').value=t.id;
+  document.getElementById('tipEditTitle').value=t.title||'';
+  document.getElementById('tipEditContent').value=t.content||'';
+  document.getElementById('tipEditPub').checked = !!t.pub;   // ← 追加
+
+  var prev=document.getElementById('tipEditPhotoPreview');
+  var clearBtn=document.getElementById('tipEditPhotoClearBtn');
+
+  if(t.image_url){
+    prev.innerHTML='<img src="'+t.image_url+'" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">';
+    clearBtn.style.display='inline'; 
+    clearBtn.textContent='写真を削除';
+  } else { 
+    prev.innerHTML=''; 
+    clearBtn.style.display='none'; 
+  }
+
+  openOverlay('overlayTipEdit');
+}
+
+
+function handleTipEditPhoto(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=1200,w=img.width,h=img.height;
+      var scale=(w>MAX||h>MAX)?MAX/Math.max(w,h):1;
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+      var ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      tipEditPendingPhoto=canvas.toDataURL('image/webp',0.85);
+      tipEditPhotoCleared=false;
+      document.getElementById('tipEditPhotoPreview').innerHTML='<img src="'+tipEditPendingPhoto+'" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">';
+      var cb=document.getElementById('tipEditPhotoClearBtn');cb.style.display='inline';cb.textContent='選択をキャンセル';
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);input.value='';
+}
+
+function clearTipEditPhoto(){
+  tipEditPendingPhoto=null;tipEditPhotoCleared=true;
+  document.getElementById('tipEditPhotoPreview').innerHTML='<p style="font-size:11px;color:#aaa;margin:0">写真なし</p>';
+  document.getElementById('tipEditPhotoClearBtn').style.display='none';
+}
+//************************
+async function saveTipEdit(){
+  const id=document.getElementById('tipEditId').value;
+  const title=document.getElementById('tipEditTitle').value.trim();
+  const content=document.getElementById('tipEditContent').value.trim();
+  const pub=document.getElementById('tipEditPub').checked;   // ← 追加
+
+  const updateData = {
+    title,
+    content,
+    pub
+  };
+
+  if(tipEditPhotoCleared){
+    updateData.image_url = null;
+  } else if(tipEditPendingPhoto){
+    updateData.image_url = tipEditPendingPhoto;
+  }
+
+  await window.supabase.from('notes_and_tips')
+    .update(updateData)
+    .eq('id', id);
+
+  closeOverlay('overlayTipEdit');
+  loadCommonTips();
+}
+
+
+async function deleteTipFromEdit(){
+  if(!confirm('このチップスを削除しますか？'))return;
+  var tipId=document.getElementById('tipEditId').value;
+  const{data:tip}=await window.supabase.from('notes_and_tips').select('image_url').eq('id',tipId).single();
+  if(tip&&tip.image_url)await deleteStoragePhotos([tip.image_url]);
+  await window.supabase.from('notes_and_tips').delete().eq('id',tipId);
+  closeOverlay('overlayTipEdit');render();
+}
+
+function getCatEmoji(cat){
+  if(!cat)return '🍰';
+  if(cat.indexOf('焼き菓子')>=0)return '🍪';if(cat.indexOf('おやつ')>=0)return '🥞';
+  if(cat.indexOf('パート')>=0)return '🥣';if(cat.indexOf('ヘルシー？')>=0)return '🌿';
+  if(cat.indexOf('揚げ菓子')>=0)return '🍩';if(cat.indexOf('パン')>=0)return '🥐';
+  if(cat.indexOf('冷菓')>=0)return '🍮';if(cat.indexOf('氷菓')>=0)return '🍧';
+  if(cat.indexOf('飲み')>=0)return '🥤';return '🍰';
+}
+
+function updateSelects(){
+  var cats=[];recipes.forEach(function(r){if(r.cat&&cats.indexOf(r.cat)<0)cats.push(r.cat);});
+  var sc=document.getElementById('filterCat');var cv=sc.value;
+  sc.innerHTML='<option value="">カテゴリ：すべて</option>'+cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  sc.value=cv;
+}
+
+
+function isEditMode(){
+  return isEditor;  // URL の key= で判定
+}
+
+
+//♡★♚
+function toggleHeart(e,id){
+  e.preventDefault();
+  e.stopPropagation();
+  if (!isEditMode()) return;
+
+  e.stopPropagation();
+  var r=recipes.find(x => String(x.id)===String(id));
+  if(r){
+    r.heart=!r.heart;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+function toggleStar(e,id){
+  e.preventDefault();
+  e.stopPropagation();
+  if (!isEditMode()) return;
+
+  e.stopPropagation();
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(r){
+    r.fav=!r.fav;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+function toggleCrown(e,id){
+  e.preventDefault();
+  e.stopPropagation();
+  if (!isEditMode()) return;
+
+  e.stopPropagation();
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(r){
+    if(r.crown===undefined) r.crown=false;
+    r.crown=!r.crown;
+    saveStatus(r.id,r.heart,r.fav,r.crown);
+    render();
+  }
+}
+
+
+
+
+//function toggleHeart(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.heart=!r.heart;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+//function toggleStar(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){r.fav=!r.fav;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+//function toggleCrown(e,id){e.stopPropagation();var r=recipes.find(function(x){return String(x.id)===String(id);});if(r){if(r.crown===undefined)r.crown=false;r.crown=!r.crown;saveStatus(r.id,r.heart,r.fav,r.crown);render();}}
+
+
+function handlePhotoAdd(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=1200,w=img.width,h=img.height;
+      var scale=(w>MAX||h>MAX)?MAX/Math.max(w,h):1;
+      var canvas=document.createElement('canvas');canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+      var ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      pendingPhotos.push({title:'',data:canvas.toDataURL('image/webp',0.85)});renderPhotoList();
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);input.value='';
+}
+
+function renderPhotoList(){
+  var list=document.getElementById('photoList');list.innerHTML='';
+  pendingPhotos.forEach(function(photo,i){
+    var item=document.createElement('div');item.className='photo-item';
+    var img=document.createElement('img');img.className='photo-thumb';img.src=photo.data;
+    var ti=document.createElement('input');ti.type='text';ti.className='photo-title-input';ti.placeholder='タイトル（例：完成品、断面）';ti.value=photo.title||'';
+    (function(idx){ti.oninput=function(){pendingPhotos[idx].title=this.value;};})(i);
+    var cl=document.createElement('label');cl.className='photo-cover-label';
+    var cb=document.createElement('input');cb.type='checkbox';cb.checked=!!photo.cover;
+    (function(idx){cb.onchange=function(){pendingPhotos.forEach(function(p){p.cover=false;});pendingPhotos[idx].cover=this.checked;renderPhotoList();};})(i);
+    cl.appendChild(cb);cl.appendChild(document.createTextNode('一覧用'));
+    var db=document.createElement('button');db.className='btn-del-photo';db.textContent='✕';
+    (function(idx){db.onclick=function(){pendingPhotos.splice(idx,1);renderPhotoList();};})(i);
+    item.appendChild(img);item.appendChild(ti);item.appendChild(cl);item.appendChild(db);list.appendChild(item);
+  });
+}
+
+function makePartEl(label,rows,showHeader){
+  var div=document.createElement('div');div.className='ing-part';div.setAttribute('draggable','true');
+  var header=document.createElement('div');header.className='ing-part-header';if(!showHeader)header.style.display='none';
+  var handle=document.createElement('span');handle.className='drag-handle';handle.title='ドラッグで並び替え';handle.textContent='⠿';
+  var lw=document.createElement('span');lw.className='ing-part-label-wrap';
+  var ls=document.createElement('span');ls.style.cssText='font-size:11px;color:#993556;flex-shrink:0';ls.textContent='パート名：';
+  var ni=document.createElement('input');ni.type='text';ni.className='ing-part-name';ni.placeholder='例：生地、フィリング（省略可）';ni.value=label||'';
+  lw.appendChild(ls);lw.appendChild(ni);
+  var db=document.createElement('button');db.className='btn-del-part';db.title='このパートを削除';db.textContent='✕';db.onclick=function(){removePart(db);};
+  header.appendChild(handle);header.appendChild(lw);header.appendChild(db);
+  var table=document.createElement('table');table.className='ing-table';
+  table.innerHTML='<thead><tr><th class="col-name">材料名</th><th class="col-amt">分量</th><th class="col-note">備考</th><th class="col-move"></th><th class="col-del"></th></tr></thead>';
+  var tbody=document.createElement('tbody');table.appendChild(tbody);
+  var ab=document.createElement('button');ab.className='btn-add-row';ab.style.fontSize='11px';ab.textContent='+ 行を追加';ab.onclick=function(){addRowToTbody(tbody,'','','');};
+  div.appendChild(header);div.appendChild(table);div.appendChild(ab);
+  var rowData=rows&&rows.length?rows:[{name:'',amt:'',note:''}];
+  rowData.forEach(function(r){addRowToTbody(tbody,r.name,r.amt,r.note);});
+  setupPartDrag(div);return div;
+}
+
+function setupPartDrag(el){
+  el.addEventListener('dragstart',function(e){dragSrc=el;setTimeout(function(){el.style.opacity='0.4';},0);e.dataTransfer.effectAllowed='move';});
+  el.addEventListener('dragend',function(){el.style.opacity='';document.querySelectorAll('#ingParts .ing-part').forEach(function(p){p.classList.remove('drag-over');});});
+  el.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='move';if(el!==dragSrc)el.classList.add('drag-over');});
+  el.addEventListener('dragleave',function(){el.classList.remove('drag-over');});
+  el.addEventListener('drop',function(e){
+    e.preventDefault();el.classList.remove('drag-over');if(!dragSrc||dragSrc===el)return;
+    var parts=Array.prototype.slice.call(document.getElementById('ingParts').querySelectorAll('.ing-part'));
+    var si=parts.indexOf(dragSrc),ti=parts.indexOf(el);
+    if(si<ti)el.parentNode.insertBefore(dragSrc,el.nextSibling);else el.parentNode.insertBefore(dragSrc,el);
+  });
+}
+
+function removePart(btn){
+  var part=btn.closest('.ing-part');var container=document.getElementById('ingParts');
+  if(container.querySelectorAll('.ing-part').length<=1){alert('最低1つのパートが必要です');return;}
+  if(!confirm('このパートを削除しますか？'))return;part.remove();
+}
+
+function addRowToTbody(tbody,name,amt,note){
+  var tr=document.createElement('tr');
+  var tdN=document.createElement('td');tdN.className='col-name';
+  var iN=document.createElement('input');iN.type='text';iN.placeholder='例：薄力粉';iN.value=name||'';
+  iN.addEventListener('blur',function(){
+    var m=recipes.find(function(r){return r.name===iN.value.trim()&&String(r.id)!==String(editId);});
+    iN.classList.toggle('ing-name-linked',!!m);iN.title=m?'「'+m.name+'」のレシピにリンクされます':'';
+  });
+  if(name){var m=recipes.find(function(r){return r.name===name&&String(r.id)!==String(editId);});if(m){iN.classList.add('ing-name-linked');iN.title='「'+m.name+'」のレシピにリンクされます';}}
+  tdN.appendChild(iN);
+  var tdA=document.createElement('td');tdA.className='col-amt';var iA=document.createElement('input');iA.type='text';iA.placeholder='例：200g';iA.value=amt||'';tdA.appendChild(iA);
+  var tdNo=document.createElement('td');tdNo.className='col-note';var iNo=document.createElement('input');iNo.type='text';iNo.placeholder='備考';iNo.value=note||'';tdNo.appendChild(iNo);
+  var tdM=document.createElement('td');tdM.className='col-move';tdM.style.cssText='padding:0 2px;vertical-align:middle';
+  var bU=document.createElement('button');bU.className='btn-move-row';bU.textContent='▲';bU.title='上へ';bU.onclick=function(){var prev=tr.previousElementSibling;if(prev)tbody.insertBefore(tr,prev);};
+  var bD2=document.createElement('button');bD2.className='btn-move-row';bD2.textContent='▼';bD2.title='下へ';bD2.onclick=function(){var next=tr.nextElementSibling;if(next)tbody.insertBefore(next,tr);};
+  tdM.appendChild(bU);tdM.appendChild(bD2);
+  var tdD=document.createElement('td');tdD.className='col-del';var bD=document.createElement('button');bD.className='btn-del-row';bD.textContent='✕';bD.onclick=function(){tr.remove();};tdD.appendChild(bD);
+  tr.appendChild(tdN);tr.appendChild(tdA);tr.appendChild(tdNo);tr.appendChild(tdM);tr.appendChild(tdD);tbody.appendChild(tr);
+}
+
+function addRowToLastPart(){
+  var parts=document.querySelectorAll('#ingParts .ing-part');
+  if(!parts.length){document.getElementById('ingParts').appendChild(makePartEl('',null,false));return;}
+  addRowToTbody(parts[parts.length-1].querySelector('tbody'),'','','');
+}
+
+function addNewPart(){
+  var container=document.getElementById('ingParts');
+  container.querySelectorAll('.ing-part .ing-part-header').forEach(function(h){h.style.display='flex';});
+  container.appendChild(makePartEl('',null,true));
+}
+
+function getIngData(){
+  var parts=[];
+  document.querySelectorAll('#ingParts .ing-part').forEach(function(partEl){
+    var ni=partEl.querySelector('.ing-part-name');var label=ni?ni.value.trim():'';
+    var rows=Array.prototype.slice.call(partEl.querySelectorAll('tbody tr')).map(function(tr){
+      var ins=tr.querySelectorAll('input');return{name:ins[0].value.trim(),amt:ins[1].value.trim(),note:ins[2].value.trim()};
+    }).filter(function(r){return r.name||r.amt;});
+    if(rows.length)parts.push({label:label,rows:rows});
+  });
+  return parts;
+}
+
+
+function setIngData(ingParts, ingRows, ingDetail) {
+  var container = document.getElementById('ingParts');
+  container.innerHTML = '';
+
+  if (ingParts && ingParts.length > 0) {
+    var hasLabels = ingParts.some(function(p) { return p && p.label; });
+    ingParts.forEach(function(p) {
+      container.appendChild(makePartEl(p.label || '', p.rows || [], hasLabels));
+    });
+  } 
+  else if (ingRows && ingRows.length > 0) {
+    container.appendChild(makePartEl('', ingRows, false));
+  } 
+  else if (ingDetail) {
+    // 古い形式のフォールバック
+    var rows = ingDetail.split('\n').filter(Boolean).map(function(line) {
+      var pts = line.split(/\s+/);
+      return { name: pts[0] || '', amt: pts.slice(1).join(' ') || '', note: '' };
+    });
+    container.appendChild(makePartEl('', rows, false));
+  } 
+  else {
+    container.appendChild(makePartEl('', null, false));
+  }
+}
+
+
+
+function openAdd(){
+  editId=null;pendingPhotos=[];
+  document.getElementById('formTitle').textContent='レシピを追加';
+  ['fName','fYield','fDesc','fCat','fGenre','fIngs','fUrl','fSteps','fMemo'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('fPub').checked=false;document.getElementById('btnDelete').style.display='none';
+  renderPhotoList();setIngData(null,null,null);
+  var ov=document.getElementById('overlayAdd');ov.scrollTop=0;openOverlay('overlayAdd');
+}
+
+function openEdit(id){
+  closeOverlay('overlayDetail');
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(!r){console.error('Edit target not found for ID:',id);return;}
+  editId=r.id;
+  document.getElementById('formTitle').textContent='レシピを編集';
+  document.getElementById('fName').value=r.name||'';
+  document.getElementById('fYield').value=r.yield_amount||'';
+  document.getElementById('fDesc').value=r.desc||'';
+  document.getElementById('fCat').value=r.cat||'';document.getElementById('fGenre').value=r.genre||'';
+  document.getElementById('fCat').onfocus=function(){this.select();};document.getElementById('fGenre').onfocus=function(){this.select();};
+  document.getElementById('fIngs').value=(r.ings||[]).join(', ');
+document.getElementById('fUrl').value=r.url||'';
+document.getElementById('fUrlLabel').value = r.url_label || '';
+  document.getElementById('fSteps').value=r.steps||'';
+
+document.getElementById('fMemo').value=r.memo||'';
+  document.getElementById('fPub').checked=!!r.pub;document.getElementById('btnDelete').style.display='';
+  pendingPhotos=(r.photos||[]).map(function(p){return{title:p.title||'',data:p.data||'',cover:!!p.cover};});
+  if(!pendingPhotos.length&&r.img)pendingPhotos=[{title:'',data:r.img}];
+  renderPhotoList();setIngData(r.ingParts||r.ing_parts,r.ingRows,r.ingDetail);renderEditNoteList();
+  var ov=document.getElementById('overlayAdd');ov.scrollTop=0;openOverlay('overlayAdd');
+}
+
+function base64ToBlob(base64){
+  const parts=base64.split(';base64,');const raw=window.atob(parts[1]);const uInt8Array=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;++i)uInt8Array[i]=raw.charCodeAt(i);
+  return new Blob([uInt8Array],{type:'image/webp'});
+}
+
+async function uploadToStorage(photo){
+  if(photo.data&&photo.data.startsWith('http'))return photo.data;
+  const blob=base64ToBlob(photo.data);
+  const fileName=`${Date.now()}_${Math.random().toString(36).slice(-5)}.webp`;
+  const{error}=await window.supabase.storage.from('recipe-photos').upload(fileName,blob,{contentType:'image/webp',upsert:true});
+  if(error)throw error;
+  const{data:{publicUrl}}=window.supabase.storage.from('recipe-photos').getPublicUrl(fileName);
+  return publicUrl;
+}
+
+async function deleteStoragePhotos(photoUrls){
+  if(!photoUrls||photoUrls.length===0)return;
+  const fileNames=photoUrls.map(url=>{const parts=url.split('/');return parts[parts.length-1];});
+  const{error}=await window.supabase.storage.from('recipe-photos').remove(fileNames);
+  if(error)console.warn('Storage delete error:',error);
+}
+
+async function saveRecipe(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){alert('料理名を入力してください');return;}
+  const saveBtn=document.querySelector('.modal-btns-right .btn-accent');
+  const originalText=saveBtn.textContent;saveBtn.disabled=true;saveBtn.textContent='保存中...';
+  try{
+    let oldPhotoUrls=[];
+    if(editId){const old=recipes.find(r=>String(r.id)===String(editId));if(old&&old.photos)oldPhotoUrls=old.photos.map(p=>p.data).filter(url=>url&&url.startsWith('http'));}
+    const uploadedPhotos=await Promise.all(pendingPhotos.map(async(p)=>({title:p.title||'',data:await uploadToStorage(p),cover:!!p.cover})));
+    const newUrls=uploadedPhotos.map(p=>p.data);
+    const urlsToDelete=oldPhotoUrls.filter(url=>!newUrls.includes(url));
+    if(urlsToDelete.length>0)await deleteStoragePhotos(urlsToDelete);
+    const ings=document.getElementById('fIngs').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const ingParts=getIngData();
+    const newId=editId||String(Date.now());
+    const currentDate=new Date().toISOString().slice(0,10);
+    const recipeData={
+      id:String(newId),
+name,desc:document.getElementById('fDesc').value,
+cat:document.getElementById('fCat').value,
+      genre:document.getElementById('fGenre').value,
+ings,
+url:document.getElementById('fUrl').value,
+url_label: document.getElementById('fUrlLabel').value,
+      yield_amount:document.getElementById('fYield').value.trim(),
+      ing_parts:ingParts,steps:document.getElementById('fSteps').value,memo:document.getElementById('fMemo').value,
+      pub:document.getElementById('fPub').checked,photos:uploadedPhotos,fav:false,heart:false,crown:false,date:currentDate
+    };
+    if(editId){const old=recipes.find(x=>String(x.id)===String(editId));if(old){recipeData.fav=!!old.fav;recipeData.heart=!!old.heart;recipeData.crown=!!old.crown;recipeData.date=old.date||currentDate;}}
+    const{error}=await window.supabase.from('recipes').upsert(recipeData);if(error)throw error;
+    if(editId){const idx=recipes.findIndex(x=>String(x.id)===String(editId));if(idx!==-1)recipes[idx]=recipeData;}else recipes.unshift(recipeData);
+    alert('保存しました！');closeOverlay('overlayAdd');render();
+  }catch(err){console.error('Save Error:',err);alert('保存に失敗しました: '+err.message);
+  }finally{saveBtn.disabled=false;saveBtn.textContent=originalText;}
+}
+
+async function saveStatus(id,heart,fav,crown){
+  try{const{error}=await window.supabase.from('recipes').update({heart,fav,crown}).eq('id',String(id));if(error)throw error;}
+  catch(err){console.error('Status Update Error:',err);alert('状態の保存に失敗しました: '+err.message);}
+}
+
+async function deleteRecipe(){
+  if(!confirm('このレシピを削除しますか？'))return;
+  try{
+    const targetId=String(editId);
+    const tr=recipes.find(r=>String(r.id)===targetId);
+    if(tr&&tr.photos){const urls=tr.photos.map(p=>p.data).filter(url=>url.startsWith('http'));await deleteStoragePhotos(urls);}
+    const{error}=await window.supabase.from('recipes').delete().eq('id',targetId);if(error)throw error;
+    recipes=recipes.filter(r=>String(r.id)!==targetId);alert('削除しました');closeOverlay('overlayAdd');render();
+  }catch(err){console.error('Delete Error:',err);alert('削除に失敗しました: '+err.message);}
+}
+
+async function renderEditNoteList(){
+  const listDiv=document.getElementById('editNoteList');
+  listDiv.innerHTML='<p style="font-size:11px;color:#999">読み込み中...</p>';
+  if(!editId){listDiv.innerHTML='<p style="font-size:11px;color:#999">新規作成時は保存後にメモを追加できます。</p>';return;}
+  const{data:notes}=await window.supabase.from('notes_and_tips').select('*').eq('recipe_id',editId);
+  if(!notes||notes.length===0){listDiv.innerHTML='<p style="font-size:11px;color:#999">登録されたメモはありません。</p>';return;}
+  listDiv.innerHTML=notes.map(n=>`
+    <div style="font-size:12px;border-bottom:1px solid #eee;padding:5px 0;display:flex;justify-content:space-between;align-items:center">
+      <span><strong>${esc(n.title)}</strong></span>
+      <button onclick="deleteNote('${n.id}')" style="background:none;border:none;color:#D4537E;cursor:pointer;font-size:11px">削除</button>
+    </div>`).join('');
+}
+
+async function addNote(){
+  const title=document.getElementById('noteTitle').value.trim();const content=document.getElementById('noteContent').value.trim();
+  if(!editId){alert('先にレシピ本体を保存してください');return;}
+  if(!title||!content){alert('タイトルと内容を入力してください');return;}
+  const{error}=await window.supabase.from('notes_and_tips').insert({recipe_id:editId,title,content,category:'recipe'});
+  if(error)alert('メモの保存に失敗しました');
+  else{document.getElementById('noteTitle').value='';document.getElementById('noteContent').value='';renderEditNoteList();}
+}
+
+async function deleteNote(noteId){
+  if(!confirm('このメモを削除しますか？'))return;
+  const{error}=await window.supabase.from('notes_and_tips').delete().eq('id',noteId);
+  if(error)alert('削除に失敗しました');else renderEditNoteList();
+}
+
+function ingNameHtml(name,currentId){
+  var found=recipes.find(function(x){return x.name===name&&String(x.id)!==String(currentId);});
+  if(found)return'<span class="ing-link" onclick="event.stopPropagation();openDetail(\''+found.id+'\')">'+esc(name)+'</span>';
+  return esc(name);
+}
+
+//*********************************************************
+
+function renderIngSection(r){
+  if(!r) return '';
+  var currentId = r.id;
+  var parts = r.ingParts || r.ing_parts || [];
+
+  // パートあり
+  if(Array.isArray(parts) && parts.length > 0){
+    var hasLabels = parts.some(p => p && p.label);
+    return parts.map(function(p){
+      if(!p || !p.rows) return '';
+
+    var lh = (hasLabels && p.label && p.label !== "説明")
+      ? '<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">'
+        + '<span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">'
+        + esc(p.label)
+        + '</span></div>'
+      : '';
+    
+
+
+      var rh = (p.rows || []).map(function(row){
+        return '<tr>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">' + ingNameHtml(row.name,currentId) + '</td>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">' + esc(row.amt) + '</td>'
+          + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">' + esc(row.note) + '</td>'
+          + '</tr>';
+      }).join('');
+
+      // ★★ ここで thead を削除して tbody のみ返す ★★
+      return lh
+        + '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px">'
+        + '<tbody>' + rh + '</tbody></table>';
+    }).join('');
+  }
+
+  // パートなし（ingRows）
+  if(r.ingRows && r.ingRows.length){
+    var rh2 = r.ingRows.map(function(row){
+      return '<tr>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">' + ingNameHtml(row.name,currentId) + '</td>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">' + esc(row.amt) + '</td>'
+        + '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">' + esc(row.note) + '</td>'
+        + '</tr>';
+    }).join('');
+
+    // ★★ ここも thead を削除 ★★
+    return '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+      + '<tbody>' + rh2 + '</tbody></table>';
+  }
+
+  if(r.ingDetail)
+    return '<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + esc(r.ingDetail) + '</p>';
+
+  return '';
+}
+
+function goToDetail(id) {
+  var keyStr = isEditor ? '&key=' + SECRET_KEY : '';
+  window.location.href = 'detail.html?id=' + id + keyStr;
+}
+
+//\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+async function openDetail(id){
+  var r=recipes.find(function(x){return String(x.id)===String(id);});
+  if(!r){console.error('Recipe not found for ID:',id);return;}
+
+  const{data:notes}=await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .eq('recipe_id',id)
+    .order('created_at',{ascending:true});
+
+  let notesHtml='';
+  if(notes&&notes.length>0){
+    notesHtml=notes.map(n=>{
+      const img=n.image_url?`<img src="${n.image_url}" class="note-image">`:'';
+      return`<div class="note-card note-recipe">
+        <div class="note-title"><span>📝 レシピメモ</span>: ${esc(n.title)}</div>
+        ${img}
+        <div style="white-space:pre-wrap">${esc(n.content)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  var ingHtml=renderIngSection(r);
+  var photos=(r.photos&&r.photos.length)?r.photos:(r.img?[{title:'',data:r.img}]:[]);
+  currentPhotos=photos;
+
+  // ===== ♡★♚（閲覧モードは操作不可）=====
+  var heartsHtml='';
+  if(isEditor){
+    heartsHtml='<div style="display:flex;gap:4px;flex-shrink:0">'
+      +'<button class="heart-btn'+(r.heart?' on':'')+'" onclick="toggleHeart(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♡</button>'
+      +'<button class="star-btn'+(r.fav?' on':'')+'" onclick="toggleStar(event,\''+r.id+'\');openDetail(\''+r.id+'\')">★</button>'
+      +'<button class="crown-btn'+(r.crown?' on':'')+'" onclick="toggleCrown(event,\''+r.id+'\');openDetail(\''+r.id+'\')">♚</button>'
+      +'</div>';
+  } else {
+    heartsHtml='<div style="display:flex;gap:4px;flex-shrink:0">'
+      +'<span style="color:'+(r.heart?'#D4537E':'#ccc')+'">♡</span>'
+      +'<span style="color:'+(r.fav?'#BA7517':'#ccc')+'">★</span>'
+      +'<span style="color:'+(r.crown?'#FFD700':'#ccc')+'">♚</span>'
+      +'</div>';
+  }
+
+  var html='';
+  html+='<div class="detail-top"><h2>'+esc(r.name)+'</h2>'+heartsHtml+'</div>';
+
+  // ===== タグ（閲覧モードでは公開非表示）=====
+  var pubTagHtml=isEditor
+    ?'<span class="tag '+(r.pub?'t-pub':'t-priv')+'">'+(r.pub?'公開':'非公開')+'</span>'
+    :'';
+
+  html+='<div class="tags" style="margin-bottom:1rem">'
+    +(r.cat?'<span class="tag t-cat">'+esc(r.cat)+'</span>':'')
+    +(r.genre?'<span class="tag t-ing">'+esc(r.genre)+'</span>':'')
+    +pubTagHtml
+    +'</div>';
+
+  // ===== 説明（見出しなし）=====
+  if(r.desc){
+    html+='<div style="margin-bottom:1rem">'
+      +'<p style="font-size:13px;color:#555;line-height:1.7">'+esc(r.desc)+'</p>'
+      +'</div>';
+  }
+
+  // ===== 材料（ここに出来上がり量を右寄せ表示）=====
+  if(ingHtml){
+    html+='<div class="detail-section">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+      +'<h3>材料</h3>'
+      +(r.yield_amount?'<span class="yield-badge">'+esc(r.yield_amount)+'</span>':'')
+      +'</div>'
+      +ingHtml
+      +'</div>';
+  }
+
+  if(r.ings&&r.ings.length){
+    html+='<div class="detail-section"><h3>食材タグ</h3><div class="tags">'
+      +r.ings.map(function(i){return'<span class="tag t-ing">'+esc(i)+'</span>';}).join('')
+      +'</div></div>';
+  }
+
+  if(r.steps){
+    html+='<div class="detail-section"><h3>手順</h3><p>'+esc(r.steps)+'</p></div>';
+  }
+
+  if(photos.length){
+    html+='<div class="detail-section"><h3>写真</h3><div class="photo-gallery">';
+    photos.forEach(function(p,i){
+      html+='<div class="photo-gallery-item">'
+        +'<img src="'+p.data+'" onclick="openLightbox('+i+')">'
+        +(p.title?'<div class="photo-gallery-caption">'+esc(p.title)+'</div>':'')
+        +'</div>';
+    });
+    html+='</div></div>';
+  }
+
+  if(r.memo){
+    html+='<div class="detail-section"><h3>アレンジ・覚書</h3><p>'+esc(r.memo)+'</p></div>';
+  }
+
+  // ===== 参考レシピ（URL短縮表示）=====
+  if(r.url){
+    var label=r.url_label || '参考レシピを見る';
+    html+='<div class="detail-section"><h3>参考レシピ</h3>'
+      +'<a href="'+esc(r.url)+'" target="_blank" style="color:#185FA5">'
+      +esc(label)
+      +'</a></div>';
+  }
+
+  var related=getRelatedRecipes(r);
+  if(related.length){
+    html+='<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    related.forEach(function(rel){
+      var thumb=getThumb(rel);
+      html+='<div class="related-card" onclick="openDetail(\''+rel.id+'\')">'
+        +(thumb?'<img class="related-card-thumb" src="'+thumb+'">':'<div>'+getCatEmoji(rel.cat)+'</div>')
+        +'<span>'+esc(rel.name)+'</span></div>';
+    });
+    html+='</div></div>';
+  }
+
+  if(notesHtml){
+    html+='<div class="detail-section" style="margin-top:20px">'+notesHtml+'</div>';
+  }
+
+  html+='<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">'+(r.date||'')+'</div>';
+
+  html+='<div class="modal-btns"><div></div><div class="modal-btns-right">'
+    +'<button class="btn btn-sm" onclick="closeOverlay(\'overlayDetail\')">閉じる</button>'
+    +(isEditor?'<button class="btn btn-sm btn-accent" onclick="openEdit(\''+r.id+'\')">編集</button>':'')
+    +'</div></div>';
+
+  document.getElementById('detailContent').innerHTML=html;
+  document.getElementById('overlayDetail').scrollTop=0;
+  openOverlay('overlayDetail');
+}
+//￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥
+
+function openOverlay(id){document.getElementById(id).classList.add('open');}
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+
+document.getElementById('overlayDetail').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayDetail');});
+document.getElementById('overlayTipDetail').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayTipDetail');});
+document.getElementById('overlayTipEdit').addEventListener('click',function(e){if(e.target===e.currentTarget)closeOverlay('overlayTipEdit');});
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('filterCat').addEventListener('change',render);
+document.getElementById('filterPub').addEventListener('change',render);
+
+function exportData(){
+  var exp=recipes.map(function(r){var o=Object.assign({},r);delete o.img;o.photos=[];return o;});
+  var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(exp,null,2));a.download='recipes.json';a.click();
+}
+
+var currentPhotos=[];
+function openLightbox(idx){var p=currentPhotos[idx];if(!p)return;document.getElementById('lightboxImg').src=p.data;document.getElementById('lightboxCaption').textContent=p.title||'';document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+function openFromTextFile(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=e.target.result;var parsed=parseRecipeText(text);
+    if(!parsed.name){alert('「料理名:」が見つかりませんでした。\nフォーマットを確認してください。');input.value='';return;}
+    editId=null;pendingPhotos=[];
+    document.getElementById('formTitle').textContent='レシピを追加（テキストから）';
+    document.getElementById('fName').value=parsed.name;
+    document.getElementById('fYield').value=parsed.yield_amount||'';
+    document.getElementById('fDesc').value=parsed.desc;
+    document.getElementById('fCat').value=parsed.cat;document.getElementById('fGenre').value=parsed.genre;
+    document.getElementById('fIngs').value=parsed.ings;document.getElementById('fUrl').value=parsed.url;
+    document.getElementById('fSteps').value=parsed.steps;document.getElementById('fMemo').value=parsed.memo;
+    document.getElementById('fPub').checked=parsed.pub;document.getElementById('btnDelete').style.display='none';
+    renderPhotoList();setIngData(parsed.ingParts,null,null);
+    var ov=document.getElementById('overlayAdd');ov.scrollTop=0;openOverlay('overlayAdd');input.value='';
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function parseRecipeText(text){
+  var result={name:'',desc:'',cat:'',genre:'',ings:'',url:'',steps:'',memo:'',pub:false,yield_amount:'',ingParts:[]};
+  var lines=text.split(/\r?\n/);var mode='none';var currentPartLabel='';var currentRows=[];var stepsLines=[];var memoLines=[];
+  function flushPart(){if(currentRows.length>0){result.ingParts.push({label:currentPartLabel,rows:currentRows});currentRows=[];currentPartLabel='';}}
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i].trim();
+    if(/^※/.test(line))continue;
+    if(/^#\s+/.test(line)){
+      var heading=line.replace(/^#\s+/,'').trim();
+      if(mode==='ing')flushPart();
+      if(/^パート名[:：]/.test(heading)){flushPart();currentPartLabel=heading.replace(/^パート名[:：]\s*/,'').trim();continue;}
+      if(heading==='料理名'){mode='name';continue;}if(heading==='カテゴリ'){mode='cat';continue;}if(heading==='ジャンル'){mode='genre';continue;}
+      if(heading==='説明'){mode='desc';continue;}if(heading==='食材タグ'){mode='ings';continue;}if(heading==='URL'){mode='url';continue;}
+      if(heading==='公開'){mode='pub';continue;}if(heading==='手順'){mode='steps';continue;}if(heading==='覚書'){mode='memo';continue;}
+      if(heading==='出来上がり量'){mode='yield';continue;}
+      if(heading==='材料'){mode='ing';currentPartLabel='';continue;}mode='none';continue;
+    }
+    if(line===''){if(mode==='steps')stepsLines.push('');if(mode==='memo')memoLines.push('');continue;}
+    if(mode==='name'){result.name=line;mode='none';continue;}if(mode==='cat'){result.cat=line;mode='none';continue;}
+    if(mode==='genre'){result.genre=line;mode='none';continue;}if(mode==='desc'){result.desc=line;mode='none';continue;}
+    if(mode==='ings'){result.ings=line;mode='none';continue;}if(mode==='url'){result.url=line;mode='none';continue;}
+    if(mode==='pub'){result.pub=/^(はい|yes|true|1)$/i.test(line);mode='none';continue;}
+    if(mode==='yield'){result.yield_amount=line;mode='none';continue;}
+    if(mode==='ing'){var cols=line.split(/,|，/).map(function(s){return s.trim();});currentRows.push({name:cols[0]||'',amt:cols[1]||'',note:cols[2]||''});continue;}
+    if(mode==='steps'){stepsLines.push(line);continue;}if(mode==='memo'){memoLines.push(line);continue;}
+  }
+  flushPart();result.steps=stepsLines.join('\n').trim();result.memo=memoLines.join('\n').trim();return result;
+}
+
+var pendingCommonTipPhoto=null;
+
+function handleCommonTipPhoto(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=1200,w=img.width,h=img.height;var scale=(w>MAX||h>MAX)?MAX/Math.max(w,h):1;
+      var canvas=document.createElement('canvas');canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+      var ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      pendingCommonTipPhoto=canvas.toDataURL('image/webp',0.85);
+      document.getElementById('commonTipPhotoPreview').innerHTML='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><img src="'+pendingCommonTipPhoto+'" style="width:52px;height:40px;object-fit:cover;border-radius:5px;border:1px solid #ddd"><button type="button" onclick="clearCommonTipPhoto()" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:14px">✕</button></div>';
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);input.value='';
+}
+
+function clearCommonTipPhoto(){pendingCommonTipPhoto=null;document.getElementById('commonTipPhotoPreview').innerHTML='';}
+
+function openCommonTipsManager(){
+  pendingCommonTipPhoto=null;document.getElementById('commonTipPhotoPreview').innerHTML='';
+  renderCommonTipList();openOverlay('overlayCommonTips');
+}
+
+async function renderCommonTipList(){
+  const listDiv=document.getElementById('commonTipList');
+  let {data:tips}=await window.supabase.from('notes_and_tips')
+    .select('*')
+    .is('recipe_id',null)
+    .order('created_at',{ascending:true});
+
+  // ★ 閲覧モードでは公開のみ表示
+  if (!isEditor) {
+    tips = tips.filter(t => t.pub);
+  }
+
+  // ★ 編集モードの公開/非公開フィルタ
+  const p = document.getElementById('filterPub').value;
+  if (isEditor) {
+    if (p === '1') tips = tips.filter(t => t.pub);
+    if (p === '0') tips = tips.filter(t => !t.pub);
+  }
+
+  if(!tips || tips.length === 0){
+    listDiv.innerHTML='<p style="font-size:11px;color:#999;text-align:center">なし</p>';
+    return;
+  }
+
+  listDiv.innerHTML = tips.map(t=>{
+    const imgHtml = t.image_url
+      ? `<img src="${t.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;margin-right:6px;flex-shrink:0">`
+      : '';
+
+    return `
+      <div style="font-size:12px;border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center">
+          ${imgHtml}
+          <div>
+            <strong>${esc(t.title)}</strong>
+            <div style="font-size:11px;color:#666;margin-top:2px">
+              ${esc(t.content.length>40 ? t.content.slice(0,40)+'…' : t.content)}
+            </div>
+          </div>
+        </div>
+        <button onclick="deleteCommonTip('${t.id}')" style="background:none;border:none;color:#638C3E;cursor:pointer;font-size:11px;flex-shrink:0;margin-left:8px">削除</button>
+      </div>`;
+  }).join('');
+}
+
+
+async function addCommonTip(){
+  const title=document.getElementById('commonTipTitle').value.trim();const content=document.getElementById('commonTipContent').value.trim();
+  if(!title||!content){alert('タイトルと内容を入力してください');return;}
+  const addBtn=document.getElementById('commonTipAddBtn');addBtn.disabled=true;addBtn.textContent='追加中...';
+  try{
+    let imageUrl=null;if(pendingCommonTipPhoto)imageUrl=await uploadToStorage({data:pendingCommonTipPhoto});
+    await window.supabase.from('notes_and_tips').insert({recipe_id:null,title,content,image_url:imageUrl,category:'tips'});
+    document.getElementById('commonTipTitle').value='';document.getElementById('commonTipContent').value='';clearCommonTipPhoto();renderCommonTipList();render();
+  }catch(err){alert('追加に失敗しました: '+err.message);
+  }finally{addBtn.disabled=false;addBtn.textContent='共通チップスを追加';}
+}
+
+async function deleteCommonTip(id){
+  if(!confirm('削除しますか？'))return;
+  const{data:tip}=await window.supabase.from('notes_and_tips').select('image_url').eq('id',id).single();
+  if(tip&&tip.image_url)await deleteStoragePhotos([tip.image_url]);
+  await window.supabase.from('notes_and_tips').delete().eq('id',id);
+  renderCommonTipList();render();
+}
+
+</script>
+
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<div class="overlay" id="overlayCommonTips">
+  <div class="modal" style="max-width:420px;margin:auto">
+    <button class="modal-close" onclick="closeOverlay('overlayCommonTips')">✕</button>
+    <h2 style="color:#638C3E;font-size:16px;border-bottom:2px solid #638C3E;padding-bottom:8px;margin-bottom:14px">💡 共通チップス管理</h2>
+    <div style="background:#f9fbf7;padding:12px;border-radius:8px;border:1px solid #e0e6d8;margin-bottom:12px">
+      <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%;margin-bottom:6px">
+      <div id="commonTipPhotoPreview"></div>
+      <button type="button" class="btn-add-photo" onclick="document.getElementById('commonTipPhotoInput').click()" style="margin-bottom:6px">📷 写真を追加（任意）</button>
+      <input type="file" id="commonTipPhotoInput" accept="image/*" style="display:none" onchange="handleCommonTipPhoto(this)">
+      <textarea id="commonTipContent" placeholder="内容..." style="width:100%;height:80px;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;margin-bottom:8px;outline:none"></textarea>
+      <button type="button" id="commonTipAddBtn" class="btn btn-sm" onclick="addCommonTip()" style="width:100%;background:#638C3E;color:white;border-color:#638C3E">共通チップスを追加</button>
+    </div>
+    <div id="commonTipList" style="max-height:220px;overflow-y:auto;border-top:1px solid #eee;padding-top:10px"></div>
+    <div class="modal-btns" style="margin-top:12px"><div></div><button class="btn btn-sm" onclick="closeOverlay('overlayCommonTips')">閉じる</button></div>
+  </div>
+</div>
+
+</body>
+</html>
