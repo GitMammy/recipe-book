@@ -868,12 +868,17 @@ async function openDetail(id){
 
   let notesHtml = '';
   if(notes && notes.length > 0){
-    notesHtml = notes.map(n => {
+    const visibleNotes = isEditor ? notes : notes.filter(n => n.pub);
+    notesHtml = visibleNotes.map(n => {
       const img = n.image_url ? `<img src="${n.image_url}" class="note-image">` : '';
+      const pubBadge = isEditor
+        ? `<span style="font-size:10px;margin-left:6px;padding:1px 6px;border-radius:999px;background:${n.pub?'#EAF3DE':'#F1EFE8'};color:${n.pub?'#27500A':'#5F5E5A'}">${n.pub?'公開':'非公開'}</span>`
+        : '';
       return `<div class="note-card note-recipe">
-        <div class="note-title"><span>📝 レシピメモ</span>: ${esc(n.title)}</div>
+        <div class="note-title"><span>📝 レシピメモ</span>: ${esc(n.title)}${pubBadge}</div>
         ${img}
         <div style="white-space:pre-wrap">${esc(n.content)}</div>
+        ${isEditor ? `<button onclick="openTipEdit('${n.id}')" style="margin-top:6px;font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#555">✏️ 編集</button>` : ''}
       </div>`;
     }).join('');
   }
@@ -1426,6 +1431,11 @@ async function deleteTipFromEdit(){
 
 
 
+// ===== loadCommonTips = renderCommonTipList の別名（saveTipEdit等から呼ばれる） =====
+function loadCommonTips(){
+  renderCommonTipList();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const key = params.get('key');
@@ -1436,8 +1446,35 @@ document.addEventListener('DOMContentLoaded', () => {
     isEditor = false;
   }
 
+  // ===== 編集モード時のファビコン・タイトル切り替え =====
+  if(isEditor){
+    document.title = '🔑 おかしなぺぇじ【編集モード】';
+    const favicon = document.getElementById('faviconLink');
+    if(favicon){
+      favicon.href = 'favicon-edit.ico';
+    }
+
+    // TXTから追加ボタンを topbar に挿入
+    const toolbar = document.querySelector('.toolbar-right');
+    if(toolbar && !document.getElementById('btnOpenFromTxt')){
+      const txtBtn = document.createElement('button');
+      txtBtn.className = 'btn btn-sm';
+      txtBtn.id = 'btnOpenFromTxt';
+      txtBtn.textContent = '📄 TXTから追加';
+      // ファイル input を作成
+      const txtInput = document.createElement('input');
+      txtInput.type = 'file';
+      txtInput.accept = '.txt,text/plain';
+      txtInput.style.display = 'none';
+      txtInput.id = 'txtFileInput';
+      txtInput.addEventListener('change', function(){ openFromTextFile(this); });
+      txtBtn.addEventListener('click', () => txtInput.click());
+      toolbar.insertBefore(txtBtn, toolbar.firstChild);
+      toolbar.appendChild(txtInput);
+    }
+  }
+
   setupEventHandlers();
   loadRecipes();
   renderCommonTipList();
 });
-
