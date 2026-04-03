@@ -1316,6 +1316,104 @@ function setupEventHandlers(){
   document.getElementById('tipEditDeleteBtn').addEventListener('click', deleteTipFromEdit);
 }
 
+// ===============================
+// Tips 編集の関数をここに貼る
+// ===============================
+async function openTipEdit(tipId) {
+  const{data:t,error}=await window.supabase.from('notes_and_tips').select('*').eq('id',tipId).single();
+  if(error||!t){alert('チップスの読み込みに失敗しました');return;}
+
+  tipEditPendingPhoto=null; 
+  tipEditPhotoCleared=false;
+
+  document.getElementById('tipEditId').value=t.id;
+  document.getElementById('tipEditTitle').value=t.title||'';
+  document.getElementById('tipEditContent').value=t.content||'';
+  document.getElementById('tipEditPub').checked = !!t.pub;   // ← 追加
+
+  var prev=document.getElementById('tipEditPhotoPreview');
+  var clearBtn=document.getElementById('tipEditPhotoClearBtn');
+
+  if(t.image_url){
+    prev.innerHTML='<img src="'+t.image_url+'" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">';
+    clearBtn.style.display='inline'; 
+    clearBtn.textContent='写真を削除';
+  } else { 
+    prev.innerHTML=''; 
+    clearBtn.style.display='none'; 
+  }
+
+  openOverlay('overlayTipEdit');
+}
+
+
+function handleTipEditPhoto(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=1200,w=img.width,h=img.height;
+      var scale=(w>MAX||h>MAX)?MAX/Math.max(w,h):1;
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+      var ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      tipEditPendingPhoto=canvas.toDataURL('image/webp',0.85);
+      tipEditPhotoCleared=false;
+      document.getElementById('tipEditPhotoPreview').innerHTML='<img src="'+tipEditPendingPhoto+'" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">';
+      var cb=document.getElementById('tipEditPhotoClearBtn');cb.style.display='inline';cb.textContent='選択をキャンセル';
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);input.value='';
+}
+
+function clearTipEditPhoto(){
+  tipEditPendingPhoto=null;tipEditPhotoCleared=true;
+  document.getElementById('tipEditPhotoPreview').innerHTML='<p style="font-size:11px;color:#aaa;margin:0">写真なし</p>';
+  document.getElementById('tipEditPhotoClearBtn').style.display='none';
+}
+//************************
+async function saveTipEdit(){
+  const id=document.getElementById('tipEditId').value;
+  const title=document.getElementById('tipEditTitle').value.trim();
+  const content=document.getElementById('tipEditContent').value.trim();
+  const pub=document.getElementById('tipEditPub').checked;   // ← 追加
+
+  const updateData = {
+    title,
+    content,
+    pub
+  };
+
+  if(tipEditPhotoCleared){
+    updateData.image_url = null;
+  } else if(tipEditPendingPhoto){
+    updateData.image_url = tipEditPendingPhoto;
+  }
+
+  await window.supabase.from('notes_and_tips')
+    .update(updateData)
+    .eq('id', id);
+
+  closeOverlay('overlayTipEdit');
+  loadCommonTips();
+}
+
+
+async function deleteTipFromEdit(){
+  if(!confirm('このチップスを削除しますか？'))return;
+  var tipId=document.getElementById('tipEditId').value;
+  const{data:tip}=await window.supabase.from('notes_and_tips').select('image_url').eq('id',tipId).single();
+  if(tip&&tip.image_url)await deleteStoragePhotos([tip.image_url]);
+  await window.supabase.from('notes_and_tips').delete().eq('id',tipId);
+  closeOverlay('overlayTipEdit');render();
+}
+
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const key = params.get('key');
