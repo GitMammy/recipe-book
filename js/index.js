@@ -13,7 +13,8 @@
 
   // createClient を安全に呼び出す
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  window.supabase = 
+  window.supabase =  client;   // ← ← ← ここが抜けていた！
+})();
 
 
 // ===== グローバル状態 =====
