@@ -1,11 +1,19 @@
 // js/index.js
 
 // ===== Supabase クライアントの初期化 =====
-const SUPABASE_URL = window.SUPABASE_URL;
-const SUPABASE_KEY = window.SUPABASE_KEY;
+(function () {
+  // SDK が読み込まれているか確認
+  if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+    console.error('Supabase SDK が読み込まれていません。script タグの順番を確認してください。');
+    return;
+  }
 
-const { createClient } = supabase;
-window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = window.SUPABASE_URL;
+  const SUPABASE_KEY = window.SUPABASE_KEY;
+
+  // createClient を安全に呼び出す
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.supabase = 
 
 
 // ===== グローバル状態 =====
