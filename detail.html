@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
   <!-- ～～～ detail.html ～～～ -->
@@ -5,240 +6,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍪 おかしなぺぇじ 🥐 - 詳細</title>
-  <link rel="icon" href="favicon.ico" id="faviconLink">
+  <title>🍪 おかしなぺぇじ 🥐 - レシピ詳細</title>
+  <link rel="icon" href="favicon.ico">
 
   <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, sans-serif;
-    background: #fafafa;
-    color: #1a1a1a;
-  }
-  .app {
-    padding: 1.25rem 1.5rem;
-    max-width: 960px;
-    margin: 0 auto;
-  }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #fafafa;
+      color: #1a1a1a;
+      padding: 1.5rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
 
-  .back-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1.25rem;
-  }
-  .back-link {
-    font-size: 13px;
-    color: #D4537E;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 12px;
-    border: 1px solid #f0c0d0;
-    border-radius: 8px;
-    background: #fff;
-  }
-  .back-link:hover { background:#FBEAF0; }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    .tag { display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; margin-right:4px; }
+    .t-cat { background:#FBEAF0; color:#72243E; }
+    .t-ing { background:#FAEEDA; color:#633806; }
+    .t-pub { background:#EAF3DE; color:#27500A; }
+    .t-priv { background:#F1EFE8; color:#5F5E5A; }
 
-  .detail-card {
-    background:#fff;
-    border:1px solid #e5e5e5;
-    border-radius:14px;
-    padding:1.5rem;
-    max-width:640px;
-    margin:0 auto;
-  }
+    .section { margin-top: 1.4rem; }
+    .section h3 {
+      font-size: 13px;
+      background:#FBEAF0;
+      padding:4px 10px;
+      border-radius:5px;
+      display:inline-block;
+      margin-bottom:6px;
+    }
 
-  .detail-top {
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:8px;
-    margin-bottom:10px;
-  }
-  .detail-top h1 {
-    font-size:20px;
-    font-weight:600;
-    line-height:1.4;
-    flex:1;
-  }
+    .ing-part-label {
+      font-size:12px;
+      font-weight:500;
+      color:#72243E;
+      margin:10px 0 4px;
+      background:#f0e0eb;
+      padding:3px 10px;
+      border-radius:5px;
+      display:inline-block;
+    }
 
-  .hearts {
-    display:flex;
-    gap:4px;
-    flex-shrink:0;
-    align-items:center;
-  }
-  .heart-btn,
-  .star-btn,
-  .crown-btn {
-    background:none;
-    border:none;
-    cursor:pointer;
-    font-size:26px;
-    padding:0;
-    line-height:1;
-    color:#ccc;
-  }
-  .heart-btn.on { color:#D4537E; }
-  .star-btn.on { color:#BA7517; }
-  .crown-btn.on {
-    color:#FFD700;
-    text-shadow:0 0 5px rgba(255,215,0,0.3);
-  }
+    .ing-table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+    .ing-table td {
+      padding:4px 6px;
+      border-bottom:1px solid #f5f5f5;
+    }
 
-  .tags {
-    display:flex;
-    flex-wrap:wrap;
-    gap:4px;
-    margin-bottom:1rem;
-  }
-  .tag {
-    font-size:11px;
-    padding:2px 8px;
-    border-radius:999px;
-    font-weight:400;
-    border:none;
-  }
-  .t-cat  { background:#FBEAF0;color:#72243E; }
-  .t-ing  { background:#FAEEDA;color:#633806; }
-  .t-pub  { background:#EAF3DE;color:#27500A; }
-  .t-priv { background:#F1EFE8;color:#5F5E5A; }
+    #detailPhotos img {
+      width:100px;
+      height:78px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid #ddd;
+      margin-right:6px;
+      margin-bottom:6px;
+    }
 
-  .detail-section {
-    margin-bottom:1.1rem;
-  }
-  .detail-section h3 {
-    font-size:12px;
-    color:#72243E;
-    margin-bottom:6px;
-    font-weight:500;
-    background:#FBEAF0;
-    padding:4px 10px;
-    border-radius:5px;
-    display:inline-block;
-  }
-  .detail-section p {
-    font-size:13px;
-    color:#1a1a1a;
-    line-height:1.75;
-    white-space:pre-wrap;
-  }
-
-  .yield-badge {
-    font-size:11px;
-    color:#555;
-    background:#f5f5f5;
-    padding:3px 8px;
-    border-radius:999px;
-  }
-
-  .photo-gallery {
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:4px;
-  }
-  .photo-gallery-item {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
-  }
-  .photo-gallery-item img {
-    width:100px;
-    height:78px;
-    border-radius:8px;
-    object-fit:cover;
-    cursor:pointer;
-    border:1px solid #eee;
-  }
-  .photo-gallery-caption {
-    font-size:11px;
-    color:#666;
-  }
-
-  .note-card {
-    border-radius:10px;
-    padding:10px 12px;
-    margin-bottom:8px;
-    font-size:12px;
-    background:#fff;
-    border:1px solid #eee;
-  }
-  .note-recipe {
-    border-left:3px solid #D4537E;
-  }
-  .note-title {
-    font-weight:600;
-    margin-bottom:4px;
-    font-size:12px;
-  }
-  .note-image {
-    width:100%;
-    max-height:180px;
-    object-fit:cover;
-    border-radius:8px;
-    border:1px solid #ddd;
-    margin:6px 0;
-  }
-
-  .lightbox {
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.8);
-    display:none;
-    z-index:2000;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-  }
-  .lightbox.open { display:flex; }
-  .lightbox img {
-    max-width:90vw;
-    max-height:80vh;
-    border-radius:8px;
-    box-shadow:0 0 20px rgba(0,0,0,0.4);
-  }
-  .lightbox-caption {
-    margin-top:8px;
-    font-size:13px;
-    color:#fff;
-  }
-  .lightbox-close {
-    position:absolute;
-    top:12px;
-    right:16px;
-    background:none;
-    border:none;
-    color:#fff;
-    font-size:20px;
-    cursor:pointer;
-  }
-
-  @media (max-width:600px){
-    .app { padding:1rem; }
-    .detail-card { padding:1.1rem; margin:0 4px; }
-  }
+    #editRecipeBtn {
+      margin-top: 20px;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #D4537E;
+      background: #fff;
+      color: #D4537E;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="back-bar">
-      <a href="index.html" class="back-link">← 一覧に戻る</a>
-    </div>
 
-    <div class="detail-card" id="detailRoot">
-      <!-- js/detail.js がここにレシピ詳細を描画する -->
-    </div>
+  <a href="index.html" style="color:#D4537E; font-size:13px; text-decoration:none;">← 一覧に戻る</a>
+
+  <h1 id="detailTitle"></h1>
+
+  <div id="detailCategory" class="tag t-cat"></div>
+
+  <div id="detailDesc" class="section" style="display:none;">
+    <h3>説明</h3>
+    <p id="detailDesc"></p>
   </div>
 
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightboxImg" src="" alt="">
-    <div class="lightbox-caption" id="lightboxCaption"></div>
+  <div id="detailYield" class="section" style="display:none;">
+    <h3>出来上がり量</h3>
+    <p></p>
   </div>
+
+  <div id="detailUrl" class="section" style="display:none;">
+    <h3>参考レシピ</h3>
+  </div>
+
+  <div id="detailIngredients" class="section">
+    <h3>材料</h3>
+  </div>
+
+  <div id="detailPhotos" class="section" style="display:none;">
+    <h3>写真</h3>
+  </div>
+
+  <button id="editRecipeBtn" style="display:none;">編集</button>
 
   <script src="js/detail.js"></script>
 </body>
