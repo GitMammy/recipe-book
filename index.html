@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260403　1639　 -->
+    <!-- 260403　1423　 -->
 
 <head>
   <meta charset="UTF-8">
@@ -519,6 +519,9 @@
     font-size: 12px;
   }
 
+  /* 閲覧モードでは editor-only を非表示 */
+  body:not(.edit-mode) .editor-only { display: none !important; }
+
   /* ===============================
      レスポンシブ調整
      =============================== */
@@ -537,16 +540,16 @@
       <select id="filterCat">
         <option value="">カテゴリ：すべて</option>
       </select>
-      <select id="filterPub">
+      <select id="filterPub" class="editor-only">
         <option value="">公開/非公開：すべて</option>
         <option value="1">公開のみ</option>
         <option value="0">非公開のみ</option>
       </select>
 
       <div class="toolbar-right">
-        <button class="btn btn-sm" id="btnOpenAdd">＋ レシピ追加</button>
+        <button class="btn btn-sm editor-only" id="btnOpenAdd">＋ レシピ追加</button>
         <button class="btn btn-sm" id="btnOpenCommonTips">💡 共通チップス</button>
-        <button class="btn btn-sm" id="btnExport">JSON エクスポート</button>
+        <button class="btn btn-sm editor-only" id="btnExport">JSON エクスポート</button>
       </div>
     </div>
 
@@ -693,7 +696,14 @@
     </div>
   </div>
 
-  <!-- 外部 JS 読み込み -->
-  <script src="js/index.js"></script>
+  <!-- 外部 JS 読み込み（依存順） -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/recipe_edit.js"></script>
+  <script src="js/tips.js"></script>
+  <script src="js/recipes.js"></script>
+  <script src="js/ui.js"></script>
 </body>
 </html>
