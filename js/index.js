@@ -1,9 +1,12 @@
 // js/index.js
 
-// ===== Supabase クライアントの初期化（必要に応じて書き換え）=====
-const SUPABASE_URL = window.SUPABASE_URL || '';
-const SUPABASE_KEY = window.SUPABASE_KEY || '';
-window.supabase = window.supabase || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ===== Supabase クライアントの初期化 =====
+const SUPABASE_URL = window.SUPABASE_URL;
+const SUPABASE_KEY = window.SUPABASE_KEY;
+
+const { createClient } = supabase;
+window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 
 // ===== グローバル状態 =====
 let recipes = [];
