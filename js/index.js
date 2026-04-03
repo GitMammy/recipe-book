@@ -1317,8 +1317,17 @@ function setupEventHandlers(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // URL の key= で編集モード判定など、必要ならここで
+  const params = new URLSearchParams(location.search);
+  const key = params.get('key');
+
+  if (key === SECRET_KEY) {
+    isEditor = true;
+  } else {
+    isEditor = false;
+  }
+
   setupEventHandlers();
   loadRecipes();
   renderCommonTipList();
 });
+
