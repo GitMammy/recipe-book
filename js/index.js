@@ -61,7 +61,10 @@ function getCatEmoji(cat){
 }
 
 function isEditMode(){
-  return isEditor;  // URL の key= で判定
+  // DOMContentLoaded前でも安全に動くよう URL から直接確認
+  if(isEditor) return true;
+  const key = new URLSearchParams(location.search).get('key');
+  return key === SECRET_KEY;
 }
 
 // ===== レシピ一覧の描画 =====
@@ -111,7 +114,8 @@ function render(){
   grid.innerHTML = list.map(r => {
     const thumb = getThumb(r);
     const emoji = getCatEmoji(r.cat);
-    const heartsHtml = isEditor
+    const editorNow = isEditMode();
+    const heartsHtml = editorNow
       ? `<div class="hearts">
            <button class="heart-btn${r.heart?' on':''}" onclick="toggleHeart(event,'${r.id}')">♡</button>
            <button class="star-btn${r.fav?' on':''}" onclick="toggleStar(event,'${r.id}')">★</button>
@@ -137,7 +141,7 @@ function render(){
           <div class="card-tags">
             ${r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : ''}
             ${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}
-            ${isEditor
+            ${editorNow
               ? `<span class="tag ${r.pub?'t-pub':'t-priv'}">${r.pub?'公開':'非公開'}</span>`
               : ''}
           </div>
@@ -1305,6 +1309,7 @@ function setupEventHandlers(){
   document.getElementById('filterPub').addEventListener('change', () => {
     render();
     renderCommonTipList();
+    renderTipsCards();
   });
 
   document.getElementById('btnOpenAdd').addEventListener('click', openAdd);
@@ -1431,9 +1436,65 @@ async function deleteTipFromEdit(){
 
 
 
+// ===== index画面にtipsカードを表示 =====
+async function renderTipsCards(){
+  const area = document.getElementById('tipsArea');
+  const tipsGrid = document.getElementById('tipsGrid');
+  if(!area || !tipsGrid) return;
+
+  let {data:tips} = await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .is('recipe_id', null)
+    .order('created_at',{ascending:true});
+
+  if(!tips) tips = [];
+
+  // 閲覧モードでは公開のみ
+  if(!isEditMode()){
+    tips = tips.filter(t => t.pub);
+  }
+
+  if(!tips.length){
+    area.style.display = 'none';
+    return;
+  }
+
+  area.style.display = 'block';
+  const editorNow = isEditMode();
+
+  tipsGrid.innerHTML = tips.map(t => {
+    const imgHtml = t.image_url
+      ? `<img src="${t.image_url}" style="width:100%;height:100px;object-fit:cover;display:block;background:#f5f5f5">`
+      : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#f5fbf2">💡</div>`;
+    const pubBadge = editorNow
+      ? `<span class="tag ${t.pub?'t-pub':'t-priv'}" style="font-size:10px">${t.pub?'公開':'非公開'}</span>`
+      : '';
+    const editBtn = editorNow
+      ? `<button onclick="event.stopPropagation();openTipEdit('${t.id}')" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#555;margin-top:4px">✏️ 編集</button>`
+      : '';
+    const contentPreview = t.content
+      ? `<div style="font-size:12px;color:#555;line-height:1.5;margin-top:4px">${esc(t.content.length>60?t.content.slice(0,60)+'…':t.content)}</div>`
+      : '';
+    return `
+      <div class="card" style="cursor:default">
+        ${imgHtml}
+        <div class="card-body">
+          <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:4px">${esc(t.title)}</div>
+          ${contentPreview}
+          <div style="margin-top:6px;display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+            ${pubBadge}
+            ${editBtn}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 // ===== loadCommonTips = renderCommonTipList の別名（saveTipEdit等から呼ばれる） =====
 function loadCommonTips(){
   renderCommonTipList();
+  renderTipsCards();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1477,4 +1538,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventHandlers();
   loadRecipes();
   renderCommonTipList();
+  renderTipsCards();
 });
+
