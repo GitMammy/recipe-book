@@ -45,7 +45,9 @@ async function loadRecipeDetail(id) {
   renderRecipeDetail(r);
 
   // Tips 読み込み（tips.js）
-  loadTips(id);
+  if (typeof loadTips === "function") {
+    loadTips(id);
+  }
 }
 
 
@@ -53,13 +55,10 @@ async function loadRecipeDetail(id) {
 // レシピ詳細の描画
 // --------------------------------------
 function renderRecipeDetail(r) {
-  // タイトル
-  document.getElementById('detailTitle').textContent = r.title || '';
+  document.getElementById('detailTitle').textContent = r.title || r.name || '';
 
-  // カテゴリ
-  document.getElementById('detailCategory').textContent = r.category || '';
+  document.getElementById('detailCategory').textContent = r.category || r.cat || '';
 
-  // 説明
   const descBox = document.getElementById('detailDesc');
   if (descBox) {
     if (r.desc && r.desc.trim()) {
@@ -70,36 +69,29 @@ function renderRecipeDetail(r) {
     }
   }
 
-  // 出来上がり量
   const yieldBox = document.getElementById('detailYield');
   if (yieldBox) {
     if (r.yield_amount) {
-      yieldBox.textContent = r.yield_amount;
+      yieldBox.querySelector('p').textContent = r.yield_amount;
       yieldBox.style.display = 'block';
     } else {
       yieldBox.style.display = 'none';
     }
   }
 
-  // URL（参考レシピ）
   const urlBox = document.getElementById('detailUrl');
   if (urlBox) {
     if (r.url) {
       const label = r.url_label || '参考レシピ';
-      urlBox.innerHTML = `<a href="${r.url}" target="_blank">${esc(label)}</a>`;
+      urlBox.innerHTML = `<h3>参考レシピ</h3><a href="${r.url}" target="_blank">${esc(label)}</a>`;
       urlBox.style.display = 'block';
     } else {
       urlBox.style.display = 'none';
     }
   }
 
-  // 材料テーブル
   renderIngredients(r);
-
-  // 写真
   renderPhotos(r.photos || []);
-
-  // 編集モード UI
   setupDetailEditorUI(r);
 }
 
@@ -111,16 +103,15 @@ function renderIngredients(r) {
   const wrap = document.getElementById('detailIngredients');
   if (!wrap) return;
 
-  const parts = r.ing_parts || [];
-  const rows = r.ing_rows || [];
+  const parts = r.ing_parts || r.ingParts || [];
+  const rows = r.ing_rows || r.ingRows || [];
 
-  let html = '';
+  let html = '<h3>材料</h3>';
 
   parts.forEach(part => {
     html += `<div class="ing-part-label">${esc(part)}</div>`;
 
-    html += `<table class="ing-table">`;
-    html += `<tbody>`;
+    html += `<table class="ing-table"><tbody>`;
 
     rows
       .filter(row => row.part === part)
@@ -128,7 +119,7 @@ function renderIngredients(r) {
         html += `
           <tr>
             <td>${esc(row.name || '')}</td>
-            <td>${esc(row.amount || '')}</td>
+            <td>${esc(row.amount || row.amt || '')}</td>
           </tr>
         `;
       });
@@ -153,9 +144,11 @@ function renderPhotos(photos) {
   }
 
   box.style.display = 'block';
-  box.innerHTML = photos
-    .map(url => `<img src="${url}" class="detail-photo">`)
-    .join('');
+  box.innerHTML =
+    '<h3>写真</h3>' +
+    photos
+      .map(p => `<img src="${p.data || p}" class="detail-photo">`)
+      .join('');
 }
 
 
@@ -165,7 +158,7 @@ function renderPhotos(photos) {
 function setupDetailEditorUI(r) {
   const editBtn = document.getElementById('editRecipeBtn');
 
-  if (isEditor) {
+  if (window.isEditor) {
     if (editBtn) {
       editBtn.style.display = 'inline-block';
       editBtn.onclick = () => openEditRecipe(r.id);
