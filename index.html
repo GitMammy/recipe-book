@@ -2,12 +2,23 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
     <!-- 260403　1423　 -->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🍪 おかしなぺぇじ 🥐</title>
   <link rel="icon" href="favicon.ico" id="faviconLink">
 
+  <!-- ① Supabase SDK（最優先） -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- ② あなたの Supabase URL / KEY（SDK の後） -->
+  <script>
+    window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
+    window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+  </script>
+
+  <!-- ③ CSS（style） -->
   <style>
   /* ===============================
      レイアウト・共通スタイル
@@ -516,13 +527,6 @@
     .detail-top h2 { font-size: 18px; }
   }
   </style>
-
-  <!-- ★ここに追加する！★ -->
-  <script>
-    window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-    window.SUPABASE_KEY = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFveGdpcWpjZmJ6cmhkb25rbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTI0NTQsImV4cCI6MjA4OTgyODQ1NH0.JWz-F39M0eYMfkncCOZUyNOJUWgh0c93qp9ubj9d0UI';
-
-  </script>
   
 </head>
 <body>
