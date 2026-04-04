@@ -1,4 +1,5 @@
 // ===== utils.js =====
+//260404 1753
 // 共通ユーティリティ関数
 
 function esc(str) {
@@ -9,6 +10,17 @@ function esc(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// ツールチップ記法：[表示テキスト](補足説明) → <span title="補足説明">表示テキスト</span>
+// 手順・アレンジ欄の表示時に使用する（保存データはそのまま）
+function renderWithTooltip(str) {
+  if (str == null) return '';
+  // まず全体をエスケープしてから記法だけ変換
+  return esc(str).replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_, text, tip) => `<span class="tooltip-word" title="${tip}">${text}</span>`
+  );
 }
 
 function markdownToHtml(md) {
