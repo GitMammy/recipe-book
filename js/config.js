@@ -1,21 +1,27 @@
-// --- Supabase 設定 ---
-window.SUPABASE_URL = 'https://aoxgiqjcfbzrhdonknvc.supabase.co';
-window.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ← 省略
+// ===== config.js =====
+//　260404　1511
+// Supabase 初期化・グローバル変数・編集モード判定
 
-window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-
-// --- 編集モード判定 ---
-window.SECRET_KEY = 'sakuramoti';
-window.isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
-
-// --- 編集モードのタイトル・favicon ---
 (function () {
-  if (!isEditor) return;
-  document.title = '🔑 おかしなぺぇじ【編集モード】';
-  const link = document.getElementById('faviconLink');
-  if (link) {
-    link.rel = 'icon';
-    link.type = 'image/x-icon';
-    link.href = 'favicon-edit.ico';
+  if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+    console.error('Supabase SDK が読み込まれていません。');
+    return;
   }
+  window.supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
 })();
+
+// グローバル状態
+let recipes = [];
+let pendingPhotos = [];
+let editId = null;
+let dragSrc = null;
+let currentPhotos = [];
+
+// tips 編集用
+let tipEditPendingPhoto = null;
+let tipEditPhotoCleared = false;
+let pendingCommonTipPhoto = null;
+
+// 編集モード（ファイル読み込み時点で確定）
+const SECRET_KEY = 'sakuramoti';
+const isEditor = (new URLSearchParams(location.search)).get('key') === SECRET_KEY;
