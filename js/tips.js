@@ -1,6 +1,5 @@
 // ===== tips.js =====
-// 260404 1601
-
+// 260404 1752
 // 共通チップス管理（overlayCommonTips）・index画面tipsカード・tips編集モーダル
 
 // ----- 共通チップス管理モーダル -----
@@ -98,7 +97,17 @@ async function deleteCommonTip(id) {
   loadCommonTips();
 }
 
-// ----- index画面 tipsカード -----
+// image_urlカラムにJSONまたは単一URLが混在する場合に対応して配列を返す
+function parseTipPhotos(t) {
+  if (!t || !t.image_url) return [];
+  try {
+    const parsed = JSON.parse(t.image_url);
+    if (Array.isArray(parsed)) return parsed;
+    return [t.image_url]; // 古い単一URL形式
+  } catch {
+    return [t.image_url]; // 単一URL文字列
+  }
+}
 async function renderTipsCards() {
   const area     = document.getElementById('tipsArea');
   const tipsGrid = document.getElementById('tipsGrid');
@@ -132,7 +141,7 @@ async function openTipDetail(tipId) {
   const { data: t, error } = await window.supabase.from('notes_and_tips').select('*').eq('id', tipId).single();
   if (error || !t) return;
 
-  const photos = t.image_urls ? JSON.parse(t.image_urls) : (t.image_url ? [t.image_url] : []);
+  const photos = parseTipPhotos(t);
   const photosHtml = photos.length
     ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
         ${photos.map((url, i) => `<img src="${url}" onclick="openTipLightbox(${i})" style="width:100px;height:78px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer">`).join('')}
@@ -185,10 +194,8 @@ async function openTipEdit(tipId) {
   document.getElementById('tipEditContent').value = t.content || '';
   document.getElementById('tipEditPub').checked   = !!t.pub;
 
-  // 既存写真を配列で読み込み（image_urlsがあればそちら、なければimage_urlを1枚扱い）
-  const existingUrls = t.image_urls
-    ? (Array.isArray(t.image_urls) ? t.image_urls : JSON.parse(t.image_urls))
-    : (t.image_url ? [t.image_url] : []);
+  // 既存写真を配列で読み込み
+  const existingUrls = parseTipPhotos(t);
   tipEditPendingPhotos = existingUrls.map(url => ({ data: url, isNew: false }));
   renderTipEditPhotoList();
   openOverlay('overlayTipEdit');
@@ -242,8 +249,9 @@ async function saveTipEdit() {
     }));
     const updateData = {
       title, content, pub,
-      image_url: uploadedUrls[0] || null,
-      image_urls: JSON.stringify(uploadedUrls)
+      image_url: uploadedUrls.length > 0
+        ? (uploadedUrls.length === 1 ? uploadedUrls[0] : JSON.stringify(uploadedUrls))
+        : null
     };
     await window.supabase.from('notes_and_tips').update(updateData).eq('id', id);
     closeOverlay('overlayTipEdit');
@@ -258,9 +266,9 @@ async function saveTipEdit() {
 async function deleteTipFromEdit() {
   if (!confirm('このチップスを削除しますか？')) return;
   const tipId = document.getElementById('tipEditId').value;
-  const { data: tip } = await window.supabase.from('notes_and_tips').select('image_url,image_urls').eq('id', tipId).single();
+  const { data: tip } = await window.supabase.from('notes_and_tips').select('image_url').eq('id', tipId).single();
   if (tip) {
-    const urls = tip.image_urls ? JSON.parse(tip.image_urls) : (tip.image_url ? [tip.image_url] : []);
+    const urls = parseTipPhotos(tip);
     if (urls.length) await deleteStoragePhotos(urls);
   }
   await window.supabase.from('notes_and_tips').delete().eq('id', tipId);
