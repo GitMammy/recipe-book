@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260404　1515
+//　260404　1600
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
 
 // ----- 写真 UI -----
@@ -71,7 +71,19 @@ function makePartEl(label, rows, showHeader) {
   const ni = document.createElement('input');
   ni.type = 'text'; ni.className = 'ing-part-name';
   ni.placeholder = '例：生地、フィリング（省略可）'; ni.value = label || '';
-  lw.appendChild(ls); lw.appendChild(ni);
+
+  // パート番号ラベル（パート名欄の値をリアルタイム反映）
+  const partNumLabel = document.createElement('span');
+  partNumLabel.style.cssText = 'font-size:11px;color:#aaa;margin-left:4px;flex-shrink:0';
+  const updatePartNum = () => {
+    const parts = [...document.querySelectorAll('#ingParts .ing-part')];
+    const idx = parts.indexOf(div);
+    partNumLabel.textContent = ni.value.trim() ? '' : `（パート ${idx + 1}）`;
+  };
+  ni.addEventListener('input', updatePartNum);
+  setTimeout(updatePartNum, 50);
+
+  lw.appendChild(ls); lw.appendChild(ni); lw.appendChild(partNumLabel);
 
   const db = document.createElement('button');
   db.className = 'btn-del-part'; db.title = 'このパートを削除'; db.textContent = '✕';
