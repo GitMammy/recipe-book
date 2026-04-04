@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260403　1558　 -->
+    <!-- 260404　1754　 -->
 
 <head>
   <meta charset="UTF-8">
@@ -550,14 +550,23 @@
   }
   .card:hover { border-color: #C97094; }
 
-  /* Tipsカードの縁取り：プレースホルダーより少し濃い緑 */
+  /* Tipsカードの縁取り：プレースホルダーより少し濃い緑＋薄緑背景 */
   .card-tips {
     border: 1.5px solid #B3D49A !important;
+    background: #F5FBF0 !important;
   }
-  .card-tips:hover { border-color: #7BB05A !important; }
+  .card-tips:hover { border-color: #7BB05A !important; background: #EDF7E5 !important; }
 
   /* 閲覧モードでは editor-only を非表示 */
   body:not(.edit-mode) .editor-only { display: none !important; }
+
+  /* ツールチップ記法 [テキスト](補足) */
+  .tooltip-word {
+    border-bottom: 1px dashed #D4537E;
+    color: #993556;
+    cursor: help;
+    font-style: normal;
+  }
 
   /* ===============================
      レスポンシブ調整
@@ -645,7 +654,6 @@
 
         <div id="ingParts"></div>
         <div style="display:flex;gap:6px;margin-bottom:6px">
-          <button type="button" class="btn btn-sm" id="btnAddRowLast">＋ 行を追加</button>
           <button type="button" class="btn btn-sm" id="btnAddPart">＋ パートを追加</button>
         </div>
 
