@@ -1,4 +1,6 @@
 // ===== recipes.js =====
+// 260404 1600
+
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -18,15 +20,35 @@ function getRelatedRecipes(r) {
     .slice(0, 6);
 }
 
-// ----- カテゴリ select の更新 -----
+// ----- カテゴリ select / datalist の更新 -----
 function updateSelects() {
-  const cats = [];
-  recipes.forEach(r => { if (r.cat && !cats.includes(r.cat)) cats.push(r.cat); });
+  const cats = [], genres = [];
+  recipes.forEach(r => {
+    if (r.cat   && !cats.includes(r.cat))     cats.push(r.cat);
+    if (r.genre && !genres.includes(r.genre)) genres.push(r.genre);
+  });
   const sc = document.getElementById('filterCat');
   const cv = sc.value;
   sc.innerHTML = '<option value="">カテゴリ：すべて</option>' +
     cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   sc.value = cv;
+
+  // 編集フォームの datalist も更新
+  const cl = document.getElementById('catList');
+  const gl = document.getElementById('genreList');
+  if (cl) cl.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  if (gl) gl.innerHTML = genres.map(g => `<option value="${esc(g)}">`).join('');
+}
+
+// ----- マークフィルター状態 -----
+const markFilters = { heart: false, star: false, crown: false };
+
+function toggleMarkFilter(type) {
+  markFilters[type] = !markFilters[type];
+  const btnId = { heart: 'filterHeart', star: 'filterStar', crown: 'filterCrown' }[type];
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.toggle(`active-${type}`, markFilters[type]);
+  render();
 }
 
 // ----- 一覧描画 -----
@@ -43,13 +65,22 @@ function render() {
   // 閲覧モードは非公開除外
   if (!isEditor) list = list.filter(r => r.pub);
 
-  if (q)       list = list.filter(r =>
-    (r.name && r.name.toLowerCase().includes(q)) ||
-    (r.desc && r.desc.toLowerCase().includes(q)) ||
-    (r.ings && r.ings.join(',').toLowerCase().includes(q)));
-  if (cat)     list = list.filter(r => r.cat === cat);
+  if (q) list = list.filter(r =>
+    (r.name  && r.name.toLowerCase().includes(q)) ||
+    (r.desc  && r.desc.toLowerCase().includes(q)) ||
+    (r.cat   && r.cat.toLowerCase().includes(q))  ||
+    (r.genre && r.genre.toLowerCase().includes(q)) ||
+    (r.steps && r.steps.toLowerCase().includes(q)) ||
+    (r.memo  && r.memo.toLowerCase().includes(q))  ||
+    (r.ings  && r.ings.join(',').toLowerCase().includes(q)));
+  if (cat) list = list.filter(r => r.cat === cat);
   if (p === '1') list = list.filter(r =>  r.pub);
   if (p === '0') list = list.filter(r => !r.pub);
+
+  // マークフィルター
+  if (markFilters.heart) list = list.filter(r => r.heart);
+  if (markFilters.star)  list = list.filter(r => r.fav);
+  if (markFilters.crown) list = list.filter(r => r.crown);
 
   document.getElementById('countBar').textContent = list.length + ' 件';
 
