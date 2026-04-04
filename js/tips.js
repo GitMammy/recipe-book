@@ -1,223 +1,204 @@
-/* コメント　*/ 
-tips.js が担当する機能
+// ===== tips.js =====
+// 共通チップス管理（overlayCommonTips）・index画面tipsカード・tips編集モーダル
 
-Tips の読み込み（レシピ詳細画面）
-Tips の一覧表示（index の Tips カード）
-Tips の追加
-Tips の編集
-Tips の削除
-公開/非公開の切り替え
-Markdown → HTML の変換（utils.js と連携）
-編集モードの UI 切り替え
-*/ 
+// ----- 共通チップス管理モーダル -----
+function openCommonTipsManager() {
+  pendingCommonTipPhoto = null;
+  document.getElementById('commonTipPhotoPreview').innerHTML = '';
+  renderCommonTipList();
+  openOverlay('overlayCommonTips');
+}
 
-// ------------------------------
-// Tips 一覧を読み込む（レシピ詳細画面）
-// ------------------------------
-async function loadTips(recipeId) {
-  const list = document.getElementById('tipsList');
-  if (!list) return;
+function handleCommonTipPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImageFile(file).then(data => {
+    pendingCommonTipPhoto = data;
+    document.getElementById('commonTipPhotoPreview').innerHTML =
+      `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+         <img src="${data}" style="width:52px;height:40px;object-fit:cover;border-radius:5px;border:1px solid #ddd">
+         <button type="button" onclick="clearCommonTipPhoto()"
+           style="background:none;border:none;color:#ccc;cursor:pointer;font-size:14px">✕</button>
+       </div>`;
+  });
+  input.value = '';
+}
 
-  list.innerHTML = '<p style="padding:10px;color:#888">読み込み中…</p>';
+function clearCommonTipPhoto() {
+  pendingCommonTipPhoto = null;
+  document.getElementById('commonTipPhotoPreview').innerHTML = '';
+}
 
-  let { data: tips, error } = await supabase
-    .from('tips')
-    .select('*')
-    .eq('recipe_id', recipeId)
-    .order('updated_at', { ascending: false });
+async function renderCommonTipList() {
+  const listDiv = document.getElementById('commonTipList');
+  let { data: tips } = await window.supabase
+    .from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
+  tips = tips || [];
 
-  if (error) {
-    list.innerHTML = '<p style="color:red">読み込みエラー</p>';
-    return;
-  }
-
-  // 公開/非公開フィルタ（閲覧モードでは非公開を隠す）
   if (!isEditor) {
-    tips = tips.filter(t => t.is_public === true);
-  }
-
-  list.innerHTML = tips.map(t => renderTipItem(t)).join('');
-}
-
-
-// ------------------------------
-// Tips の HTML
-// ------------------------------
-function renderTipItem(t) {
-  const pubBadge = t.is_public
-    ? `<span class="tip-badge tip-pub">公開</span>`
-    : `<span class="tip-badge tip-priv">非公開</span>`;
-
-  const editBtns = isEditor
-    ? `
-      <div class="tip-edit-btns">
-        <button class="btn-sm" onclick="openEditTip(${t.id})">編集</button>
-        <button class="btn-sm" onclick="deleteTip(${t.id})">削除</button>
-        <button class="btn-sm" onclick="toggleTipPublic(${t.id}, ${t.is_public})">
-          ${t.is_public ? '非公開にする' : '公開にする'}
-        </button>
-      </div>
-    `
-    : '';
-
-  return `
-    <div class="tip-item">
-      <div class="tip-header">
-        <div class="tip-title">${esc(t.title || '')}</div>
-        ${isEditor ? pubBadge : ''}
-      </div>
-
-      <div class="tip-body">
-        ${markdownToHtml(t.body || '')}
-      </div>
-
-      ${editBtns}
-    </div>
-  `;
-}
-
-
-// ------------------------------
-// Tips 追加モーダル
-// ------------------------------
-function openAddTip(recipeId) {
-  resetTipForm();
-  const f = document.getElementById('tipForm');
-  f.dataset.recipeId = recipeId;
-
-  showOverlay();
-  document.getElementById('tipModal').style.display = 'block';
-}
-
-
-// ------------------------------
-// Tips 編集モーダル
-// ------------------------------
-async function openEditTip(id) {
-  showOverlay();
-  document.getElementById('tipModal').style.display = 'block';
-
-  const { data, error } = await supabase
-    .from('tips')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error || !data) {
-    alert('読み込みエラー');
-    return;
-  }
-
-  fillTipForm(data);
-}
-
-
-// ------------------------------
-// フォーム初期化
-// ------------------------------
-function resetTipForm() {
-  const f = document.getElementById('tipForm');
-  f.reset();
-  f.dataset.id = '';
-  f.dataset.recipeId = '';
-}
-
-
-// ------------------------------
-// フォームにデータをセット
-// ------------------------------
-function fillTipForm(t) {
-  const f = document.getElementById('tipForm');
-  f.dataset.id = t.id;
-  f.dataset.recipeId = t.recipe_id;
-
-  f.title.value = t.title || '';
-  f.body.value = t.body || '';
-}
-
-
-// ------------------------------
-// Tips 保存（追加 or 更新）
-// ------------------------------
-async function saveTip() {
-  const f = document.getElementById('tipForm');
-  const id = f.dataset.id;
-  const recipeId = f.dataset.recipeId;
-
-  const payload = {
-    recipe_id: recipeId,
-    title: f.title.value.trim(),
-    body: f.body.value.trim(),
-  };
-
-  let result;
-  if (id) {
-    result = await supabase.from('tips').update(payload).eq('id', id);
+    tips = tips.filter(t => t.pub);
   } else {
-    result = await supabase.from('tips').insert(payload);
+    const p = document.getElementById('filterPub').value;
+    if (p === '1') tips = tips.filter(t =>  t.pub);
+    if (p === '0') tips = tips.filter(t => !t.pub);
   }
 
-  if (result.error) {
-    alert('保存エラー');
-    return;
-  }
+  if (!tips.length) { listDiv.innerHTML = '<p style="font-size:11px;color:#999;text-align:center">なし</p>'; return; }
 
-  closeTipModal();
-  loadTips(recipeId);
+  listDiv.innerHTML = tips.map(t => {
+    const imgHtml = t.image_url
+      ? `<img src="${t.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;margin-right:6px;flex-shrink:0">`
+      : '';
+    return `
+      <div style="font-size:12px;border-bottom:1px solid #eee;padding:8px 0;
+                  display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center">
+          ${imgHtml}
+          <div>
+            <strong>${esc(t.title)}</strong>
+            <div style="font-size:11px;color:#666;margin-top:2px">
+              ${esc(t.content.length > 40 ? t.content.slice(0, 40) + '…' : t.content)}
+            </div>
+          </div>
+        </div>
+        <button onclick="deleteCommonTip('${t.id}')"
+          style="background:none;border:none;color:#638C3E;cursor:pointer;font-size:11px;flex-shrink:0;margin-left:8px">削除</button>
+      </div>`;
+  }).join('');
 }
 
+async function addCommonTip() {
+  const title   = document.getElementById('commonTipTitle').value.trim();
+  const content = document.getElementById('commonTipContent').value.trim();
+  if (!title || !content) { alert('タイトルと内容を入力してください'); return; }
+  const addBtn = document.getElementById('commonTipAddBtn');
+  addBtn.disabled = true; addBtn.textContent = '追加中...';
+  try {
+    const imageUrl = pendingCommonTipPhoto ? await uploadToStorage({ data: pendingCommonTipPhoto }) : null;
+    await window.supabase.from('notes_and_tips')
+      .insert({ recipe_id: null, title, content, image_url: imageUrl, category: 'tips' });
+    document.getElementById('commonTipTitle').value   = '';
+    document.getElementById('commonTipContent').value = '';
+    clearCommonTipPhoto();
+    loadCommonTips();
+  } catch (err) {
+    alert('追加に失敗しました: ' + err.message);
+  } finally {
+    addBtn.disabled = false; addBtn.textContent = '共通チップスを追加';
+  }
+}
 
-// ------------------------------
-// Tips 削除
-// ------------------------------
-async function deleteTip(id) {
+async function deleteCommonTip(id) {
   if (!confirm('削除しますか？')) return;
-
-  const { data, error } = await supabase
-    .from('tips')
-    .select('recipe_id')
-    .eq('id', id)
-    .single();
-
-  if (error) return;
-
-  const recipeId = data.recipe_id;
-
-  await supabase.from('tips').delete().eq('id', id);
-
-  loadTips(recipeId);
+  const { data: tip } = await window.supabase.from('notes_and_tips').select('image_url').eq('id', id).single();
+  if (tip && tip.image_url) await deleteStoragePhotos([tip.image_url]);
+  await window.supabase.from('notes_and_tips').delete().eq('id', id);
+  loadCommonTips();
 }
 
+// ----- index画面 tipsカード -----
+async function renderTipsCards() {
+  const area     = document.getElementById('tipsArea');
+  const tipsGrid = document.getElementById('tipsGrid');
+  if (!area || !tipsGrid) return;
 
-// ------------------------------
-// 公開/非公開切り替え
-// ------------------------------
-async function toggleTipPublic(id, current) {
-  const newVal = !current;
+  let { data: tips } = await window.supabase
+    .from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
+  tips = (tips || []).filter(t => isEditor || t.pub);
 
-  const { data, error } = await supabase
-    .from('tips')
-    .update({ is_public: newVal })
-    .eq('id', id)
-    .select('recipe_id')
-    .single();
+  if (!tips.length) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
 
-  if (error) return;
-
-  loadTips(data.recipe_id);
+  tipsGrid.innerHTML = tips.map(t => {
+    const imgHtml = t.image_url
+      ? `<img src="${t.image_url}" style="width:100%;height:100px;object-fit:cover;display:block">`
+      : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#f5fbf2">💡</div>`;
+    const pubBadge = isEditor
+      ? `<span class="tag ${t.pub ? 't-pub' : 't-priv'}" style="font-size:10px">${t.pub ? '公開' : '非公開'}</span>` : '';
+    const editBtn = isEditor
+      ? `<button onclick="event.stopPropagation();openTipEdit('${t.id}')"
+           style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#555;margin-top:4px">
+           ✏️ 編集</button>` : '';
+    const preview = t.content
+      ? `<div style="font-size:12px;color:#555;line-height:1.5;margin-top:4px">${esc(t.content.length > 60 ? t.content.slice(0, 60) + '…' : t.content)}</div>` : '';
+    return `
+      <div class="card" style="cursor:default">
+        ${imgHtml}
+        <div class="card-body">
+          <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:4px">${esc(t.title)}</div>
+          ${preview}
+          <div style="margin-top:6px;display:flex;gap:4px;align-items:center;flex-wrap:wrap">${pubBadge}${editBtn}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-
-// ------------------------------
-// モーダルを閉じる
-// ------------------------------
-function closeTipModal() {
-  hideOverlay();
-  document.getElementById('tipModal').style.display = 'none';
+// 両方まとめて再描画（他ファイルから呼ぶ共通関数）
+function loadCommonTips() {
+  renderCommonTipList();
+  renderTipsCards();
 }
-/* コメント　
-このファイルが依存しているもの
-config.js → supabase / isEditor
-utils.js → esc(), markdownToHtml()
-ui.js → showOverlay(), hideOverlay()
-*/ 
+
+// ----- tips 編集モーダル -----
+async function openTipEdit(tipId) {
+  const { data: t, error } = await window.supabase.from('notes_and_tips').select('*').eq('id', tipId).single();
+  if (error || !t) { alert('チップスの読み込みに失敗しました'); return; }
+  tipEditPendingPhoto  = null;
+  tipEditPhotoCleared  = false;
+  document.getElementById('tipEditId').value      = t.id;
+  document.getElementById('tipEditTitle').value   = t.title || '';
+  document.getElementById('tipEditContent').value = t.content || '';
+  document.getElementById('tipEditPub').checked   = !!t.pub;
+
+  const prev     = document.getElementById('tipEditPhotoPreview');
+  const clearBtn = document.getElementById('tipEditPhotoClearBtn');
+  if (t.image_url) {
+    prev.innerHTML = `<img src="${t.image_url}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">`;
+    clearBtn.style.display = 'inline'; clearBtn.textContent = '写真を削除';
+  } else {
+    prev.innerHTML = ''; clearBtn.style.display = 'none';
+  }
+  openOverlay('overlayTipEdit');
+}
+
+function handleTipEditPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImageFile(file).then(data => {
+    tipEditPendingPhoto = data; tipEditPhotoCleared = false;
+    document.getElementById('tipEditPhotoPreview').innerHTML =
+      `<img src="${data}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid #ddd">`;
+    const cb = document.getElementById('tipEditPhotoClearBtn');
+    cb.style.display = 'inline'; cb.textContent = '選択をキャンセル';
+  });
+  input.value = '';
+}
+
+function clearTipEditPhoto() {
+  tipEditPendingPhoto = null; tipEditPhotoCleared = true;
+  document.getElementById('tipEditPhotoPreview').innerHTML = '<p style="font-size:11px;color:#aaa;margin:0">写真なし</p>';
+  document.getElementById('tipEditPhotoClearBtn').style.display = 'none';
+}
+
+async function saveTipEdit() {
+  const id      = document.getElementById('tipEditId').value;
+  const title   = document.getElementById('tipEditTitle').value.trim();
+  const content = document.getElementById('tipEditContent').value.trim();
+  const pub     = document.getElementById('tipEditPub').checked;
+  const updateData = { title, content, pub };
+  if      (tipEditPhotoCleared)   updateData.image_url = null;
+  else if (tipEditPendingPhoto)   updateData.image_url = tipEditPendingPhoto;
+  await window.supabase.from('notes_and_tips').update(updateData).eq('id', id);
+  closeOverlay('overlayTipEdit');
+  loadCommonTips();
+}
+
+async function deleteTipFromEdit() {
+  if (!confirm('このチップスを削除しますか？')) return;
+  const tipId = document.getElementById('tipEditId').value;
+  const { data: tip } = await window.supabase.from('notes_and_tips').select('image_url').eq('id', tipId).single();
+  if (tip && tip.image_url) await deleteStoragePhotos([tip.image_url]);
+  await window.supabase.from('notes_and_tips').delete().eq('id', tipId);
+  closeOverlay('overlayTipEdit');
+  loadCommonTips();
+}

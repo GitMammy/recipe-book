@@ -1,155 +1,273 @@
-/* コメント　
-recipes.js（一覧画面のすべてを担当）
-このファイルが担当するのは：
+// ===== recipes.js =====
+// レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
-Supabase からレシピ一覧を取得
-公開/非公開フィルタの適用
-検索キーワードの適用
-カードの描画
-お気に入り（♡）・スター（★）の切り替え
-detail.html への遷移
-カウント表示（件数）
+// ----- サムネ・関連レシピ -----
+function getThumb(r) {
+  if (r.photos && r.photos.length) {
+    const cover = r.photos.find(p => p.cover);
+    return (cover || r.photos[0]).data;
+  }
+  return r.img || null;
+}
 
-index.html の “メインロジック” 全部
-*/ 
+function getRelatedRecipes(r) {
+  if (!r || !r.ings || !r.ings.length) return [];
+  const set = new Set(r.ings);
+  return recipes
+    .filter(x => x.id !== r.id && x.ings && x.ings.some(i => set.has(i)))
+    .slice(0, 6);
+}
 
-// ------------------------------
-// レシピ一覧の読み込み
-// ------------------------------
-async function loadRecipes() {
-  const grid = document.getElementById('recipeGrid');
-  const countBar = document.getElementById('countBar');
-  const searchBox = document.getElementById('searchBox');
+// ----- カテゴリ select の更新 -----
+function updateSelects() {
+  const cats = [];
+  recipes.forEach(r => { if (r.cat && !cats.includes(r.cat)) cats.push(r.cat); });
+  const sc = document.getElementById('filterCat');
+  const cv = sc.value;
+  sc.innerHTML = '<option value="">カテゴリ：すべて</option>' +
+    cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  sc.value = cv;
+}
 
+// ----- 一覧描画 -----
+function render() {
+  const grid = document.getElementById('grid');
   if (!grid) return;
 
-  grid.innerHTML = '<p style="padding:20px;text-align:center;color:#888">読み込み中…</p>';
+  const q   = document.getElementById('search').value.trim().toLowerCase();
+  const cat = document.getElementById('filterCat').value;
+  const p   = document.getElementById('filterPub').value;
 
-  // 検索キーワード
-  const keyword = (searchBox?.value || '').trim();
+  let list = recipes.slice();
 
-  // Supabase から取得
-  let { data: recipes, error } = await supabase
-    .from('recipes')
-    .select('*')
-    .order('updated_at', { ascending: false });
+  // 閲覧モードは非公開除外
+  if (!isEditor) list = list.filter(r => r.pub);
 
-  if (error) {
-    grid.innerHTML = '<p style="padding:20px;color:red">読み込みエラー</p>';
-    return;
-  }
+  if (q)       list = list.filter(r =>
+    (r.name && r.name.toLowerCase().includes(q)) ||
+    (r.desc && r.desc.toLowerCase().includes(q)) ||
+    (r.ings && r.ings.join(',').toLowerCase().includes(q)));
+  if (cat)     list = list.filter(r => r.cat === cat);
+  if (p === '1') list = list.filter(r =>  r.pub);
+  if (p === '0') list = list.filter(r => !r.pub);
 
-  // 公開/非公開フィルタ
-  const filter = window.currentFilter || 'all';
-  recipes = recipes.filter(r => {
-    if (filter === 'pub') return r.is_public === true;
-    if (filter === 'priv') return r.is_public === false;
-    return true;
-  });
+  document.getElementById('countBar').textContent = list.length + ' 件';
 
-  // 検索フィルタ
-  if (keyword) {
-    recipes = recipes.filter(r =>
-      (r.title || '').includes(keyword) ||
-      (r.category || '').includes(keyword)
-    );
-  }
+  grid.innerHTML = list.map(r => {
+    const thumb = getThumb(r);
+    const heartsHtml = isEditor
+      ? `<div class="hearts">
+           <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">♡</button>
+           <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
+           <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}')">♚</button>
+         </div>`
+      : `<div class="hearts">
+           <span style="color:${r.heart ? '#D4537E' : '#ccc'}">♡</span>
+           <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
+           <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
+         </div>`;
 
-  // 件数表示
-  if (countBar) {
-    countBar.textContent = `${recipes.length} 件`;
-  }
-
-  // カード描画
-  grid.innerHTML = recipes.map(r => renderRecipeCard(r)).join('');
-}
-
-
-// ------------------------------
-// レシピカードの HTML
-// ------------------------------
-function renderRecipeCard(r) {
-  const img = r.photos?.length ? r.photos[0] : null;
-  const emoji = getCatEmoji(r.category);
-
-  return `
-    <div class="card" onclick="openDetail(${r.id})">
-      ${img
-        ? `<img src="${img}" class="card-img">`
-        : `<div class="card-img-placeholder">${emoji}</div>`}
-
-      <div class="card-body">
-        <div class="card-top">
-          <div class="card-title">${esc(r.title)}</div>
-
-          <div class="hearts" onclick="event.stopPropagation()">
-            <button class="heart-btn ${r.is_fav ? 'on' : ''}"
-              onclick="toggleFav(event, ${r.id})">♡</button>
-            <button class="star-btn ${r.is_star ? 'on' : ''}"
-              onclick="toggleStar(event, ${r.id})">★</button>
+    return `
+      <div class="card" onclick="openDetail('${r.id}')">
+        ${thumb
+          ? `<img src="${thumb}" class="card-img">`
+          : `<div class="card-img-placeholder">${getCatEmoji(r.cat)}</div>`}
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-title">${esc(r.name)}</div>
+            ${heartsHtml}
+          </div>
+          ${r.desc ? `<div class="card-desc">${esc(r.desc)}</div>` : ''}
+          <div class="card-tags">
+            ${r.cat   ? `<span class="tag t-cat">${esc(r.cat)}</span>`   : ''}
+            ${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}
+            ${isEditor ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}">${r.pub ? '公開' : '非公開'}</span>` : ''}
           </div>
         </div>
-
-        <div class="card-desc">${esc(r.category || '')}</div>
-      </div>
-    </div>
-  `;
+      </div>`;
+  }).join('');
 }
 
-
-// ------------------------------
-// 詳細画面へ遷移
-// ------------------------------
-function openDetail(id) {
-  const url = isEditor
-    ? `detail.html?id=${id}&key=${SECRET_KEY}`
-    : `detail.html?id=${id}`;
-  location.href = url;
+// ----- ♡★♚ -----
+function toggleHeart(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  const r = recipes.find(x => String(x.id) === String(id));
+  if (r) { r.heart = !r.heart; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
+}
+function toggleStar(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  const r = recipes.find(x => String(x.id) === String(id));
+  if (r) { r.fav = !r.fav; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
+}
+function toggleCrown(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  const r = recipes.find(x => String(x.id) === String(id));
+  if (r) { r.crown = !r.crown; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
 }
 
-
-// ------------------------------
-// お気に入り（♡）切り替え
-// ------------------------------
-async function toggleFav(ev, id) {
-  ev.stopPropagation();
-
-  const btn = ev.currentTarget;
-  const newVal = !btn.classList.contains('on');
-
-  btn.classList.toggle('on', newVal);
-
-  await supabase
-    .from('recipes')
-    .update({ is_fav: newVal })
-    .eq('id', id);
+async function saveStatus(id, heart, fav, crown) {
+  const { error } = await window.supabase
+    .from('recipes').update({ heart, fav, crown }).eq('id', String(id));
+  if (error) console.error('Status Update Error:', error);
 }
 
-
-// ------------------------------
-// スター（★）切り替え
-// ------------------------------
-async function toggleStar(ev, id) {
-  ev.stopPropagation();
-
-  const btn = ev.currentTarget;
-  const newVal = !btn.classList.contains('on');
-
-  btn.classList.toggle('on', newVal);
-
-  await supabase
-    .from('recipes')
-    .update({ is_star: newVal })
-    .eq('id', id);
+// ----- 材料 HTML（詳細表示用）-----
+function ingNameHtml(name, currentId) {
+  const found = recipes.find(x => x.name === name && String(x.id) !== String(currentId));
+  if (found) return `<span class="ing-link" onclick="event.stopPropagation();openDetail('${found.id}')">${esc(name)}</span>`;
+  return esc(name);
 }
 
+function renderIngSection(r) {
+  const parts = r.ingParts || r.ing_parts || [];
+  const row2tr = row =>
+    `<tr>
+      <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">${ingNameHtml(row.name, r.id)}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">${esc(row.amt)}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">${esc(row.note)}</td>
+    </tr>`;
+  const wrapTable = rows =>
+    `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px"><tbody>${rows.map(row2tr).join('')}</tbody></table>`;
 
-// ------------------------------
-// 検索ボックスのイベント
-// ------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  const searchBox = document.getElementById('searchBox');
-  if (searchBox) {
-    searchBox.addEventListener('input', () => loadRecipes());
+  if (parts.length) {
+    const hasLabels = parts.some(p => p && p.label);
+    return parts.map(p => {
+      if (!p || !p.rows) return '';
+      const lh = (hasLabels && p.label && p.label !== '説明')
+        ? `<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">
+             <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
+           </div>` : '';
+      return lh + wrapTable(p.rows);
+    }).join('');
   }
-});
+  if (r.ingRows && r.ingRows.length) return wrapTable(r.ingRows);
+  if (r.ingDetail) return `<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">${esc(r.ingDetail)}</p>`;
+  return '';
+}
+
+// ----- 詳細モーダル -----
+async function openDetail(id) {
+  const r = recipes.find(x => String(x.id) === String(id));
+  if (!r) return;
+
+  const { data: notes } = await window.supabase
+    .from('notes_and_tips').select('*').eq('recipe_id', id).order('created_at', { ascending: true });
+
+  const visibleNotes = (notes || []).filter(n => isEditor || n.pub);
+  const notesHtml = visibleNotes.map(n => {
+    const img = n.image_url ? `<img src="${n.image_url}" class="note-image">` : '';
+    const pubBadge = isEditor
+      ? `<span style="font-size:10px;margin-left:6px;padding:1px 6px;border-radius:999px;
+           background:${n.pub ? '#EAF3DE' : '#F1EFE8'};color:${n.pub ? '#27500A' : '#5F5E5A'}">
+           ${n.pub ? '公開' : '非公開'}</span>` : '';
+    const editBtn = isEditor
+      ? `<button onclick="openTipEdit('${n.id}')" style="margin-top:6px;font-size:11px;padding:2px 8px;
+           border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#555">✏️ 編集</button>` : '';
+    return `<div class="note-card note-recipe">
+      <div class="note-title">📝 レシピメモ: ${esc(n.title)}${pubBadge}</div>
+      ${img}
+      <div style="white-space:pre-wrap">${esc(n.content)}</div>
+      ${editBtn}
+    </div>`;
+  }).join('');
+
+  const ingHtml = renderIngSection(r);
+  const photos = r.photos && r.photos.length ? r.photos : (r.img ? [{ title: '', data: r.img }] : []);
+  currentPhotos = photos;
+
+  const heartsHtml = isEditor
+    ? `<div style="display:flex;gap:4px;flex-shrink:0">
+         <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}');openDetail('${r.id}')">♡</button>
+         <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}');openDetail('${r.id}')">★</button>
+         <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}');openDetail('${r.id}')">♚</button>
+       </div>`
+    : `<div style="display:flex;gap:4px;flex-shrink:0">
+         <span style="color:${r.heart ? '#D4537E' : '#ccc'}">♡</span>
+         <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
+         <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
+       </div>`;
+
+  const pubTagHtml = isEditor
+    ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}">${r.pub ? '公開' : '非公開'}</span>` : '';
+
+  let html = `<div class="detail-top"><h2>${esc(r.name)}</h2>${heartsHtml}</div>`;
+
+  if (r.desc) html += `<p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:0.8rem">${esc(r.desc)}</p>`;
+
+  const tagsRow = (r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : '') +
+    (r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : '') + pubTagHtml;
+  if (tagsRow) html += `<div style="display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px;margin-bottom:1rem">${tagsRow}</div>`;
+
+  if (ingHtml) html += `<div class="detail-section">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3>材料</h3>${r.yield_amount ? `<span class="yield-badge">${esc(r.yield_amount)}</span>` : ''}
+    </div>${ingHtml}</div>`;
+
+  if (r.ings && r.ings.length) html += `<div class="detail-section"><h3>食材タグ</h3><div class="tags">
+    ${r.ings.map(i => `<span class="tag t-ing">${esc(i)}</span>`).join('')}</div></div>`;
+
+  if (r.steps) html += `<div class="detail-section"><h3>手順</h3>
+    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(r.steps)}</p></div>`;
+
+  if (photos.length) {
+    html += `<div class="detail-section"><h3>写真</h3><div class="photo-gallery">`;
+    photos.forEach((p, i) => {
+      html += `<div class="photo-gallery-item">
+        <img src="${p.data}" onclick="openLightbox(${i})">
+        ${p.title ? `<div class="photo-gallery-caption">${esc(p.title)}</div>` : ''}
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (r.memo) html += `<div class="detail-section"><h3>アレンジ・覚書</h3>
+    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(r.memo)}</p></div>`;
+
+  if (r.url) {
+    const label = r.url_label || '参考レシピを見る';
+    html += `<div class="detail-section"><h3>参考レシピ</h3>
+      <a href="${esc(r.url)}" target="_blank" style="color:#185FA5">${esc(label)}</a></div>`;
+  }
+
+  const related = getRelatedRecipes(r);
+  if (related.length) {
+    html += `<div class="detail-section"><h3>🔗 関連レシピ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">`;
+    related.forEach(rel => {
+      const thumb = getThumb(rel);
+      html += `<div class="related-card" onclick="openDetail('${rel.id}')">
+        ${thumb ? `<img class="related-card-thumb" src="${thumb}">` : `<div>${getCatEmoji(rel.cat)}</div>`}
+        <span>${esc(rel.name)}</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (notesHtml) html += `<div class="detail-section" style="margin-top:20px">${notesHtml}</div>`;
+
+  html += `<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">${r.date || ''}</div>`;
+  html += `<div class="modal-btns"><div></div><div class="modal-btns-right">
+    <button class="btn btn-sm" onclick="closeOverlay('overlayDetail')">閉じる</button>
+    ${isEditor ? `<button class="btn btn-sm btn-accent" onclick="openEdit('${r.id}')">編集</button>` : ''}
+  </div></div>`;
+
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('overlayDetail').scrollTop = 0;
+  openOverlay('overlayDetail');
+}
+
+// ----- JSON エクスポート -----
+function exportData() {
+  const exp = recipes.map(r => { const o = { ...r }; delete o.img; o.photos = []; return o; });
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp, null, 2));
+  a.download = 'recipes.json';
+  a.click();
+}
+
+// ----- データ読み込み -----
+async function loadRecipes() {
+  const { data } = await window.supabase
+    .from('recipes').select('*').order('created_at', { ascending: false });
+  recipes = data || [];
+  updateSelects();
+  render();
+}

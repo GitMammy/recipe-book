@@ -1,80 +1,88 @@
-/* コメント
-このファイルでは、主に次のような処理を担当する：
+// ===== ui.js =====
+// オーバーレイ開閉・ライトボックス・イベントハンドラ設定・起動処理
 
-DOMContentLoaded 後の初期化
-編集モード UI の表示/非表示
-公開/非公開フィルタの表示切り替え
-オーバーレイ（モーダル背景）の ON/OFF
-ボタンのイベント登録（フィルタボタンなど）
+function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id)?.classList.remove('open'); }
 
-あなたのコードを読み込んだ上で、
-index/detail どちらでも動くように安全に書き換えたバージョンを作ったよ。
-*/ 
+function openLightbox(idx) {
+  const p = currentPhotos[idx];
+  if (!p) return;
+  document.getElementById('lightboxImg').src         = p.data;
+  document.getElementById('lightboxCaption').textContent = p.title || '';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
 
-// ------------------------------
-// UI 初期化
-// ------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  setupEditorUI();
-  setupFilterUI();
+function setupEventHandlers() {
+  // オーバーレイ背景クリックで閉じる
+  ['overlayDetail','overlayTipDetail','overlayTipEdit'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeOverlay(id);
+    });
+  });
+
+  // 検索・フィルター
+  document.getElementById('search').addEventListener('input', render);
+  document.getElementById('filterCat').addEventListener('change', render);
+  document.getElementById('filterPub').addEventListener('change', () => {
+    render(); renderCommonTipList(); renderTipsCards();
+  });
+
+  // レシピ操作ボタン
+  document.getElementById('btnOpenAdd').addEventListener('click', openAdd);
+  document.getElementById('btnExport').addEventListener('click', exportData);
+  document.getElementById('btnAddRowLast').addEventListener('click', addRowToLastPart);
+  document.getElementById('btnAddPart').addEventListener('click', addNewPart);
+  document.getElementById('btnSave').addEventListener('click', saveRecipe);
+  document.getElementById('btnDelete').addEventListener('click', deleteRecipe);
+  document.getElementById('btnAddNote').addEventListener('click', addNote);
+
+  // 写真追加
+  document.getElementById('btnAddPhoto').addEventListener('click', () => document.getElementById('photoInput').click());
+  document.getElementById('photoInput').addEventListener('change', function () { handlePhotoAdd(this); });
+
+  // 共通チップス
+  document.getElementById('btnOpenCommonTips').addEventListener('click', openCommonTipsManager);
+  document.getElementById('commonTipPhotoAddBtn').addEventListener('click', () => document.getElementById('commonTipPhotoInput').click());
+  document.getElementById('commonTipPhotoInput').addEventListener('change', function () { handleCommonTipPhoto(this); });
+  document.getElementById('commonTipAddBtn').addEventListener('click', addCommonTip);
+
+  // tips編集モーダル
+  document.getElementById('tipEditPhotoAddBtn').addEventListener('click', () => document.getElementById('tipEditPhotoInput').click());
+  document.getElementById('tipEditPhotoInput').addEventListener('change', function () { handleTipEditPhoto(this); });
+  document.getElementById('tipEditPhotoClearBtn').addEventListener('click', clearTipEditPhoto);
+  document.getElementById('tipEditSaveBtn').addEventListener('click', saveTipEdit);
+  document.getElementById('tipEditDeleteBtn').addEventListener('click', deleteTipFromEdit);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (isEditor) {
+    document.body.classList.add('edit-mode');
+    document.title = '🔑 おかしなぺぇじ【編集モード】';
+    const favicon = document.getElementById('faviconLink');
+    if (favicon) favicon.href = 'favicon-edit.ico';
+
+    // TXTから追加ボタンを動的挿入
+    const toolbar = document.querySelector('.toolbar-right');
+    if (toolbar && !document.getElementById('btnOpenFromTxt')) {
+      const txtInput = document.createElement('input');
+      txtInput.type = 'file'; txtInput.accept = '.txt,text/plain';
+      txtInput.style.display = 'none'; txtInput.id = 'txtFileInput';
+      txtInput.addEventListener('change', function () { openFromTextFile(this); });
+
+      const txtBtn = document.createElement('button');
+      txtBtn.className = 'btn btn-sm'; txtBtn.id = 'btnOpenFromTxt';
+      txtBtn.textContent = '📄 TXTから追加';
+      txtBtn.addEventListener('click', () => txtInput.click());
+
+      toolbar.insertBefore(txtBtn, toolbar.firstChild);
+      toolbar.appendChild(txtInput);
+    }
+  }
+
+  setupEventHandlers();
+  loadRecipes();
+  loadCommonTips();
 });
-
-
-// ------------------------------
-// 編集モード UI の切り替え
-// ------------------------------
-function setupEditorUI() {
-  const pubFilterArea = document.getElementById('pubFilterArea');
-  const editorTools = document.getElementById('editorTools');
-
-  // pubFilterArea（公開/非公開フィルタ）
-  if (pubFilterArea) {
-    pubFilterArea.style.display = isEditor ? 'block' : 'none';
-  }
-
-  // editorTools（編集ツール）
-  if (editorTools) {
-    editorTools.style.display = isEditor ? 'flex' : 'none';
-  }
-}
-
-
-// ------------------------------
-// 公開/非公開フィルタの UI
-// ------------------------------
-function setupFilterUI() {
-  const filterAll = document.getElementById('filterAll');
-  const filterPub = document.getElementById('filterPub');
-  const filterPriv = document.getElementById('filterPriv');
-
-  if (filterAll) filterAll.addEventListener('click', () => applyFilter('all'));
-  if (filterPub) filterPub.addEventListener('click', () => applyFilter('pub'));
-  if (filterPriv) filterPriv.addEventListener('click', () => applyFilter('priv'));
-}
-
-
-// ------------------------------
-// フィルタ適用（index.html 用）
-// ------------------------------
-function applyFilter(mode) {
-  window.currentFilter = mode;
-
-  // recipes.js 側の loadRecipes() を呼ぶ
-  if (typeof loadRecipes === 'function') {
-    loadRecipes();
-  }
-}
-
-
-// ------------------------------
-// オーバーレイ（モーダル背景）
-// ------------------------------
-function showOverlay() {
-  const ov = document.getElementById('overlay');
-  if (ov) ov.style.display = 'block';
-}
-
-function hideOverlay() {
-  const ov = document.getElementById('overlay');
-  if (ov) ov.style.display = 'none';
-}
