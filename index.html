@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260403　1423　 -->
+    <!-- 260403　1558　 -->
 
 <head>
   <meta charset="UTF-8">
@@ -519,6 +519,43 @@
     font-size: 12px;
   }
 
+  /* ツールバーボタン色 */
+  .btn-toolbar {
+    background: #F9EEF3;
+    color: #72243E;
+    border-color: #E8BFD0;
+  }
+  .btn-toolbar:hover { background: #F2D5E3; }
+
+  /* ♡★♚マークフィルターボタン */
+  .mark-filter-btn {
+    font-size: 16px;
+    width: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    background: #fff;
+    border: 1px solid #ddd;
+    transition: all .15s;
+  }
+  .mark-filter-btn.active-heart  { color: #D4537E; border-color: #D4537E; background: #FDF0F4; }
+  .mark-filter-btn.active-star   { color: #BA7517; border-color: #BA7517; background: #FDF6E8; }
+  .mark-filter-btn.active-crown  { color: #B8960A; border-color: #B8960A; background: #FDFBE8; }
+
+  /* レシピカードの縁取り：プレースホルダーより少し濃いピンク */
+  .card {
+    border: 1.5px solid #E8BFD0;
+  }
+  .card:hover { border-color: #C97094; }
+
+  /* Tipsカードの縁取り：プレースホルダーより少し濃い緑 */
+  .card-tips {
+    border: 1.5px solid #B3D49A !important;
+  }
+  .card-tips:hover { border-color: #7BB05A !important; }
+
   /* 閲覧モードでは editor-only を非表示 */
   body:not(.edit-mode) .editor-only { display: none !important; }
 
@@ -541,15 +578,22 @@
         <option value="">カテゴリ：すべて</option>
       </select>
       <select id="filterPub" class="editor-only">
-        <option value="">公開/非公開：すべて</option>
+        <option value="" selected>公開：すべて</option>
         <option value="1">公開のみ</option>
         <option value="0">非公開のみ</option>
       </select>
 
+      <!-- ♡★👑 絞り込みボタン（編集モードのみ） -->
+      <div class="toolbar-mark-filters editor-only" style="display:flex;gap:4px">
+        <button class="btn btn-sm mark-filter-btn" id="filterHeart" title="♡ お気に入りのみ表示" onclick="toggleMarkFilter('heart')">♡</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterStar"  title="★ スターのみ表示"     onclick="toggleMarkFilter('star')">★</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterCrown" title="👑 クラウンのみ表示"   onclick="toggleMarkFilter('crown')">♚</button>
+      </div>
+
       <div class="toolbar-right">
-        <button class="btn btn-sm editor-only" id="btnOpenAdd">＋ レシピ追加</button>
-        <button class="btn btn-sm" id="btnOpenCommonTips">💡 共通チップス</button>
-        <button class="btn btn-sm editor-only" id="btnExport">JSON エクスポート</button>
+        <button class="btn btn-sm btn-toolbar editor-only" id="btnOpenAdd">＋追加</button>
+        <button class="btn btn-sm btn-toolbar" id="btnOpenCommonTips">💡チップス</button>
+        <button class="btn btn-sm btn-toolbar editor-only" id="btnExport">Exp</button>
       </div>
     </div>
 
@@ -582,9 +626,19 @@
       <div style="display:flex;flex-direction:column;gap:8px">
         <input id="fName" type="text" placeholder="料理名">
         <input id="fYield" type="text" placeholder="出来上がり量（例：18cmタルト1台分）">
-        <textarea id="fDesc" placeholder="説明" style="height:60px"></textarea>
-        <input id="fCat" type="text" placeholder="カテゴリ（例：焼き菓子）">
-        <input id="fGenre" type="text" placeholder="ジャンル（例：タルト）">
+        <input id="fDesc" type="text" placeholder="説明（一行）">
+
+        <div style="display:flex;gap:8px">
+          <div style="flex:1">
+            <input id="fCat" type="text" placeholder="カテゴリ（例：焼き菓子）" list="catList" style="width:100%">
+            <datalist id="catList"></datalist>
+          </div>
+          <div style="flex:1">
+            <input id="fGenre" type="text" placeholder="ジャンル（例：タルト）" list="genreList" style="width:100%">
+            <datalist id="genreList"></datalist>
+          </div>
+        </div>
+
         <input id="fIngs" type="text" placeholder="食材タグ（カンマ区切り）">
         <input id="fUrl" type="text" placeholder="参考レシピURL">
         <input id="fUrlLabel" type="text" placeholder="参考レシピの表示ラベル（省略可）">
@@ -608,12 +662,15 @@
           <input type="file" id="photoInput" accept="image/*" style="display:none">
         </div>
 
-        <div style="margin-top:8px">
-          <h3 style="font-size:13px;margin-bottom:4px">レシピメモ</h3>
-          <div id="editNoteList" style="max-height:160px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:6px"></div>
-          <input type="text" id="noteTitle" placeholder="メモのタイトル" style="margin-top:6px">
-          <textarea id="noteContent" placeholder="メモ内容" style="height:60px;margin-top:4px"></textarea>
-          <button type="button" class="btn btn-sm" id="btnAddNote">メモを追加</button>
+        <!-- レシピメモ -->
+        <div style="margin-top:8px;border:1px solid #eee;border-radius:10px;padding:10px">
+          <div style="font-size:13px;font-weight:600;color:#72243E;margin-bottom:8px">📝 レシピメモ</div>
+          <div id="editNoteList" style="max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <input type="text" id="noteTitle" placeholder="メモのタイトル">
+            <textarea id="noteContent" placeholder="メモ内容" style="height:60px"></textarea>
+            <button type="button" class="btn btn-sm" id="btnAddNote" style="align-self:flex-start">＋ メモを追加</button>
+          </div>
         </div>
       </div>
 
@@ -639,21 +696,26 @@
   <div class="overlay" id="overlayTipEdit">
     <div class="modal" style="max-width:480px">
       <button class="modal-close" onclick="closeOverlay('overlayTipEdit')">✕</button>
-      <h2 style="font-size:16px;margin-bottom:10px">💡 チップス編集</h2>
+      <h2 style="font-size:16px;margin-bottom:14px;color:#638C3E;border-bottom:2px solid #638C3E;padding-bottom:8px">💡 チップス編集</h2>
       <input type="hidden" id="tipEditId">
-      <input type="text" id="tipEditTitle" placeholder="タイトル" style="margin-bottom:6px">
-      <textarea id="tipEditContent" placeholder="内容（Markdown 可）" style="height:100px;margin-bottom:6px"></textarea>
-      <label style="font-size:13px;display:flex;align-items:center;gap:4px;margin-bottom:6px">
-        <input type="checkbox" id="tipEditPub"> 公開する
-      </label>
-      <div id="tipEditPhotoPreview" style="margin-bottom:6px"></div>
-      <div style="display:flex;gap:6px;margin-bottom:6px">
-        <button type="button" class="btn btn-sm" id="tipEditPhotoAddBtn">📷 写真を選択</button>
-        <button type="button" class="btn btn-sm" id="tipEditPhotoClearBtn" style="display:none">写真を削除</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input type="text" id="tipEditTitle" placeholder="タイトル">
+        <textarea id="tipEditContent" placeholder="内容（Markdown 可）" style="height:100px"></textarea>
+        <label style="font-size:13px;display:flex;align-items:center;gap:4px">
+          <input type="checkbox" id="tipEditPub"> 公開する
+        </label>
+
+        <!-- 写真（複数枚） -->
+        <div style="border:1px solid #eee;border-radius:8px;padding:8px">
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">📷 写真</div>
+          <div id="tipEditPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>
+          <button type="button" class="btn btn-sm" id="tipEditPhotoAddBtn">＋ 写真を追加</button>
+        </div>
+        <input type="file" id="tipEditPhotoInput" accept="image/*" style="display:none">
       </div>
-      <input type="file" id="tipEditPhotoInput" accept="image/*" style="display:none">
-      <div class="modal-btns" style="margin-top:8px">
-        <button class="btn btn-sm" id="tipEditDeleteBtn">削除</button>
+
+      <div class="modal-btns" style="margin-top:14px">
+        <button class="btn btn-sm" id="tipEditDeleteBtn" style="color:#D4537E;border-color:#D4537E">削除</button>
         <div class="modal-btns-right">
           <button class="btn btn-sm" onclick="closeOverlay('overlayTipEdit')">キャンセル</button>
           <button class="btn btn-sm btn-accent" id="tipEditSaveBtn">保存</button>
