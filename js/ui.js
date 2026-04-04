@@ -1,5 +1,5 @@
 // ===== ui.js =====
-// 260404 1602
+//  260404 1753
 // オーバーレイ開閉・ライトボックス・イベントハンドラ設定・起動処理
 
 function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
@@ -34,7 +34,6 @@ function setupEventHandlers() {
   // レシピ操作ボタン
   document.getElementById('btnOpenAdd').addEventListener('click', openAdd);
   document.getElementById('btnExport').addEventListener('click', exportData);
-  document.getElementById('btnAddRowLast').addEventListener('click', addRowToLastPart);
   document.getElementById('btnAddPart').addEventListener('click', addNewPart);
   document.getElementById('btnSave').addEventListener('click', saveRecipe);
   document.getElementById('btnDelete').addEventListener('click', deleteRecipe);
