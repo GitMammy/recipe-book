@@ -1,4 +1,5 @@
 // ===== ui.js =====
+// 260404 1602
 // オーバーレイ開閉・ライトボックス・イベントハンドラ設定・起動処理
 
 function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
@@ -52,7 +53,6 @@ function setupEventHandlers() {
   // tips編集モーダル
   document.getElementById('tipEditPhotoAddBtn').addEventListener('click', () => document.getElementById('tipEditPhotoInput').click());
   document.getElementById('tipEditPhotoInput').addEventListener('change', function () { handleTipEditPhoto(this); });
-  document.getElementById('tipEditPhotoClearBtn').addEventListener('click', clearTipEditPhoto);
   document.getElementById('tipEditSaveBtn').addEventListener('click', saveTipEdit);
   document.getElementById('tipEditDeleteBtn').addEventListener('click', deleteTipFromEdit);
 }
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const txtBtn = document.createElement('button');
       txtBtn.className = 'btn btn-sm'; txtBtn.id = 'btnOpenFromTxt';
-      txtBtn.textContent = '📄 TXTから追加';
+      txtBtn.textContent = '📒追加';
       txtBtn.addEventListener('click', () => txtInput.click());
 
       toolbar.insertBefore(txtBtn, toolbar.firstChild);
