@@ -1,6 +1,5 @@
 // ===== recipes.js =====
-// 260404 1600
-
+// 260404 1751
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -181,8 +180,13 @@ async function openDetail(id) {
   const r = recipes.find(x => String(x.id) === String(id));
   if (!r) return;
 
-  const { data: notes } = await window.supabase
-    .from('notes_and_tips').select('*').eq('recipe_id', id).order('created_at', { ascending: true });
+  const { data: notes, error: notesError } = await window.supabase
+    .from('notes_and_tips')
+    .select('*')
+    .eq('recipe_id', String(id))
+    .order('created_at', { ascending: true });
+
+  if (notesError) console.warn('Notes fetch error:', notesError);
 
   const visibleNotes = (notes || []).filter(n => isEditor || n.pub);
   const notesHtml = visibleNotes.map(n => {
@@ -195,9 +199,9 @@ async function openDetail(id) {
       ? `<button onclick="openTipEdit('${n.id}')" style="margin-top:6px;font-size:11px;padding:2px 8px;
            border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#555">✏️ 編集</button>` : '';
     return `<div class="note-card note-recipe">
-      <div class="note-title">📝 レシピメモ: ${esc(n.title)}${pubBadge}</div>
+      <div class="note-title">📝 ${esc(n.title)}${pubBadge}</div>
       ${img}
-      <div style="white-space:pre-wrap">${esc(n.content)}</div>
+      <div style="white-space:pre-wrap;font-size:12px;line-height:1.7">${esc(n.content)}</div>
       ${editBtn}
     </div>`;
   }).join('');
@@ -238,7 +242,7 @@ async function openDetail(id) {
     ${r.ings.map(i => `<span class="tag t-ing">${esc(i)}</span>`).join('')}</div></div>`;
 
   if (r.steps) html += `<div class="detail-section"><h3>手順</h3>
-    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(r.steps)}</p></div>`;
+    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${renderWithTooltip(r.steps)}</p></div>`;
 
   if (photos.length) {
     html += `<div class="detail-section"><h3>写真</h3><div class="photo-gallery">`;
@@ -252,7 +256,7 @@ async function openDetail(id) {
   }
 
   if (r.memo) html += `<div class="detail-section"><h3>アレンジ・覚書</h3>
-    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(r.memo)}</p></div>`;
+    <p style="white-space:pre-wrap;font-size:13px;line-height:1.8">${renderWithTooltip(r.memo)}</p></div>`;
 
   if (r.url) {
     const label = r.url_label || '参考レシピを見る';
@@ -272,7 +276,11 @@ async function openDetail(id) {
     html += `</div></div>`;
   }
 
-  if (notesHtml) html += `<div class="detail-section" style="margin-top:20px">${notesHtml}</div>`;
+  if (visibleNotes.length > 0) html += `
+    <div class="detail-section" style="margin-top:20px">
+      <h3>📝 レシピメモ</h3>
+      ${notesHtml}
+    </div>`;
 
   html += `<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">${r.date || ''}</div>`;
   html += `<div class="modal-btns"><div></div><div class="modal-btns-right">
