@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-// 260404 2127
+// 260405 1405
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -20,8 +20,11 @@ function getRelatedRecipes(r) {
 }
 
 // ----- カテゴリ select / datalist の更新 -----
+const FIXED_CATS   = ['焼き菓子','おやつ','パート','ヘルシー？','揚げ菓子','パン','冷菓','氷菓','飲み物'];
+const FIXED_GENRES = ['フランス','ドイツ','日本','イタリア','アメリカ','アジア','洋菓子'];
+
 function updateSelects() {
-  const cats = [], genres = [];
+  const cats = [...FIXED_CATS], genres = [...FIXED_GENRES];
   recipes.forEach(r => {
     if (r.cat   && !cats.includes(r.cat))     cats.push(r.cat);
     if (r.genre && !genres.includes(r.genre)) genres.push(r.genre);
@@ -32,7 +35,7 @@ function updateSelects() {
     cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   sc.value = cv;
 
-  // 編集フォームの datalist も更新
+  // 編集フォームの datalist も更新（固定リスト＋DB分）
   const cl = document.getElementById('catList');
   const gl = document.getElementById('genreList');
   if (cl) cl.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
