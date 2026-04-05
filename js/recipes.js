@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-// 260405 1405
+// 260405 1449
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -20,11 +20,8 @@ function getRelatedRecipes(r) {
 }
 
 // ----- カテゴリ select / datalist の更新 -----
-const FIXED_CATS   = ['焼き菓子','おやつ','パート','ヘルシー？','揚げ菓子','パン','冷菓','氷菓','飲み物'];
-const FIXED_GENRES = ['フランス','ドイツ','日本','イタリア','アメリカ','アジア','洋菓子'];
-
 function updateSelects() {
-  const cats = [...FIXED_CATS], genres = [...FIXED_GENRES];
+  const cats = [], genres = [];
   recipes.forEach(r => {
     if (r.cat   && !cats.includes(r.cat))     cats.push(r.cat);
     if (r.genre && !genres.includes(r.genre)) genres.push(r.genre);
@@ -35,7 +32,7 @@ function updateSelects() {
     cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   sc.value = cv;
 
-  // 編集フォームの datalist も更新（固定リスト＋DB分）
+  // 編集フォームの datalist も更新
   const cl = document.getElementById('catList');
   const gl = document.getElementById('genreList');
   if (cl) cl.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
@@ -90,12 +87,12 @@ function render() {
     const thumb = getThumb(r);
     const heartsHtml = isEditor
       ? `<div class="hearts">
-           <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">♡</button>
+           <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
            <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
            <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}')">♚</button>
          </div>`
       : `<div class="hearts">
-           <span style="color:${r.heart ? '#D4537E' : '#ccc'}">♡</span>
+           <span style="color:${r.heart ? '#D4537E' : '#ccc'}">${r.heart ? '♥' : '♡'}</span>
            <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
            <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
          </div>`;
@@ -151,6 +148,8 @@ function ingNameHtml(name, currentId) {
   return esc(name);
 }
 
+const PART_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
 function renderIngSection(r) {
   const parts = r.ingParts || r.ing_parts || [];
   const row2tr = row =>
@@ -163,14 +162,23 @@ function renderIngSection(r) {
     `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px"><tbody>${rows.map(row2tr).join('')}</tbody></table>`;
 
   if (parts.length) {
-    const hasLabels = parts.some(p => p && p.label);
-    return parts.map(p => {
+    const multiPart = parts.length > 1;
+    return parts.map((p, i) => {
       if (!p || !p.rows) return '';
-      const lh = (hasLabels && p.label && p.label !== '説明')
-        ? `<div style="font-size:12px;font-weight:500;color:#72243E;margin:10px 0 4px">
-             <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
-           </div>` : '';
-      return lh + wrapTable(p.rows);
+      const divider = (multiPart && i > 0)
+        ? `<div style="border-top:1px dashed #D4A8BC;margin:10px 0 8px"></div>` : '';
+      let labelHtml = '';
+      if (multiPart) {
+        const alpha = PART_ALPHA[i] || String(i + 1);
+        if (p.label) {
+          labelHtml = `<div style="font-size:12px;font-weight:500;color:#72243E;margin-bottom:4px">
+            <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
+          </div>`;
+        } else {
+          labelHtml = `<div style="font-size:11px;font-weight:500;color:#B07090;margin-bottom:4px;letter-spacing:.05em">― ${alpha} ―</div>`;
+        }
+      }
+      return divider + labelHtml + wrapTable(p.rows);
     }).join('');
   }
   if (r.ingRows && r.ingRows.length) return wrapTable(r.ingRows);
@@ -215,12 +223,12 @@ async function openDetail(id) {
 
   const heartsHtml = isEditor
     ? `<div style="display:flex;gap:4px;flex-shrink:0">
-         <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}');openDetail('${r.id}')">♡</button>
+         <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}');openDetail('${r.id}')">${r.heart ? '♥' : '♡'}</button>
          <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}');openDetail('${r.id}')">★</button>
          <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}');openDetail('${r.id}')">♚</button>
        </div>`
     : `<div style="display:flex;gap:4px;flex-shrink:0">
-         <span style="color:${r.heart ? '#D4537E' : '#ccc'}">♡</span>
+         <span style="color:${r.heart ? '#D4537E' : '#ccc'}">${r.heart ? '♥' : '♡'}</span>
          <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
          <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
        </div>`;
