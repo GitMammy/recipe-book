@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260404　2125　 -->
+    <!-- 260405　1406　 -->
 
 <head>
   <meta charset="UTF-8">
@@ -640,11 +640,29 @@
         <div style="display:flex;gap:8px">
           <div style="flex:1">
             <input id="fCat" type="text" placeholder="カテゴリ（例：焼き菓子）" list="catList" style="width:100%">
-            <datalist id="catList"></datalist>
+            <datalist id="catList">
+              <option value="焼き菓子">
+              <option value="おやつ">
+              <option value="パート">
+              <option value="ヘルシー？">
+              <option value="揚げ菓子">
+              <option value="パン">
+              <option value="冷菓">
+              <option value="氷菓">
+              <option value="飲み物">
+            </datalist>
           </div>
           <div style="flex:1">
             <input id="fGenre" type="text" placeholder="ジャンル（例：タルト）" list="genreList" style="width:100%">
-            <datalist id="genreList"></datalist>
+            <datalist id="genreList">
+              <option value="フランス">
+              <option value="ドイツ">
+              <option value="日本">
+              <option value="イタリア">
+              <option value="アメリカ">
+              <option value="アジア">
+              <option value="洋菓子">
+            </datalist>
           </div>
         </div>
 
@@ -657,12 +675,8 @@
           <button type="button" class="btn btn-sm" id="btnAddPart">＋ パートを追加</button>
         </div>
 
-        <textarea id="fSteps" placeholder="手順" style="height:120px"></textarea>
-        <textarea id="fMemo" placeholder="アレンジ・覚書" style="height:80px"></textarea>
-
-        <label style="font-size:13px;display:flex;align-items:center;gap:4px">
-          <input type="checkbox" id="fPub"> 公開する
-        </label>
+        <textarea id="fSteps" placeholder="手順　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:120px"></textarea>
+        <textarea id="fMemo" placeholder="アレンジ・覚書　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:80px"></textarea>
 
         <div>
           <div id="photoList"></div>
@@ -684,7 +698,10 @@
 
       <div class="modal-btns" style="margin-top:12px">
         <button class="btn btn-sm" id="btnDelete" style="display:none;color:#D4537E;border-color:#D4537E">削除</button>
-        <div class="modal-btns-right">
+        <div class="modal-btns-right" style="align-items:center">
+          <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;margin-right:4px">
+            <input type="checkbox" id="fPub"> 公開する
+          </label>
           <button class="btn btn-sm" onclick="closeOverlay('overlayAdd')">キャンセル</button>
           <button class="btn btn-sm btn-accent" id="btnSave">保存</button>
         </div>
