@@ -100,8 +100,8 @@ function makePartEl(label, rows, showHeader) {
   table.style.cssText = 'width:100%;table-layout:fixed;box-sizing:border-box';
   table.innerHTML =
     '<colgroup>' +
-      '<col style="width:36%">' +
-      '<col style="width:17%">' +
+      '<col style="width:40%">' +
+      '<col style="width:20%">' +
       '<col style="width:35%">' +
       '<col style="width:22px">' +
       '<col style="width:22px">' +
