@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260406 - 1523 -   -->
+    <!-- 260406 - 1531 -   -->
 
 <head>
   <meta charset="UTF-8">
@@ -451,16 +451,26 @@
     border-collapse: collapse;
     font-size: 13px;
   }
+  /* ===============================
+     余白調整
+		① tdのpadding（いちばん影響大）
+		.ing-table td {
+		  padding: 5px 8px;
+		}
+
+		上下：5px
+		左右：8px
+     =============================== */
   .ing-table th {
     font-size: 11px;
     color: #555;
     font-weight: 700;
-    padding: 2px 4px;
+    padding: 2px 3px;
     border-bottom: 2px solid #ddd;
     text-align: left;
   }
   .ing-table td {
-    padding: 2px 4px;
+    padding: 2px 3px;
     border-bottom: 1px solid #f5f5f5;
     vertical-align: top;
   }
