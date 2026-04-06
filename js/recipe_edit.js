@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260406  1418
+//　260406 - 1443 -
 
 
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
@@ -99,11 +99,11 @@ function makePartEl(label, rows, showHeader) {
   table.style.cssText = 'width:100%;table-layout:fixed;box-sizing:border-box';
   table.innerHTML =
     '<colgroup>' +
-      '<col>' +
-      '<col style="width:20%">' +
-      '<col style="width:20%">' +
-      '<col style="width:40px">' +
-      '<col style="width:24px">' +
+      '<col style="width:36%">' +
+      '<col style="width:22%">' +
+      '<col style="width:22%">' +
+      '<col style="width:36px">' +
+      '<col style="width:22px">' +
     '</colgroup>' +
     '<thead><tr>' +
       '<th class="col-name">材料名</th>' +
@@ -161,9 +161,10 @@ function removePart(btn) {
 function addRowToTbody(tbody, name, amt, note) {
   const tr = document.createElement('tr');
 
-  const mkTd = (cls) => { const td = document.createElement('td'); td.className = cls; return td; };
+  const mkTd = (cls) => { const td = document.createElement('td'); td.className = cls; td.style.overflow = 'hidden'; return td; };
   const mkInput = (ph, val) => {
     const i = document.createElement('input'); i.type = 'text'; i.placeholder = ph; i.value = val || '';
+    i.style.cssText = 'width:100%;box-sizing:border-box';
     return i;
   };
 
@@ -377,6 +378,7 @@ function openFromTextFile(input) {
   const reader = new FileReader();
   reader.onload = e => {
     const parsed = parseRecipeText(e.target.result);
+    console.log('parsed:', JSON.stringify({ url: parsed.url, url_label: parsed.url_label }));
     if (!parsed.name) { alert('「料理名:」が見つかりませんでした。'); input.value = ''; return; }
     editId = null; pendingPhotos = [];
     document.getElementById('formTitle').textContent = 'レシピを追加（テキストから）';
