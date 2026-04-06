@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260406 - 1443 -
+//　260406 - 1454 -
 
 
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
@@ -58,6 +58,7 @@ function renderPhotoList() {
 function makePartEl(label, rows, showHeader) {
   const div = document.createElement('div');
   div.className = 'ing-part';
+  div.style.marginBottom = '4px';
   div.setAttribute('draggable', 'true');
 
   const header = document.createElement('div');
@@ -100,8 +101,8 @@ function makePartEl(label, rows, showHeader) {
   table.innerHTML =
     '<colgroup>' +
       '<col style="width:36%">' +
-      '<col style="width:22%">' +
-      '<col style="width:22%">' +
+      '<col style="width:17%">' +
+      '<col style="width:27%">' +
       '<col style="width:36px">' +
       '<col style="width:22px">' +
     '</colgroup>' +
@@ -187,13 +188,19 @@ function addRowToTbody(tbody, name, amt, note) {
   const tdM = mkTd('col-move');
   tdM.style.cssText = 'padding:0 2px;vertical-align:middle;text-align:center';
   tdM.style.display = 'table-cell'; // 念のため
+  const moveWrap = document.createElement('div');
+  moveWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:1px';
   const bU = document.createElement('button'); bU.className = 'btn-move-row'; bU.textContent = '▲'; bU.title = '上へ';
+  bU.style.cssText = 'padding:1px 4px;font-size:9px;line-height:1';
   bU.onclick = () => { const prev = tr.previousElementSibling; if (prev) tbody.insertBefore(tr, prev); };
   const bD = document.createElement('button'); bD.className = 'btn-move-row'; bD.textContent = '▼'; bD.title = '下へ';
+  bD.style.cssText = 'padding:1px 4px;font-size:9px;line-height:1';
   bD.onclick = () => { const next = tr.nextElementSibling; if (next) tbody.insertBefore(next, tr); };
-  tdM.appendChild(bU); tdM.appendChild(bD);
+  moveWrap.appendChild(bU); moveWrap.appendChild(bD);
+  tdM.appendChild(moveWrap);
 
   const tdDel = mkTd('col-del');
+  tdDel.style.cssText = 'vertical-align:middle;text-align:center';
   const bDel = document.createElement('button'); bDel.className = 'btn-del-row'; bDel.textContent = '✕';
   bDel.onclick = () => tr.remove();
   tdDel.appendChild(bDel);
