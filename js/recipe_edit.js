@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260406　0822
+//　260406 1357
 
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
 
@@ -95,11 +95,12 @@ function makePartEl(label, rows, showHeader) {
 
   const table = document.createElement('table');
   table.className = 'ing-table';
+  table.style.cssText = 'width:100%;table-layout:fixed;box-sizing:border-box';
   table.innerHTML =
     '<colgroup>' +
       '<col style="width:auto">' +
-      '<col style="width:90px">' +
-      '<col style="width:90px">' +
+      '<col style="width:22%">' +
+      '<col style="width:22%">' +
       '<col style="width:44px">' +
       '<col style="width:28px">' +
     '</colgroup>' +
@@ -107,7 +108,7 @@ function makePartEl(label, rows, showHeader) {
       '<th class="col-name">材料名</th>' +
       '<th class="col-amt">分量</th>' +
       '<th class="col-note">備考</th>' +
-      '<th class="col-move" style="text-align:center"></th>' +
+      '<th class="col-move"></th>' +
       '<th class="col-del"></th>' +
     '</tr></thead>';
   const tbody = document.createElement('tbody');
@@ -181,9 +182,7 @@ function addRowToTbody(tbody, name, amt, note) {
   const tdA = mkTd('col-amt'); tdA.appendChild(mkInput('例：200g', amt));
   const tdNo = mkTd('col-note'); tdNo.appendChild(mkInput('備考', note));
 
-  const tdM = mkTd('col-move');
-  tdM.style.cssText = 'padding:0 2px;vertical-align:middle;text-align:center';
-  tdM.style.display = 'table-cell'; // 念のため
+  const tdM = mkTd('col-move'); tdM.style.cssText = 'padding:0 2px;vertical-align:middle';
   const bU = document.createElement('button'); bU.className = 'btn-move-row'; bU.textContent = '▲'; bU.title = '上へ';
   bU.onclick = () => { const prev = tr.previousElementSibling; if (prev) tbody.insertBefore(tr, prev); };
   const bD = document.createElement('button'); bD.className = 'btn-move-row'; bD.textContent = '▼'; bD.title = '下へ';
@@ -385,7 +384,7 @@ function openFromTextFile(input) {
     document.getElementById('fGenre').value   = parsed.genre;
     document.getElementById('fIngs').value    = parsed.ings;
     document.getElementById('fUrl').value     = parsed.url;
-    document.getElementById('fUrlLabel').value = parsed.url_label || '';
+    document.getElementById('fUrlLabel').value = '';
     document.getElementById('fSteps').value   = parsed.steps;
     document.getElementById('fMemo').value    = parsed.memo;
     document.getElementById('fPub').checked   = parsed.pub;
@@ -398,7 +397,7 @@ function openFromTextFile(input) {
 }
 
 function parseRecipeText(text) {
-  const result = { name:'',desc:'',cat:'',genre:'',ings:'',url:'',url_label:'',steps:'',memo:'',pub:false,yield_amount:'',ingParts:[] };
+  const result = { name:'',desc:'',cat:'',genre:'',ings:'',url:'',steps:'',memo:'',pub:false,yield_amount:'',ingParts:[] };
   const lines = text.split(/\r?\n/);
   let mode = 'none', currentPartLabel = '', currentRows = [];
   const stepsLines = [], memoLines = [];
@@ -415,7 +414,7 @@ function parseRecipeText(text) {
       if (mode === 'ing') flushPart();
       if (/^パート名[:：]/.test(h)) { flushPart(); currentPartLabel = h.replace(/^パート名[:：]\s*/, '').trim(); continue; }
       const map = { '料理名':'name','カテゴリ':'cat','ジャンル':'genre','説明':'desc','食材タグ':'ings',
-        'URL':'url','参考レシピラベル':'url_label','公開':'pub','手順':'steps','覚書':'memo','出来上がり量':'yield','材料':'ing' };
+        'URL':'url','公開':'pub','手順':'steps','覚書':'memo','出来上がり量':'yield','材料':'ing' };
       mode = map[h] || 'none';
       if (mode === 'ing') currentPartLabel = '';
       continue;
@@ -426,8 +425,7 @@ function parseRecipeText(text) {
     if (mode === 'genre') { result.genre = line; mode = 'none'; continue; }
     if (mode === 'desc')  { result.desc = line; mode = 'none'; continue; }
     if (mode === 'ings')  { result.ings = line; mode = 'none'; continue; }
-    if (mode === 'url')       { result.url       = line; mode = 'none'; continue; }
-    if (mode === 'url_label') { result.url_label  = line; mode = 'none'; continue; }
+    if (mode === 'url')   { result.url  = line; mode = 'none'; continue; }
     if (mode === 'pub')   { result.pub  = /^(はい|yes|true|1)$/i.test(line); mode = 'none'; continue; }
     if (mode === 'yield') { result.yield_amount = line; mode = 'none'; continue; }
     if (mode === 'ing')   { const c = line.split(/,|，/).map(s => s.trim()); currentRows.push({ name:c[0]||'',amt:c[1]||'',note:c[2]||'' }); continue; }
