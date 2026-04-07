@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260406 - 1454 -
+//　260407-1536-
 
 
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
@@ -100,10 +100,10 @@ function makePartEl(label, rows, showHeader) {
   table.style.cssText = 'width:100%;table-layout:fixed;box-sizing:border-box';
   table.innerHTML =
     '<colgroup>' +
-      '<col style="width:40%">' +
-      '<col style="width:20%">' +
-      '<col style="width:35%">' +
-      '<col style="width:22px">' +
+      '<col style="width:36%">' +
+      '<col style="width:17%">' +
+      '<col style="width:27%">' +
+      '<col style="width:36px">' +
       '<col style="width:22px">' +
     '</colgroup>' +
     '<thead><tr>' +
@@ -401,6 +401,9 @@ function openFromTextFile(input) {
     document.getElementById('fMemo').value    = parsed.memo;
     document.getElementById('fPub').checked   = parsed.pub;
     document.getElementById('btnDelete').style.display = 'none';
+    // ③ 前回編集レシピのメモが残らないようクリア
+    const noteListEl = document.getElementById('editNoteList');
+    if (noteListEl) noteListEl.innerHTML = '<p style="font-size:11px;color:#999">新規作成時は保存後にメモを追加できます。</p>';
     renderPhotoList(); setIngData(parsed.ingParts, null, null);
     const ov = document.getElementById('overlayAdd'); ov.scrollTop = 0;
     openOverlay('overlayAdd'); input.value = '';
