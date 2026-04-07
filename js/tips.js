@@ -1,5 +1,5 @@
 // ===== tips.js =====
-// 260404 1752
+// 260407-1536-
 // 共通チップス管理（overlayCommonTips）・index画面tipsカード・tips編集モーダル
 
 // ----- 共通チップス管理モーダル -----
@@ -116,6 +116,13 @@ async function renderTipsCards() {
   let { data: tips } = await window.supabase
     .from('notes_and_tips').select('*').is('recipe_id', null).order('created_at', { ascending: true });
   tips = (tips || []).filter(t => isEditor || t.pub);
+
+  // ④ 公開/非公開フィルターをチップスカードにも反映
+  if (isEditor) {
+    const p = document.getElementById('filterPub').value;
+    if (p === '1') tips = tips.filter(t =>  t.pub);
+    if (p === '0') tips = tips.filter(t => !t.pub);
+  }
 
   if (!tips.length) { area.style.display = 'none'; return; }
   area.style.display = 'block';
