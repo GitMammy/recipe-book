@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-// 260405 1449
+// 260407-1536-
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -152,36 +152,45 @@ const PART_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 function renderIngSection(r) {
   const parts = r.ingParts || r.ing_parts || [];
+  // ⑤ 列幅を固定するため colgroup 付きテーブルに統一
   const row2tr = row =>
     `<tr>
       <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">${ingNameHtml(row.name, r.id)}</td>
-      <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666">${esc(row.amt)}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#666;white-space:nowrap">${esc(row.amt)}</td>
       <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;color:#888">${esc(row.note)}</td>
     </tr>`;
   const wrapTable = rows =>
-    `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px"><tbody>${rows.map(row2tr).join('')}</tbody></table>`;
+    `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:0;table-layout:fixed">
+      <colgroup><col style="width:auto"><col style="width:22%"><col style="width:30%"></colgroup>
+      <tbody>${rows.map(row2tr).join('')}</tbody>
+    </table>`;
 
   if (parts.length) {
     const multiPart = parts.length > 1;
-    return parts.map((p, i) => {
+    // ① 全体を囲む上下点線のため先に組み立てる
+    const inner = parts.map((p, i) => {
       if (!p || !p.rows) return '';
+      // ① パートとパートの間の点線（2パート目以降）
       const divider = (multiPart && i > 0)
-        ? `<div style="border-top:1px dashed #D4A8BC;margin:10px 0 8px"></div>` : '';
+        ? `<div style="border-top:1px dashed #D4A8BC;margin:6px 0 6px"></div>` : '';
       let labelHtml = '';
       if (multiPart) {
-        const alpha = PART_ALPHA[i] || String(i + 1);
         if (p.label) {
+          // ① ラベル上に点線（最初のパートのみ上線は不要なので i>0 は divider が担当）
           labelHtml = `<div style="font-size:12px;font-weight:500;color:#72243E;margin-bottom:4px">
             <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
           </div>`;
-        } else {
-          labelHtml = `<div style="font-size:11px;font-weight:500;color:#B07090;margin-bottom:4px;letter-spacing:.05em">― ${alpha} ―</div>`;
         }
+        // ② パート名なし → ― A ― を表示しない（何も出さない）
       }
       return divider + labelHtml + wrapTable(p.rows);
     }).join('');
+    // ① 材料セクション全体を上下点線で囲む
+    return `<div style="border-top:1px dashed #D4A8BC;border-bottom:1px dashed #D4A8BC;padding:6px 0;margin:4px 0">${inner}</div>`;
   }
-  if (r.ingRows && r.ingRows.length) return wrapTable(r.ingRows);
+  if (r.ingRows && r.ingRows.length) {
+    return `<div style="border-top:1px dashed #D4A8BC;border-bottom:1px dashed #D4A8BC;padding:6px 0;margin:4px 0">${wrapTable(r.ingRows)}</div>`;
+  }
   if (r.ingDetail) return `<p style="font-size:13px;line-height:1.7;white-space:pre-wrap">${esc(r.ingDetail)}</p>`;
   return '';
 }
