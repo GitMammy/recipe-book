@@ -1,5 +1,5 @@
 // ===== recipe_edit.js =====
-//　260409-1615-
+//　260409-1653-
 
 
 // レシピ追加/編集フォーム・材料UI・写真UI・TXTインポート
@@ -103,8 +103,8 @@ function makePartEl(label, rows, showHeader) {
       '<col style="width:38%">' +
       '<col style="width:18%">' +
       '<col style="width:28%">' +
-      '<col style="width:26px">' +
-      '<col style="width:18px">' +
+      '<col style="width:20px">' +
+      '<col style="width:14px">' +
     '</colgroup>' +
     '<thead><tr>' +
       '<th class="col-name">材料名</th>' +
