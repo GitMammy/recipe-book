@@ -1,5 +1,5 @@
 // ===== ui.js =====
-//　260409-1510-
+//　260409-1615-
 // オーバーレイ開閉・ライトボックス・スクロールボタン・イベントハンドラ設定・起動処理
 
 function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
