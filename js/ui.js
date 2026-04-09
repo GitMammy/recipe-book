@@ -1,6 +1,6 @@
 // ===== ui.js =====
-//  260404 1753
-// オーバーレイ開閉・ライトボックス・イベントハンドラ設定・起動処理
+//　260409-1510-
+// オーバーレイ開閉・ライトボックス・スクロールボタン・イベントハンドラ設定・起動処理
 
 function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
 function closeOverlay(id) { document.getElementById(id)?.classList.remove('open'); }
@@ -16,6 +16,62 @@ function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
 }
 
+// ----- フローティングスクロールボタン -----
+function setupScrollButtons() {
+  const wrap = document.createElement('div');
+  wrap.id = 'scrollBtns';
+  wrap.style.cssText =
+    'position:fixed;right:14px;bottom:20px;z-index:900;display:flex;flex-direction:column;gap:6px;';
+
+  const isMobile = () => window.innerWidth <= 600;
+  const SCROLL_AMOUNT = Math.round(window.innerHeight * 0.6);
+
+  // ▲ ボタン（PC・スマホ共通：トップへ）
+  const btnUp = document.createElement('button');
+  btnUp.textContent = '▲';
+  btnUp.title = 'ページ上へ';
+  btnUp.style.cssText =
+    'width:38px;height:38px;border-radius:50%;border:1px solid #ccc;background:#fff;' +
+    'font-size:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);color:#888;' +
+    'display:none;align-items:center;justify-content:center;';
+  btnUp.onclick = () => {
+    if (isMobile()) window.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollBy({ top: -SCROLL_AMOUNT, behavior: 'smooth' });
+  };
+
+  // ▼ ボタン（PCのみ）
+  const btnDown = document.createElement('button');
+  btnDown.textContent = '▼';
+  btnDown.title = 'ページ下へ';
+  btnDown.style.cssText =
+    'width:38px;height:38px;border-radius:50%;border:1px solid #ccc;background:#fff;' +
+    'font-size:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);color:#888;' +
+    'display:none;align-items:center;justify-content:center;';
+  btnDown.onclick = () => window.scrollBy({ top: SCROLL_AMOUNT, behavior: 'smooth' });
+
+  wrap.appendChild(btnUp);
+  wrap.appendChild(btnDown);
+  document.body.appendChild(wrap);
+
+  // スクロール量に応じてボタン表示切替
+  const updateBtns = () => {
+    const scrollY = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    if (isMobile()) {
+      // スマホ：▲ のみ、スクロールしたら表示
+      btnUp.style.display   = scrollY > 200 ? 'flex' : 'none';
+      btnDown.style.display = 'none';
+    } else {
+      // PC：▲▼ 両方、スクロール位置に応じて
+      btnUp.style.display   = scrollY > 200 ? 'flex' : 'none';
+      btnDown.style.display = scrollY < maxScroll - 100 ? 'flex' : 'none';
+    }
+  };
+  window.addEventListener('scroll', updateBtns, { passive: true });
+  window.addEventListener('resize', updateBtns);
+  updateBtns();
+}
+
 function setupEventHandlers() {
   // オーバーレイ背景クリックで閉じる
   ['overlayDetail','overlayTipDetail','overlayTipEdit'].forEach(id => {
@@ -28,7 +84,7 @@ function setupEventHandlers() {
   document.getElementById('search').addEventListener('input', render);
   document.getElementById('filterCat').addEventListener('change', render);
   document.getElementById('filterPub').addEventListener('change', () => {
-    render(); renderCommonTipList(); renderTipsCards();
+    render(); renderTipsCards();
   });
 
   // レシピ操作ボタン
@@ -82,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupEventHandlers();
+  setupScrollButtons();
   loadRecipes();
   loadCommonTips();
+  refreshTipsCache(); // [[チップス名]] リンク用キャッシュ
 });
