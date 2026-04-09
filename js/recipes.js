@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-// 260407-1536-
+//　260409-1510-
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- サムネ・関連レシピ -----
@@ -195,10 +195,29 @@ function renderIngSection(r) {
   return '';
 }
 
+// ----- 詳細モーダル 履歴スタック -----
+const detailHistory = [];
+
+function goBackDetail() {
+  if (!detailHistory.length) { closeOverlay('overlayDetail'); return; }
+  const prevId = detailHistory.pop();
+  openDetail(prevId, true); // skipHistory=true で履歴を積まずに開く
+}
+
 // ----- 詳細モーダル -----
-async function openDetail(id) {
+async function openDetail(id, skipHistory = false) {
+  // 現在表示中のレシピがあれば履歴に積む
+  if (!skipHistory) {
+    const current = document.getElementById('detailContent')?.dataset?.currentId;
+    if (current && current !== String(id) && document.getElementById('overlayDetail').classList.contains('open')) {
+      detailHistory.push(current);
+    } else if (!document.getElementById('overlayDetail').classList.contains('open')) {
+      detailHistory.length = 0; // モーダルが閉じていたらスタックをリセット
+    }
+  }
   const r = recipes.find(x => String(x.id) === String(id));
   if (!r) return;
+  document.getElementById('detailContent').dataset.currentId = String(id);
 
   const { data: notes, error: notesError } = await window.supabase
     .from('notes_and_tips')
@@ -303,8 +322,10 @@ async function openDetail(id) {
     </div>`;
 
   html += `<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">${r.date || ''}</div>`;
-  html += `<div class="modal-btns"><div></div><div class="modal-btns-right">
-    <button class="btn btn-sm" onclick="closeOverlay('overlayDetail')">閉じる</button>
+  const backBtn = detailHistory.length > 0
+    ? `<button class="btn btn-sm" onclick="goBackDetail()">← 戻る</button>` : '<div></div>';
+  html += `<div class="modal-btns">${backBtn}<div class="modal-btns-right">
+    <button class="btn btn-sm" onclick="closeOverlay('overlayDetail');detailHistory.length=0;">閉じる</button>
     ${isEditor ? `<button class="btn btn-sm btn-accent" onclick="openEdit('${r.id}')">編集</button>` : ''}
   </div></div>`;
 
