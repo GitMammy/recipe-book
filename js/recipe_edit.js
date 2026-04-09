@@ -102,7 +102,7 @@ function makePartEl(label, rows, showHeader) {
     '<colgroup>' +
       '<col style="width:40%">' +
       '<col style="width:20%">' +
-      '<col style="width:30%">' +
+      '<col style="width:35%">' +
       '<col style="width:10px">' +
       '<col style="width:14px">' +
     '</colgroup>' +
