@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260407-1808-   -->
+    <!-- 260409-1520-   -->
 
 <head>
   <meta charset="UTF-8">
@@ -199,7 +199,7 @@
     text-align: center;
     display: inline-block;
   }
-  .heart-btn.on { color: #D4537E; font-size: 37px; }  /* ♥のフォント調整 */
+  .heart-btn.on { color: #D4537E; font-size: 37px; }  /*　♥のフォント調整 */
 　.star-btn.on { color: #BA7517; }
   .crown-btn.on {
     color: #FFD700;
@@ -627,7 +627,7 @@
 
       <div class="toolbar-right">
         <button class="btn btn-sm btn-toolbar editor-only" id="btnOpenAdd">＋追加</button>
-        <button class="btn btn-sm btn-toolbar" id="btnOpenCommonTips">💡チップス</button>
+        <button class="btn btn-sm btn-toolbar editor-only" id="btnOpenCommonTips">💡チップス</button>
         <button class="btn btn-sm btn-toolbar editor-only" id="btnExport">Exp</button>
       </div>
     </div>
@@ -701,8 +701,8 @@
           <button type="button" class="btn btn-sm" id="btnAddPart">＋ パートを追加</button>
         </div>
 
-        <textarea id="fSteps" placeholder="手順　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:120px"></textarea>
-        <textarea id="fMemo" placeholder="アレンジ・覚書　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:80px"></textarea>
+        <textarea id="fSteps" placeholder="手順　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:120px;padding:8px 10px"></textarea>
+        <textarea id="fMemo" placeholder="アレンジ・覚書　※ [表示テキスト](補足説明) でツールチップが使えます" style="height:80px;padding:8px 10px"></textarea>
 
         <div>
           <div id="photoList"></div>
@@ -716,7 +716,7 @@
           <div id="editNoteList" style="max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <input type="text" id="noteTitle" placeholder="メモのタイトル">
-            <textarea id="noteContent" placeholder="メモ内容" style="height:60px"></textarea>
+            <textarea id="noteContent" placeholder="メモ内容" style="height:60px;padding:8px 10px"></textarea>
             <button type="button" class="btn btn-sm" id="btnAddNote" style="align-self:flex-start">＋ メモを追加</button>
           </div>
         </div>
@@ -784,24 +784,29 @@
 
   <!-- 共通チップス管理モーダル -->
   <div class="overlay" id="overlayCommonTips">
-    <div class="modal" style="max-width:420px;margin:auto">
+    <div class="modal" style="max-width:480px;margin:auto">
       <button class="modal-close" onclick="closeOverlay('overlayCommonTips')">✕</button>
       <h2 style="color:#638C3E;font-size:16px;border-bottom:2px solid #638C3E;padding-bottom:8px;margin-bottom:14px">
         💡 共通チップス管理
       </h2>
-      <div style="background:#f9fbf7;padding:12px;border-radius:8px;border:1px solid #e0e6d8;margin-bottom:12px">
-        <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%;margin-bottom:6px">
+      <div style="background:#f9fbf7;padding:14px;border-radius:8px;border:1px solid #e0e6d8">
+        <input type="text" id="commonTipTitle" placeholder="チップスのタイトル" style="width:100%;margin-bottom:8px">
         <div id="commonTipPhotoPreview"></div>
-        <button type="button" class="btn btn-sm" id="commonTipPhotoAddBtn" style="margin-bottom:6px">
+        <button type="button" class="btn btn-sm" id="commonTipPhotoAddBtn" style="margin-bottom:8px">
           📷 写真を追加（任意）
         </button>
         <input type="file" id="commonTipPhotoInput" accept="image/*" style="display:none">
-        <textarea id="commonTipContent" placeholder="内容..." style="width:100%;height:80px;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;margin-bottom:8px;outline:none"></textarea>
-        <button type="button" id="commonTipAddBtn" class="btn btn-sm" style="width:100%;background:#638C3E;color:white;border-color:#638C3E">
-          共通チップスを追加
-        </button>
+        <textarea id="commonTipContent" placeholder="内容..." style="width:100%;height:140px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;margin-bottom:10px;outline:none"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="checkbox" id="commonTipPub"> 公開する
+          </label>
+          <button type="button" id="commonTipAddBtn" class="btn btn-sm" style="background:#638C3E;color:white;border-color:#638C3E;flex:1">
+            共通チップスを追加
+          </button>
+        </div>
       </div>
-      <div id="commonTipList" style="max-height:220px;overflow-y:auto;border-top:1px solid #eee;padding-top:10px"></div>
+      <div id="commonTipList"></div>
       <div class="modal-btns" style="margin-top:12px">
         <div></div>
         <button class="btn btn-sm" onclick="closeOverlay('overlayCommonTips')">閉じる</button>
