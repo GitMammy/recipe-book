@@ -1,11 +1,17 @@
 // ===== recipes.js =====
-//　260413-1727-view-sort-confirmed
+//　260413-1730-view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- 表示モード・ソート状態 -----
 let viewMode = 'grid'; // 'grid' | 'list'
 let sortKey  = '';     // '' | 'name' | 'cat' | 'genre' | 'date'
 let sortDir  = 'asc';  // 'asc' | 'desc'
+
+// confirmedFilter: 0=すべて 1=確定のみ 2=未確定のみ
+let confirmedFilter = 0;
+
+// tipsOnlyMode: チップスのみ表示
+let tipsOnlyMode = false;
 
 // ----- サムネ・関連レシピ -----
 function getThumb(r) {
@@ -44,17 +50,51 @@ function updateSelects() {
 }
 
 // ----- マークフィルター状態 -----
-const markFilters = { heart: false, star: false, crown: false, confirmed: false, unconfirmed: false };
+const markFilters = { heart: false, star: false, crown: false };
 
 function toggleMarkFilter(type) {
-  if (type === 'confirmed'   && markFilters.unconfirmed) { markFilters.unconfirmed = false; document.getElementById('filterUnconfirmed')?.classList.remove('active-unconfirmed'); }
-  if (type === 'unconfirmed' && markFilters.confirmed)   { markFilters.confirmed   = false; document.getElementById('filterConfirmed')?.classList.remove('active-confirmed'); }
   markFilters[type] = !markFilters[type];
-  const btnMap = { heart:'filterHeart', star:'filterStar', crown:'filterCrown', confirmed:'filterConfirmed', unconfirmed:'filterUnconfirmed' };
-  Object.entries(btnMap).forEach(([k, id]) => {
-    document.getElementById(id)?.classList.toggle(`active-${k}`, markFilters[k]);
-  });
+  const btnId = { heart: 'filterHeart', star: 'filterStar', crown: 'filterCrown' }[type];
+  document.getElementById(btnId)?.classList.toggle(`active-${type}`, markFilters[type]);
   render();
+}
+
+// ----- 配合確定フィルター（3段階） -----
+// 0:すべて → 1:確定のみ → 2:未確定のみ → 0:すべて
+function toggleConfirmedFilter() {
+  confirmedFilter = (confirmedFilter + 1) % 3;
+  const btn = document.getElementById('filterConfirmed');
+  if (!btn) return;
+  if (confirmedFilter === 0) {
+    btn.textContent = '✅'; btn.title = 'クリックで確定のみ表示';
+    btn.classList.remove('active-confirmed','active-unconfirmed');
+  } else if (confirmedFilter === 1) {
+    btn.textContent = '✅確定'; btn.title = 'クリックで未確定のみ表示';
+    btn.classList.add('active-confirmed'); btn.classList.remove('active-unconfirmed');
+  } else {
+    btn.textContent = '☐未確定'; btn.title = 'クリックですべて表示';
+    btn.classList.remove('active-confirmed'); btn.classList.add('active-unconfirmed');
+  }
+  render();
+}
+
+// ----- チップスのみ表示 -----
+function toggleTipsOnly() {
+  tipsOnlyMode = !tipsOnlyMode;
+  const btn = document.getElementById('filterTipsOnly');
+  btn?.classList.toggle('active-tips', tipsOnlyMode);
+
+  // チップスのみ時はレシピグリッドを隠してチップスエリアを前面に
+  const gridEl   = document.getElementById('grid');
+  const tipsArea = document.getElementById('tipsArea');
+  if (tipsOnlyMode) {
+    if (gridEl)   gridEl.style.display   = 'none';
+    if (tipsArea) tipsArea.style.display = 'block';
+  } else {
+    if (gridEl)   gridEl.style.display   = '';
+    render(); // countBar も更新
+  }
+  renderTipsCards(); // チップスの公開フィルターも反映
 }
 
 // ----- ソート切り替え -----
@@ -77,6 +117,10 @@ function render() {
   const grid = document.getElementById('grid');
   if (!grid) return;
 
+  // チップスのみモード中はレシピ描画しない
+  if (tipsOnlyMode) { grid.style.display = 'none'; return; }
+  grid.style.display = '';
+
   const q   = document.getElementById('search').value.trim().toLowerCase();
   const cat = document.getElementById('filterCat').value;
   const p   = document.getElementById('filterPub').value;
@@ -97,11 +141,11 @@ function render() {
   if (p === '1') list = list.filter(r =>  r.pub);
   if (p === '0') list = list.filter(r => !r.pub);
 
-  if (markFilters.heart)       list = list.filter(r => r.heart);
-  if (markFilters.star)        list = list.filter(r => r.fav);
-  if (markFilters.crown)       list = list.filter(r => r.crown);
-  if (markFilters.confirmed)   list = list.filter(r => r.confirmed);
-  if (markFilters.unconfirmed) list = list.filter(r => !r.confirmed);
+  if (markFilters.heart) list = list.filter(r => r.heart);
+  if (markFilters.star)  list = list.filter(r => r.fav);
+  if (markFilters.crown) list = list.filter(r => r.crown);
+  if (confirmedFilter === 1) list = list.filter(r =>  r.confirmed);
+  if (confirmedFilter === 2) list = list.filter(r => !r.confirmed);
 
   if (sortKey) {
     list.sort((a, b) => {
@@ -122,7 +166,11 @@ function renderGridView(grid, list) {
   grid.className = 'grid';
   grid.innerHTML = list.map(r => {
     const thumb = getThumb(r);
-    const confirmedBadge = r.confirmed ? `<span class="badge-confirmed">✅ 確定</span>` : '';
+    // 配合確定バッジ：レシピ名の前
+    const confirmedBadge = r.confirmed
+      ? `<span class="badge-confirmed">✅</span> ` : '';
+    const pubTag = isEditor
+      ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}">${r.pub ? '公開' : '非公開'}</span>` : '';
     const heartsHtml = isEditor
       ? `<div class="hearts">
            <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
@@ -139,14 +187,14 @@ function renderGridView(grid, list) {
         ${thumb ? `<img src="${thumb}" class="card-img">` : `<div class="card-img-placeholder">${getCatEmoji(r.cat)}</div>`}
         <div class="card-body">
           <div class="card-top">
-            <div class="card-title">${esc(r.name)}${confirmedBadge}</div>
+            <div class="card-title">${confirmedBadge}${esc(r.name)}</div>
             ${heartsHtml}
           </div>
           ${r.desc ? `<div class="card-desc">${esc(r.desc)}</div>` : ''}
           <div class="card-tags">
+            ${pubTag}
             ${r.cat   ? `<span class="tag t-cat">${esc(r.cat)}</span>`   : ''}
             ${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}
-            ${isEditor ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}">${r.pub ? '公開' : '非公開'}</span>` : ''}
           </div>
         </div>
       </div>`;
@@ -168,7 +216,9 @@ function renderListView(grid, list) {
 
   const rows = list.map(r => {
     const thumb = getThumb(r);
-    const confirmedBadge = r.confirmed ? `<span class="badge-confirmed" style="font-size:11px;margin-left:4px">✅</span>` : '';
+    const confirmedBadge = r.confirmed ? `<span class="badge-confirmed">✅</span> ` : '';
+    const pubTag = isEditor
+      ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}" style="font-size:10px">${r.pub ? '公開' : '非公開'}</span>` : '';
     const marksHtml = isEditor
       ? `<button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
          <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
@@ -181,9 +231,9 @@ function renderListView(grid, list) {
         ${thumb ? `<img src="${thumb}" class="list-thumb">` : `<div class="list-thumb-placeholder">${getCatEmoji(r.cat)}</div>`}
       </div>
       <div class="list-col-name">
-        <span class="list-name">${esc(r.name)}</span>${confirmedBadge}
+        <span class="list-name">${confirmedBadge}${esc(r.name)}</span>
         ${r.desc ? `<div class="list-desc">${esc(r.desc)}</div>` : ''}
-        ${isEditor ? `<span class="tag ${r.pub?'t-pub':'t-priv'}" style="font-size:10px">${r.pub?'公開':'非公開'}</span>` : ''}
+        ${pubTag}
       </div>
       <div class="list-col-cat">${r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : ''}</div>
       <div class="list-col-genre">${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}</div>
@@ -342,8 +392,9 @@ async function openDetail(id, skipHistory = false) {
   if (confirmedHtml) html += `<div style="margin-bottom:10px">${confirmedHtml}</div>`;
   if (r.desc) html += `<p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:0.8rem">${esc(r.desc)}</p>`;
 
-  const tagsRow = (r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : '') +
-    (r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : '') + pubTagHtml;
+  const tagsRow = pubTagHtml +
+    (r.cat   ? `<span class="tag t-cat">${esc(r.cat)}</span>` : '') +
+    (r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : '');
   if (tagsRow) html += `<div style="display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px;margin-bottom:1rem">${tagsRow}</div>`;
 
   if (ingHtml) html += `<div class="detail-section">
