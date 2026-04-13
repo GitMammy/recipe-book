@@ -1,6 +1,11 @@
 // ===== recipes.js =====
-//　260409-1615-
+//　260413-view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
+
+// ----- 表示モード・ソート状態 -----
+let viewMode = 'grid'; // 'grid' | 'list'
+let sortKey  = '';     // '' | 'name' | 'cat' | 'genre' | 'date'
+let sortDir  = 'asc';  // 'asc' | 'desc'
 
 // ----- サムネ・関連レシピ -----
 function getThumb(r) {
@@ -32,7 +37,6 @@ function updateSelects() {
     cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   sc.value = cv;
 
-  // 編集フォームの datalist も更新
   const cl = document.getElementById('catList');
   const gl = document.getElementById('genreList');
   if (cl) cl.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
@@ -40,13 +44,31 @@ function updateSelects() {
 }
 
 // ----- マークフィルター状態 -----
-const markFilters = { heart: false, star: false, crown: false };
+const markFilters = { heart: false, star: false, crown: false, confirmed: false, unconfirmed: false };
 
 function toggleMarkFilter(type) {
+  if (type === 'confirmed'   && markFilters.unconfirmed) { markFilters.unconfirmed = false; document.getElementById('filterUnconfirmed')?.classList.remove('active-unconfirmed'); }
+  if (type === 'unconfirmed' && markFilters.confirmed)   { markFilters.confirmed   = false; document.getElementById('filterConfirmed')?.classList.remove('active-confirmed'); }
   markFilters[type] = !markFilters[type];
-  const btnId = { heart: 'filterHeart', star: 'filterStar', crown: 'filterCrown' }[type];
-  const btn = document.getElementById(btnId);
-  if (btn) btn.classList.toggle(`active-${type}`, markFilters[type]);
+  const btnMap = { heart:'filterHeart', star:'filterStar', crown:'filterCrown', confirmed:'filterConfirmed', unconfirmed:'filterUnconfirmed' };
+  Object.entries(btnMap).forEach(([k, id]) => {
+    document.getElementById(id)?.classList.toggle(`active-${k}`, markFilters[k]);
+  });
+  render();
+}
+
+// ----- ソート切り替え -----
+function setSort(key) {
+  if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortKey = key; sortDir = 'asc'; }
+  render();
+}
+
+// ----- 表示モード切り替え -----
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('btnViewGrid')?.classList.toggle('btn-view-active', mode === 'grid');
+  document.getElementById('btnViewList')?.classList.toggle('btn-view-active', mode === 'list');
   render();
 }
 
@@ -61,7 +83,6 @@ function render() {
 
   let list = recipes.slice();
 
-  // 閲覧モードは非公開除外
   if (!isEditor) list = list.filter(r => r.pub);
 
   if (q) list = list.filter(r =>
@@ -76,15 +97,32 @@ function render() {
   if (p === '1') list = list.filter(r =>  r.pub);
   if (p === '0') list = list.filter(r => !r.pub);
 
-  // マークフィルター
-  if (markFilters.heart) list = list.filter(r => r.heart);
-  if (markFilters.star)  list = list.filter(r => r.fav);
-  if (markFilters.crown) list = list.filter(r => r.crown);
+  if (markFilters.heart)       list = list.filter(r => r.heart);
+  if (markFilters.star)        list = list.filter(r => r.fav);
+  if (markFilters.crown)       list = list.filter(r => r.crown);
+  if (markFilters.confirmed)   list = list.filter(r => r.confirmed);
+  if (markFilters.unconfirmed) list = list.filter(r => !r.confirmed);
+
+  if (sortKey) {
+    list.sort((a, b) => {
+      const av = a[sortKey] || '', bv = b[sortKey] || '';
+      const cmp = String(av).localeCompare(String(bv), 'ja');
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }
 
   document.getElementById('countBar').textContent = list.length + ' 件';
 
+  if (viewMode === 'list') renderListView(grid, list);
+  else                     renderGridView(grid, list);
+}
+
+// ----- グリッド表示 -----
+function renderGridView(grid, list) {
+  grid.className = 'grid';
   grid.innerHTML = list.map(r => {
     const thumb = getThumb(r);
+    const confirmedBadge = r.confirmed ? `<span class="badge-confirmed">✅ 確定</span>` : '';
     const heartsHtml = isEditor
       ? `<div class="hearts">
            <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
@@ -96,15 +134,12 @@ function render() {
            <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
            <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
          </div>`;
-
     return `
       <div class="card" onclick="openDetail('${r.id}')">
-        ${thumb
-          ? `<img src="${thumb}" class="card-img">`
-          : `<div class="card-img-placeholder">${getCatEmoji(r.cat)}</div>`}
+        ${thumb ? `<img src="${thumb}" class="card-img">` : `<div class="card-img-placeholder">${getCatEmoji(r.cat)}</div>`}
         <div class="card-body">
           <div class="card-top">
-            <div class="card-title">${esc(r.name)}</div>
+            <div class="card-title">${esc(r.name)}${confirmedBadge}</div>
             ${heartsHtml}
           </div>
           ${r.desc ? `<div class="card-desc">${esc(r.desc)}</div>` : ''}
@@ -118,26 +153,73 @@ function render() {
   }).join('');
 }
 
-// ----- ♡★♚ -----
+// ----- リスト表示 -----
+function renderListView(grid, list) {
+  grid.className = 'list-view';
+  const si = k => sortKey === k ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ↕';
+  const header = `<div class="list-header">
+    <div class="list-col-thumb"></div>
+    <div class="list-col-name  sortable" onclick="setSort('name')">料理名<span class="sort-icon">${si('name')}</span></div>
+    <div class="list-col-cat   sortable" onclick="setSort('cat')">カテゴリ<span class="sort-icon">${si('cat')}</span></div>
+    <div class="list-col-genre sortable" onclick="setSort('genre')">ジャンル<span class="sort-icon">${si('genre')}</span></div>
+    <div class="list-col-date  sortable" onclick="setSort('date')">日付<span class="sort-icon">${si('date')}</span></div>
+    <div class="list-col-marks">マーク</div>
+  </div>`;
+
+  const rows = list.map(r => {
+    const thumb = getThumb(r);
+    const confirmedBadge = r.confirmed ? `<span class="badge-confirmed" style="font-size:11px;margin-left:4px">✅</span>` : '';
+    const marksHtml = isEditor
+      ? `<button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
+         <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
+         <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}')">♚</button>`
+      : `<span style="color:${r.heart ? '#D4537E':'#ddd'}">${r.heart?'♥':'♡'}</span>
+         <span style="color:${r.fav?'#BA7517':'#ddd'}">★</span>
+         <span style="color:${r.crown?'#FFD700':'#ddd'}">♚</span>`;
+    return `<div class="list-row" onclick="openDetail('${r.id}')">
+      <div class="list-col-thumb">
+        ${thumb ? `<img src="${thumb}" class="list-thumb">` : `<div class="list-thumb-placeholder">${getCatEmoji(r.cat)}</div>`}
+      </div>
+      <div class="list-col-name">
+        <span class="list-name">${esc(r.name)}</span>${confirmedBadge}
+        ${r.desc ? `<div class="list-desc">${esc(r.desc)}</div>` : ''}
+        ${isEditor ? `<span class="tag ${r.pub?'t-pub':'t-priv'}" style="font-size:10px">${r.pub?'公開':'非公開'}</span>` : ''}
+      </div>
+      <div class="list-col-cat">${r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : ''}</div>
+      <div class="list-col-genre">${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}</div>
+      <div class="list-col-date" style="font-size:11px;color:#aaa">${r.date||''}</div>
+      <div class="list-col-marks" style="display:flex;gap:2px;align-items:center">${marksHtml}</div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = header + rows;
+}
+
+// ----- ♡★♚✅ -----
 function toggleHeart(e, id) {
   e.preventDefault(); e.stopPropagation();
   const r = recipes.find(x => String(x.id) === String(id));
-  if (r) { r.heart = !r.heart; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
+  if (r) { r.heart = !r.heart; saveStatus(r.id, r.heart, r.fav, r.crown, r.confirmed); render(); }
 }
 function toggleStar(e, id) {
   e.preventDefault(); e.stopPropagation();
   const r = recipes.find(x => String(x.id) === String(id));
-  if (r) { r.fav = !r.fav; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
+  if (r) { r.fav = !r.fav; saveStatus(r.id, r.heart, r.fav, r.crown, r.confirmed); render(); }
 }
 function toggleCrown(e, id) {
   e.preventDefault(); e.stopPropagation();
   const r = recipes.find(x => String(x.id) === String(id));
-  if (r) { r.crown = !r.crown; saveStatus(r.id, r.heart, r.fav, r.crown); render(); }
+  if (r) { r.crown = !r.crown; saveStatus(r.id, r.heart, r.fav, r.crown, r.confirmed); render(); }
+}
+function toggleConfirmed(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  const r = recipes.find(x => String(x.id) === String(id));
+  if (r) { r.confirmed = !r.confirmed; saveStatus(r.id, r.heart, r.fav, r.crown, r.confirmed); render(); }
 }
 
-async function saveStatus(id, heart, fav, crown) {
+async function saveStatus(id, heart, fav, crown, confirmed) {
   const { error } = await window.supabase
-    .from('recipes').update({ heart, fav, crown }).eq('id', String(id));
+    .from('recipes').update({ heart, fav, crown, confirmed: !!confirmed }).eq('id', String(id));
   if (error) console.error('Status Update Error:', error);
 }
 
@@ -152,7 +234,6 @@ const PART_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 function renderIngSection(r) {
   const parts = r.ingParts || r.ing_parts || [];
-  // ⑤ 列幅を固定するため colgroup 付きテーブルに統一
   const row2tr = row =>
     `<tr>
       <td style="padding:4px 6px;border-bottom:1px solid #f5f5f5">${ingNameHtml(row.name, r.id)}</td>
@@ -167,25 +248,17 @@ function renderIngSection(r) {
 
   if (parts.length) {
     const multiPart = parts.length > 1;
-    // ① 全体を囲む上下点線のため先に組み立てる
     const inner = parts.map((p, i) => {
       if (!p || !p.rows) return '';
-      // ① パートとパートの間の点線（2パート目以降）
-      const divider = (multiPart && i > 0)
-        ? `<div style="border-top:1px dashed #D4A8BC;margin:6px 0 6px"></div>` : '';
+      const divider = (multiPart && i > 0) ? `<div style="border-top:1px dashed #D4A8BC;margin:6px 0 6px"></div>` : '';
       let labelHtml = '';
-      if (multiPart) {
-        if (p.label) {
-          // ① ラベル上に点線（最初のパートのみ上線は不要なので i>0 は divider が担当）
-          labelHtml = `<div style="font-size:12px;font-weight:500;color:#72243E;margin-bottom:4px">
-            <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
-          </div>`;
-        }
-        // ② パート名なし → ― A ― を表示しない（何も出さない）
+      if (multiPart && p.label) {
+        labelHtml = `<div style="font-size:12px;font-weight:500;color:#72243E;margin-bottom:4px">
+          <span style="background:#f0e0eb;padding:3px 10px;border-radius:5px;display:inline-block">${esc(p.label)}</span>
+        </div>`;
       }
       return divider + labelHtml + wrapTable(p.rows);
     }).join('');
-    // ① 材料セクション全体を上下点線で囲む
     return `<div style="border-top:1px dashed #D4A8BC;border-bottom:1px dashed #D4A8BC;padding:6px 0;margin:4px 0">${inner}</div>`;
   }
   if (r.ingRows && r.ingRows.length) {
@@ -201,18 +274,17 @@ const detailHistory = [];
 function goBackDetail() {
   if (!detailHistory.length) { closeOverlay('overlayDetail'); return; }
   const prevId = detailHistory.pop();
-  openDetail(prevId, true); // skipHistory=true で履歴を積まずに開く
+  openDetail(prevId, true);
 }
 
 // ----- 詳細モーダル -----
 async function openDetail(id, skipHistory = false) {
-  // 現在表示中のレシピがあれば履歴に積む
   if (!skipHistory) {
     const current = document.getElementById('detailContent')?.dataset?.currentId;
     if (current && current !== String(id) && document.getElementById('overlayDetail').classList.contains('open')) {
       detailHistory.push(current);
     } else if (!document.getElementById('overlayDetail').classList.contains('open')) {
-      detailHistory.length = 0; // モーダルが閉じていたらスタックをリセット
+      detailHistory.length = 0;
     }
   }
   const r = recipes.find(x => String(x.id) === String(id));
@@ -220,11 +292,7 @@ async function openDetail(id, skipHistory = false) {
   document.getElementById('detailContent').dataset.currentId = String(id);
 
   const { data: notes, error: notesError } = await window.supabase
-    .from('notes_and_tips')
-    .select('*')
-    .eq('recipe_id', String(id))
-    .order('created_at', { ascending: true });
-
+    .from('notes_and_tips').select('*').eq('recipe_id', String(id)).order('created_at', { ascending: true });
   if (notesError) console.warn('Notes fetch error:', notesError);
 
   const visibleNotes = (notes || []).filter(n => isEditor || n.pub);
@@ -249,6 +317,12 @@ async function openDetail(id, skipHistory = false) {
   const photos = r.photos && r.photos.length ? r.photos : (r.img ? [{ title: '', data: r.img }] : []);
   currentPhotos = photos;
 
+  const confirmedHtml = isEditor
+    ? `<button class="btn-confirmed${r.confirmed ? ' on' : ''}" onclick="toggleConfirmed(event,'${r.id}');openDetail('${r.id}')">
+         ${r.confirmed ? '✅ 配合確定' : '☐ 配合確定'}
+       </button>`
+    : (r.confirmed ? `<span class="badge-confirmed">✅ 配合確定</span>` : '');
+
   const heartsHtml = isEditor
     ? `<div style="display:flex;gap:4px;flex-shrink:0">
          <button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}');openDetail('${r.id}')">${r.heart ? '♥' : '♡'}</button>
@@ -265,7 +339,7 @@ async function openDetail(id, skipHistory = false) {
     ? `<span class="tag ${r.pub ? 't-pub' : 't-priv'}">${r.pub ? '公開' : '非公開'}</span>` : '';
 
   let html = `<div class="detail-top"><h2>${esc(r.name)}</h2>${heartsHtml}</div>`;
-
+  if (confirmedHtml) html += `<div style="margin-bottom:10px">${confirmedHtml}</div>`;
   if (r.desc) html += `<p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:0.8rem">${esc(r.desc)}</p>`;
 
   const tagsRow = (r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : '') +
@@ -317,8 +391,7 @@ async function openDetail(id, skipHistory = false) {
 
   if (visibleNotes.length > 0) html += `
     <div class="detail-section" style="margin-top:20px">
-      <h3>📝 レシピメモ</h3>
-      ${notesHtml}
+      <h3>📝 レシピメモ</h3>${notesHtml}
     </div>`;
 
   html += `<div style="font-size:11px;color:#aaa;margin-top:1.5rem;margin-bottom:1rem">${r.date || ''}</div>`;
