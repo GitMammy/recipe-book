@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260409-1520-   -->
+    <!-- 260413-1640-   -->
 
 <head>
   <meta charset="UTF-8">
@@ -595,6 +595,133 @@
   }
 
   /* ===============================
+     配合確定バッジ・ボタン
+     =============================== */
+  .badge-confirmed {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #A5D6A7;
+    margin-left: 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .btn-confirmed {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    color: #888;
+    cursor: pointer;
+  }
+  .btn-confirmed.on {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border-color: #A5D6A7;
+    font-weight: 600;
+  }
+
+  /* confirmed / unconfirmed フィルターボタン */
+  .mark-filter-btn.active-confirmed   { color: #2E7D32; border-color: #2E7D32; background: #E8F5E9; }
+  .mark-filter-btn.active-unconfirmed { color: #888;    border-color: #888;    background: #F5F5F5; }
+
+  /* ===============================
+     グリッド ↔ リスト 切り替えボタン
+     =============================== */
+  .btn-view-active {
+    background: #D4537E !important;
+    color: #fff !important;
+    border-color: #D4537E !important;
+  }
+
+  /* ===============================
+     リスト表示
+     =============================== */
+  .list-view {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .list-header,
+  .list-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 100px 90px 76px 80px;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  .list-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: #72243E;
+    background: #FBEAF0;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .list-row {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .list-row:hover { border-color: #C97094; }
+  .list-thumb {
+    width: 44px;
+    height: 34px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    display: block;
+  }
+  .list-thumb-placeholder {
+    width: 44px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: #FBEAF0;
+    border-radius: 5px;
+  }
+  .list-name {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .list-desc {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+  .sortable:hover { color: #993556; }
+  .sort-icon { font-size: 10px; }
+
+  @media (max-width: 600px) {
+    .list-header,
+    .list-row {
+      grid-template-columns: 40px 1fr 72px 60px;
+    }
+    .list-col-genre,
+    .list-col-date { display: none; }
+  }
+
+  /* ===============================
      レスポンシブ調整
      =============================== */
   @media (max-width: 600px) {
@@ -618,11 +745,19 @@
         <option value="0">非公開のみ</option>
       </select>
 
-      <!-- ♡★👑 絞り込みボタン（編集モードのみ） -->
-      <div class="toolbar-mark-filters editor-only" style="display:flex;gap:4px">
-        <button class="btn btn-sm mark-filter-btn" id="filterHeart" title="♡ お気に入りのみ表示" onclick="toggleMarkFilter('heart')">♡</button>
-        <button class="btn btn-sm mark-filter-btn" id="filterStar"  title="★ スターのみ表示"     onclick="toggleMarkFilter('star')">★</button>
-        <button class="btn btn-sm mark-filter-btn" id="filterCrown" title="👑 クラウンのみ表示"   onclick="toggleMarkFilter('crown')">♚</button>
+      <!-- ♡★👑✅ 絞り込みボタン（編集モードのみ） -->
+      <div class="toolbar-mark-filters editor-only" style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-sm mark-filter-btn" id="filterHeart"       title="♡ お気に入りのみ"  onclick="toggleMarkFilter('heart')">♡</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterStar"        title="★ スターのみ"      onclick="toggleMarkFilter('star')">★</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterCrown"       title="👑 クラウンのみ"   onclick="toggleMarkFilter('crown')">♚</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterConfirmed"   title="✅ 配合確定のみ"   onclick="toggleMarkFilter('confirmed')"   style="font-size:13px;width:auto;padding:0 8px">✅</button>
+        <button class="btn btn-sm mark-filter-btn" id="filterUnconfirmed" title="☐ 配合未確定のみ" onclick="toggleMarkFilter('unconfirmed')" style="font-size:13px;width:auto;padding:0 8px">☐未</button>
+      </div>
+
+      <!-- グリッド / リスト 切り替え -->
+      <div style="display:flex;gap:3px;flex-shrink:0">
+        <button class="btn btn-sm btn-view-active" id="btnViewGrid" title="グリッド表示" onclick="setViewMode('grid')">⊞</button>
+        <button class="btn btn-sm" id="btnViewList" title="リスト表示" onclick="setViewMode('list')">☰</button>
       </div>
 
       <div class="toolbar-right">
