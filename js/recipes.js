@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-//　260413-1730-view-sort-confirmed
+//　260414-1421-view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- 表示モード・ソート状態 -----
@@ -208,6 +208,7 @@ function renderListView(grid, list) {
   const header = `<div class="list-header">
     <div class="list-col-thumb"></div>
     <div class="list-col-name  sortable" onclick="setSort('name')">料理名<span class="sort-icon">${si('name')}</span></div>
+    ${isEditor ? '<div class="list-col-pub"></div>' : ''}
     <div class="list-col-cat   sortable" onclick="setSort('cat')">カテゴリ<span class="sort-icon">${si('cat')}</span></div>
     <div class="list-col-genre sortable" onclick="setSort('genre')">ジャンル<span class="sort-icon">${si('genre')}</span></div>
     <div class="list-col-date  sortable" onclick="setSort('date')">日付<span class="sort-icon">${si('date')}</span></div>
@@ -233,8 +234,8 @@ function renderListView(grid, list) {
       <div class="list-col-name">
         <span class="list-name">${confirmedBadge}${esc(r.name)}</span>
         ${r.desc ? `<div class="list-desc">${esc(r.desc)}</div>` : ''}
-        ${pubTag}
       </div>
+      ${isEditor ? `<div class="list-col-pub">${pubTag}</div>` : ''}
       <div class="list-col-cat">${r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : ''}</div>
       <div class="list-col-genre">${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}</div>
       <div class="list-col-date" style="font-size:11px;color:#aaa">${r.date||''}</div>
