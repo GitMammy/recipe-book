@@ -1,5 +1,6 @@
 // ===== recipes.js =====
-//　260427-1805-view-sort-confirmed
+//　260427-1852
+// view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
 // ----- 表示モード・ソート状態 -----
@@ -460,43 +461,21 @@ async function openDetail(id, skipHistory = false) {
 }
 
 // ----- JSON エクスポート -----
-async function exportData() {
-  const btn = document.getElementById('btnExport');
-  const origText = btn.textContent;
-  btn.disabled = true; btn.textContent = '取得中...';
-  try {
-    // メモ・チップスを全件取得
-    const { data: notes } = await window.supabase
-      .from('notes_and_tips').select('*').order('created_at', { ascending: true });
-
-    // レシピデータ（写真URLはそのまま保持、旧imgフィールドは除去）
-    const expRecipes = recipes.map(r => {
-      const o = { ...r };
-      delete o.img; // 旧フィールド除去
-      // photos は URL のまま保持（base64には変換しない）
-      return o;
-    });
-
-    const exportObj = {
-      exported_at: new Date().toISOString(),
-      recipes: expRecipes,
-      notes_and_tips: notes || []
-    };
-
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const a = document.createElement('a');
-    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportObj, null, 2));
-    a.download = `recipes_${dateStr}.json`;
-    a.click();
-  } catch (err) {
-    alert('エクスポートに失敗しました: ' + err.message);
-  } finally {
-    btn.disabled = false; btn.textContent = origText;
-  }
+function exportData() {
+  const exp = recipes.map(r => { const o = { ...r }; delete o.img; o.photos = []; return o; });
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp, null, 2));
+  a.download = 'recipes.json';
+  a.click();
 }
 
 // ----- データ読み込み -----
 async function loadRecipes() {
+  // オフラインモード判定（offline.js）
+  const isOffline = await initOfflineMode();
+  if (isOffline) return; // オフラインデータで描画済み
+
+  // オンライン：Supabase から取得
   const { data } = await window.supabase
     .from('recipes').select('*').order('created_at', { ascending: false });
   recipes = data || [];
