@@ -1,5 +1,7 @@
 // ===== ui.js =====
-//　260409-1615-
+
+//　260427-1852
+// 
 // オーバーレイ開閉・ライトボックス・スクロールボタン・イベントハンドラ設定・起動処理
 
 function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
@@ -142,4 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadRecipes();
   loadCommonTips();
   refreshTipsCache(); // [[チップス名]] リンク用キャッシュ
+
+  // オフライン保存ボタン
+  document.getElementById('btnOffline')?.addEventListener('click', openOfflineModal);
+  document.getElementById('offlineSaveBtn')?.addEventListener('click', execOfflineSave);
+
+  // バナー：保存済みデータがある場合はオンラインでも表示
+  getOfflineSavedAt().then(savedAt => {
+    if (savedAt && !navigator.onLine) showOfflineBanner(savedAt);
+  });
 });
