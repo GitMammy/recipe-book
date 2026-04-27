@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260414-1421-   -->
+    <!-- 260427-1901-   -->
 
 <head>
   <meta charset="UTF-8">
@@ -602,6 +602,17 @@
   .mark-filter-btn.active-unconfirmed { color: #888;    border-color: #888;    background: #F5F5F5; }
   .mark-filter-btn.active-tips        { color: #638C3E; border-color: #638C3E; background: #EAF3DE; }
 
+  /* オフライン保存バッジ */
+  .offline-saved-badge {
+    display: inline-block;
+    background: #FFF8E1;
+    border: 1px solid #FFD54F;
+    color: #7B5800;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
   /* 配合確定バッジ */
   .badge-confirmed {
     display: inline-block;
@@ -642,7 +653,7 @@
   .list-header,
   .list-row {
     display: grid;
-    grid-template-columns: 48px 1fr 60px 100px 90px 76px 80px;
+    grid-template-columns: 48px 1fr 44px 100px 90px 76px 80px;
     align-items: center;
     gap: 8px;
     padding: 6px 8px;
@@ -723,6 +734,7 @@
         <button class="btn btn-sm btn-toolbar editor-only" id="btnOpenAdd">＋追加</button>
         <button class="btn btn-sm btn-toolbar editor-only" id="btnOpenCommonTips">💡チップス</button>
         <button class="btn btn-sm btn-toolbar editor-only" id="btnExport">Exp</button>
+        <button class="btn btn-sm" id="btnOffline" title="オフライン用にデータを保存">📥</button>
       </div>
     </div>
 
@@ -869,6 +881,27 @@
     </div>
   </div>
 
+  <!-- オフライン保存モーダル -->
+  <div class="overlay" id="overlayOffline">
+    <div class="modal" style="max-width:420px">
+      <button class="modal-close" onclick="closeOverlay('overlayOffline')">✕</button>
+      <h2 style="font-size:16px;margin-bottom:10px">📥 オフライン保存</h2>
+      <p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:14px">
+        ボタンを押すと、今のレシピデータをこのスマホに保存します。<br>
+        次回ネットがない場所でも、保存したときのデータを見ることができます。<br>
+        <span style="font-size:12px;color:#999">※ 写真はWi-Fi環境でのみ表示されます。</span>
+      </p>
+      <div id="offlineStatus" style="margin-bottom:14px"></div>
+      <div class="modal-btns">
+        <div></div>
+        <div class="modal-btns-right">
+          <button class="btn btn-sm" onclick="closeOverlay('overlayOffline')">閉じる</button>
+          <button class="btn btn-sm btn-accent" id="offlineSaveBtn">保存する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ライトボックス -->
   <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -916,6 +949,7 @@
   <script src="js/recipe_edit.js"></script>
   <script src="js/tips.js"></script>
   <script src="js/recipes.js"></script>
+  <script src="js/offline.js"></script>
   <script src="js/ui.js"></script>
 </body>
 </html>
