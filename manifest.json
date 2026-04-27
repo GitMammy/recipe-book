@@ -1,0 +1,23 @@
+{
+  "name": "🍪レシピ🥐",
+  "short_name": "🍪レシピ🥐",
+  "description": "おかしなぺぇじ レシピ帳",
+  "start_url": "/recipe-book/index.html",
+  "scope": "/recipe-book/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#D4537E",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/recipe-book/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/recipe-book/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
