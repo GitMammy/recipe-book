@@ -1,13 +1,41 @@
 // ===== offline.js =====
-//
-//　2026/04/27
-//
-// IndexedDB によるオフラインデータ管理
+//　2026/04/28-1535
+// IndexedDB によるオフラインデータ管理・PWAインストール制御
 
 const DB_NAME    = 'okashi-offline';
 const DB_VERSION = 1;
 const STORE_NAME = 'snapshot';
 const SNAPSHOT_KEY = 'latest';
+
+// ----- PWAインストールプロンプト制御 -----
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); // 自動バナーを止める
+  _installPrompt = e;
+  updateInstallBtn();
+});
+
+window.addEventListener('appinstalled', () => {
+  _installPrompt = null;
+  updateInstallBtn();
+});
+
+function updateInstallBtn() {
+  const btn = document.getElementById('btnInstallApp');
+  if (!btn) return;
+  btn.style.display = _installPrompt ? '' : 'none';
+}
+
+async function execInstallApp() {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  const { outcome } = await _installPrompt.userChoice;
+  if (outcome === 'accepted') {
+    _installPrompt = null;
+    updateInstallBtn();
+  }
+}
 
 // ----- DB 初期化 -----
 function openOfflineDB() {
@@ -23,7 +51,6 @@ function openOfflineDB() {
 
 // ----- 保存 -----
 async function saveOfflineSnapshot() {
-  // レシピ＋メモを取得
   const { data: recipeData } = await window.supabase
     .from('recipes').select('*').order('created_at', { ascending: false });
   const { data: notesData } = await window.supabase
@@ -38,8 +65,8 @@ async function saveOfflineSnapshot() {
 
   const snapshot = {
     saved_at: dateStr,
-    recipes:  recipeData  || [],
-    notes:    notesData   || []
+    recipes:  recipeData || [],
+    notes:    notesData  || []
   };
 
   const db    = await openOfflineDB();
@@ -88,6 +115,7 @@ async function openOfflineModal() {
     statusEl.innerHTML =
       `<div style="color:#888;font-size:13px">まだオフライン用データは保存されていません。</div>`;
   }
+  updateInstallBtn();
   openOverlay('overlayOffline');
 }
 
@@ -123,21 +151,29 @@ function showOfflineBanner(savedAt) {
 }
 
 // ----- 起動時：オフライン判定 -----
+let _offlineNotes = null; // オフライン時のnotesキャッシュ
+
 async function initOfflineMode() {
   if (!navigator.onLine) {
-    // オフライン → スナップショットから読み込む
     const snap = await loadOfflineSnapshot();
     if (snap && snap.recipes) {
       recipes = snap.recipes;
+      _offlineNotes = snap.notes || [];
       updateSelects();
       render();
       showOfflineBanner(snap.saved_at);
-      // チップスもオフラインデータから
-      renderTipsCardsFromData(snap.notes || []);
-      return true; // オフラインモードで起動
+      renderTipsCardsFromData(_offlineNotes);
+      return true;
     }
   }
-  return false; // オンラインモードで起動
+  return false;
+}
+
+// ----- オフライン時のnotes取得（openDetailから呼ぶ） -----
+// オフライン時はキャッシュから返す。オンライン時はnullを返す（Supabaseから取得）
+function getOfflineNotes(recipeId) {
+  if (_offlineNotes === null) return null;
+  return _offlineNotes.filter(n => n.recipe_id === String(recipeId));
 }
 
 // ----- オフラインデータからチップスを描画 -----
