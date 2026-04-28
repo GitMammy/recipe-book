@@ -1,7 +1,7 @@
 // ===== sw.js =====
 // Service Worker for おかしなぺぇじ PWA
 // キャッシュバージョン（更新時はここを変える）
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `okashi-page-${CACHE_VERSION}`;
 
 // キャッシュするファイル一覧（アプリの骨格）
