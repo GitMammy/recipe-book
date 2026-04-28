@@ -2,13 +2,19 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260427-   -->
+    <!-- 260428-1506   -->
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🍪 おかしなぺぇじ 🥐</title>
   <link rel="icon" href="favicon.ico" id="faviconLink">
+
+<link rel="manifest" href="/recipe-book/manifest.json">
+  <meta name="theme-color" content="#D4537E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="🍪レシピ🥐">
+  <link rel="apple-touch-icon" href="/recipe-book/icon-192.png">
 
   <!-- ① Supabase SDK（最優先） -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -951,5 +957,15 @@
   <script src="js/recipes.js"></script>
   <script src="js/offline.js"></script>
   <script src="js/ui.js"></script>
+  <!-- PWA: Service Worker 登録 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/recipe-book/sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
