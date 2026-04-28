@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-//　260427
+//　260428-1535
 //-view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
@@ -343,11 +343,16 @@ async function openDetail(id, skipHistory = false) {
   if (!r) return;
   document.getElementById('detailContent').dataset.currentId = String(id);
 
-  const { data: notes, error: notesError } = await window.supabase
-    .from('notes_and_tips').select('*').eq('recipe_id', String(id)).order('created_at', { ascending: true });
-  if (notesError) console.warn('Notes fetch error:', notesError);
+  // オフライン時はキャッシュから、オンライン時はSupabaseから取得
+  let notes = getOfflineNotes(id);
+  if (notes === null) {
+    const { data, error: notesError } = await window.supabase
+      .from('notes_and_tips').select('*').eq('recipe_id', String(id)).order('created_at', { ascending: true });
+    if (notesError) console.warn('Notes fetch error:', notesError);
+    notes = data || [];
+  }
 
-  const visibleNotes = (notes || []).filter(n => isEditor || n.pub);
+  const visibleNotes = notes.filter(n => isEditor || n.pub);
   const notesHtml = visibleNotes.map(n => {
     const img = n.image_url ? `<img src="${n.image_url}" class="note-image">` : '';
     const pubBadge = isEditor
