@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260428-1534   -->
+    <!-- 260430-1601   -->
 
 <head>
   <meta charset="UTF-8">
@@ -575,6 +575,8 @@
 
   /* 閲覧モードでは editor-only を非表示 */
   body:not(.edit-mode) .editor-only { display: none !important; }
+  /* 編集モードでは viewer-only を非表示 */
+  body.edit-mode .viewer-only { display: none !important; }
 
   /* レシピリンク記法 [[レシピ名]] */
   .recipe-link {
@@ -648,20 +650,36 @@
     border-color: #D4537E !important;
   }
 
-  /* リスト表示 */
+  /* サイトタイトルバー */
+  .site-title-bar {
+    font-size: 13px;
+    font-weight: 500;
+    color: #72243E;
+    padding: 6px 0 10px 2px;
+    letter-spacing: 0.02em;
+  }
+
+  /* リスト表示（PC） */
+  /* 編集モード: サムネ 48px | 名前+説明 1fr | 公開 64px | カテゴリ 110px | ジャンル 90px | 日付 76px | マーク 80px */
   .list-view { display: flex; flex-direction: column; width: 100%; }
   .list-header,
   .list-row {
     display: grid;
-    grid-template-columns: 48px 1fr 44px 100px 90px 76px 80px;
-    align-items: center;
+    grid-template-columns: 48px 1fr 64px 110px 90px 76px 80px;
+    align-items: start;
     gap: 8px;
     padding: 6px 8px;
+  }
+  /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 120px | ジャンル 80px | 日付 76px */
+  body:not(.edit-mode) .list-header,
+  body:not(.edit-mode) .list-row {
+    grid-template-columns: 48px 1fr 120px 80px 76px;
   }
   .list-header {
     font-size: 11px; font-weight: 700; color: #72243E;
     background: #FBEAF0; border-radius: 8px;
     margin-bottom: 4px; position: sticky; top: 0; z-index: 10;
+    align-items: center;
   }
   .list-row {
     background: #fff; border: 1px solid #eee;
@@ -679,14 +697,31 @@
     font-size: 18px; background: #FBEAF0; border-radius: 5px;
   }
   .list-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
-  .list-desc { font-size: 11px; color: #888; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 説明は折り返す */
+  .list-desc { font-size: 11px; color: #888; line-height: 1.4; white-space: normal; word-break: break-all; }
   .sortable { cursor: pointer; user-select: none; }
   .sortable:hover { color: #993556; }
   .sort-icon { font-size: 10px; }
 
+  /* 閲覧モード: カテゴリ以降を右寄せ */
+  body:not(.edit-mode) .list-col-cat,
+  body:not(.edit-mode) .list-col-genre,
+  body:not(.edit-mode) .list-col-date {
+    text-align: right;
+    justify-self: end;
+  }
+  /* ジャンルの前後余白を狭く */
+  .list-col-genre { padding-left: 2px; padding-right: 2px; }
+
+  /* スマホ: サムネ 40px | 名前+説明 1fr | カテゴリ(最大幅) */
   @media (max-width: 600px) {
-    .list-header, .list-row { grid-template-columns: 40px 1fr 72px 60px; }
-    .list-col-genre, .list-col-date, .list-col-pub { display: none; }
+    /* 編集・閲覧共通 */
+    .list-header, .list-row { grid-template-columns: 40px 1fr minmax(0, 90px); align-items: start; }
+    /* 非表示列 */
+    .list-col-genre, .list-col-date, .list-col-pub, .list-col-marks { display: none; }
+    /* カテゴリはみ出し防止 */
+    .list-col-cat { overflow: hidden; }
+    .list-col-cat .tag { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   }
 
   /* ===============================
@@ -702,6 +737,11 @@
 </head>
 <body>
   <div class="app">
+    <!-- サイトタイトル（編集/閲覧で切り替え） -->
+    <div class="site-title-bar">
+      <span class="editor-only">🍩 お菓子なメモ 📝</span>
+      <span class="viewer-only">🍰 マミーのお菓子なレシピメモ 📝 ～只今改造中～</span>
+    </div>
     <div class="topbar">
       <input type="text" id="search" placeholder="キーワード検索">
       <select id="filterCat">
