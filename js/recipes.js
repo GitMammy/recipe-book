@@ -201,7 +201,37 @@ function renderGridView(grid, list) {
 // ----- リスト表示 -----
 function renderListView(grid, list) {
   grid.className = 'list-view';
+  const isMobile = window.innerWidth <= 600;
   const si = k => sortKey === k ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ↕';
+
+  // スマホ: サムネ・名前・カテゴリの3列のみ
+  if (isMobile) {
+    const header = `<div class="list-header">
+      <div class="list-col-thumb"></div>
+      <div class="list-col-name sortable" onclick="setSort('name')">料理名<span class="sort-icon">${si('name')}</span></div>
+      <div class="list-col-cat  sortable" onclick="setSort('cat')" style="text-align:right">カテゴリ</div>
+    </div>`;
+    const rows = list.map(r => {
+      const thumb = getThumb(r);
+      const confirmedBadge = r.confirmed ? `<span class="badge-confirmed">✅</span> ` : '';
+      return `<div class="list-row" onclick="openDetail('${r.id}')">
+        <div class="list-col-thumb">
+          ${thumb ? `<img src="${thumb}" class="list-thumb">` : `<div class="list-thumb-placeholder">${getCatEmoji(r.cat)}</div>`}
+        </div>
+        <div class="list-col-name">
+          <span class="list-name">${confirmedBadge}${esc(r.name)}</span>
+          ${r.desc ? `<div class="list-desc">${esc(r.desc)}</div>` : ''}
+        </div>
+        <div class="list-col-cat" style="text-align:right;overflow:hidden">
+          ${r.cat ? `<span class="tag t-cat" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${esc(r.cat)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    grid.innerHTML = header + rows;
+    return;
+  }
+
+  // PC表示
   const header = `<div class="list-header">
     <div class="list-col-thumb"></div>
     <div class="list-col-name  sortable" onclick="setSort('name')">料理名<span class="sort-icon">${si('name')}</span></div>
