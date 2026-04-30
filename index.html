@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260430-1601   -->
+    <!-- 260430-1631   -->
 
 <head>
   <meta charset="UTF-8">
@@ -200,7 +200,7 @@
     display: inline-block;
   }
   .heart-btn.on { color: #D4537E; font-size: 37px; }  /* ♥のフォント調整 */
-  .star-btn.on { color: #BA7517; }
+  .star-btn.on { color: #F0A500; }
   .crown-btn.on {
     color: #FFD700;
     text-shadow: 0 0 5px rgba(255,215,0,0.3);
@@ -710,18 +710,32 @@
     text-align: right;
     justify-self: end;
   }
-  /* ジャンルの前後余白を狭く */
-  .list-col-genre { padding-left: 2px; padding-right: 2px; }
+  /* ジャンルの前後余白を狭く（さらに詰める） */
+  .list-col-genre { padding-left: 0; padding-right: 0; }
 
-  /* スマホ: サムネ 40px | 名前+説明 1fr | カテゴリ(最大幅) */
+  /* スマホ: サムネ 44px | 名前+説明 1fr | カテゴリ固定幅 */
   @media (max-width: 600px) {
-    /* 編集・閲覧共通 */
-    .list-header, .list-row { grid-template-columns: 40px 1fr minmax(0, 90px); align-items: start; }
-    /* 非表示列 */
-    .list-col-genre, .list-col-date, .list-col-pub, .list-col-marks { display: none; }
-    /* カテゴリはみ出し防止 */
-    .list-col-cat { overflow: hidden; }
-    .list-col-cat .tag { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    /* 編集・閲覧ともにサムネ+名前+カテゴリの3列のみ */
+    .list-header, .list-row {
+      grid-template-columns: 44px 1fr 80px !important;
+      align-items: start;
+    }
+    /* カテゴリより右の列・公開列・マーク列はすべて非表示かつグリッドから除外 */
+    .list-col-genre, .list-col-date, .list-col-pub, .list-col-marks {
+      display: none !important;
+    }
+    /* カテゴリを3列目に固定 */
+    .list-col-cat {
+      grid-column: 3;
+      overflow: hidden;
+    }
+    .list-col-cat .tag {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
   }
 
   /* ===============================
