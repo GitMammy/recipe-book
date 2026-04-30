@@ -1,5 +1,5 @@
 // ===== recipes.js =====
-//　260428-1535
+//　260430-1602
 //-view-sort-confirmed
 // レシピ一覧描画・詳細モーダル・♡★♚トグル・JSONエクスポート・データ読み込み
 
@@ -178,11 +178,7 @@ function renderGridView(grid, list) {
            <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
            <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}')">♚</button>
          </div>`
-      : `<div class="hearts">
-           <span style="color:${r.heart ? '#D4537E' : '#ccc'}">${r.heart ? '♥' : '♡'}</span>
-           <span style="color:${r.fav   ? '#BA7517' : '#ccc'}">★</span>
-           <span style="color:${r.crown ? '#FFD700' : '#ccc'}">♚</span>
-         </div>`;
+      : ``;
     return `
       <div class="card" onclick="openDetail('${r.id}')">
         ${thumb ? `<img src="${thumb}" class="card-img">` : `<div class="card-img-placeholder">${getCatEmoji(r.cat)}</div>`}
@@ -209,11 +205,11 @@ function renderListView(grid, list) {
   const header = `<div class="list-header">
     <div class="list-col-thumb"></div>
     <div class="list-col-name  sortable" onclick="setSort('name')">料理名<span class="sort-icon">${si('name')}</span></div>
-    ${isEditor ? '<div class="list-col-pub"></div>' : ''}
+    ${isEditor ? '<div class="list-col-pub sortable" onclick="setSort(\'pub\')">公開</div>' : ''}
     <div class="list-col-cat   sortable" onclick="setSort('cat')">カテゴリ<span class="sort-icon">${si('cat')}</span></div>
     <div class="list-col-genre sortable" onclick="setSort('genre')">ジャンル<span class="sort-icon">${si('genre')}</span></div>
     <div class="list-col-date  sortable" onclick="setSort('date')">日付<span class="sort-icon">${si('date')}</span></div>
-    <div class="list-col-marks">マーク</div>
+    ${isEditor ? '<div class="list-col-marks">マーク</div>' : ''}
   </div>`;
 
   const rows = list.map(r => {
@@ -225,9 +221,7 @@ function renderListView(grid, list) {
       ? `<button class="heart-btn${r.heart ? ' on' : ''}" onclick="toggleHeart(event,'${r.id}')">${r.heart ? '♥' : '♡'}</button>
          <button class="star-btn${r.fav   ? ' on' : ''}" onclick="toggleStar(event,'${r.id}')">★</button>
          <button class="crown-btn${r.crown ? ' on' : ''}" onclick="toggleCrown(event,'${r.id}')">♚</button>`
-      : `<span style="color:${r.heart ? '#D4537E':'#ddd'}">${r.heart?'♥':'♡'}</span>
-         <span style="color:${r.fav?'#BA7517':'#ddd'}">★</span>
-         <span style="color:${r.crown?'#FFD700':'#ddd'}">♚</span>`;
+      : ``;
     return `<div class="list-row" onclick="openDetail('${r.id}')">
       <div class="list-col-thumb">
         ${thumb ? `<img src="${thumb}" class="list-thumb">` : `<div class="list-thumb-placeholder">${getCatEmoji(r.cat)}</div>`}
@@ -240,7 +234,7 @@ function renderListView(grid, list) {
       <div class="list-col-cat">${r.cat ? `<span class="tag t-cat">${esc(r.cat)}</span>` : ''}</div>
       <div class="list-col-genre">${r.genre ? `<span class="tag t-ing">${esc(r.genre)}</span>` : ''}</div>
       <div class="list-col-date" style="font-size:11px;color:#aaa">${r.date||''}</div>
-      <div class="list-col-marks" style="display:flex;gap:2px;align-items:center">${marksHtml}</div>
+      ${isEditor ? `<div class="list-col-marks" style="display:flex;gap:2px;align-items:center">${marksHtml}</div>` : ''}
     </div>`;
   }).join('');
 

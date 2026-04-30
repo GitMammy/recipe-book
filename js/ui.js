@@ -1,9 +1,38 @@
 // ===== ui.js =====
-//　260427
+//　260430
 // オーバーレイ開閉・ライトボックス・スクロールボタン・イベントハンドラ設定・起動処理
 
-function openOverlay(id)  { document.getElementById(id)?.classList.add('open'); }
-function closeOverlay(id) { document.getElementById(id)?.classList.remove('open'); }
+// ----- スマホ◀ボタンでモーダルを閉じる -----
+// モーダルを開くときに history に pushState し、popstate（◀）で閉じる
+const _modalOverlayStack = [];
+
+function openOverlay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('open');
+  // history に積む（同じIDが既に積まれていなければ）
+  if (!_modalOverlayStack.includes(id)) {
+    _modalOverlayStack.push(id);
+    history.pushState({ modal: id }, '');
+  }
+}
+
+function closeOverlay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  // スタックから除去
+  const idx = _modalOverlayStack.lastIndexOf(id);
+  if (idx !== -1) _modalOverlayStack.splice(idx, 1);
+}
+
+// ◀ボタン（popstate）でトップのモーダルを閉じる
+window.addEventListener('popstate', () => {
+  if (_modalOverlayStack.length > 0) {
+    const id = _modalOverlayStack.pop();
+    document.getElementById(id)?.classList.remove('open');
+  }
+});
 
 function openLightbox(idx) {
   const p = currentPhotos[idx];
@@ -151,4 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
   getOfflineSavedAt().then(savedAt => {
     if (savedAt && !navigator.onLine) showOfflineBanner(savedAt);
   });
+
+  // インストールボタン：DOMContentLoaded 後にも状態を反映
+  // （beforeinstallprompt が DOMContentLoaded より先に来ることがあるため）
+  if (typeof updateInstallBtn === 'function') updateInstallBtn();
 });

@@ -1,5 +1,5 @@
 // ===== offline.js =====
-//　2026/04/28-1535
+//　2026/04/30-1602
 // IndexedDB によるオフラインデータ管理・PWAインストール制御
 
 const DB_NAME    = 'okashi-offline';
@@ -24,7 +24,10 @@ window.addEventListener('appinstalled', () => {
 function updateInstallBtn() {
   const btn = document.getElementById('btnInstallApp');
   if (!btn) return;
-  btn.style.display = _installPrompt ? '' : 'none';
+  // インストール済み（standalone モード）の場合は非表示
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  btn.style.display = (!isStandalone && _installPrompt) ? '' : 'none';
 }
 
 async function execInstallApp() {
