@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 2605010-1837   -->
+    <!-- 2605010-1901   -->
 
 <head>
   <meta charset="UTF-8">
@@ -660,21 +660,21 @@
   }
 
   /* リスト表示（PC） */
-  /* 編集モード: サムネ 48px | 名前+説明 1fr | 公開 56px | カテゴリ 100px | ジャンル 82px | 日付 72px | マーク 72px */
+  /* 編集モード: サムネ 48px | 名前+説明 1fr | 公開 52px | カテゴリ 90px | ジャンル 74px | 日付 72px | マーク 72px */
   .list-view { display: flex; flex-direction: column; width: 100%; }
   .list-header,
   .list-row {
     display: grid;
-    grid-template-columns: 48px 1fr 56px 100px 82px 72px 72px;
+    grid-template-columns: 48px 1fr 52px 90px 74px 72px 72px;
     align-items: start;
-    gap: 4px;
+    gap: 2px;
     padding: 5px 8px;
   }
-  /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 110px | ジャンル 76px | 日付 70px */
+  /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 100px | ジャンル 70px | 日付 70px */
   body:not(.edit-mode) .list-header,
   body:not(.edit-mode) .list-row {
-    grid-template-columns: 48px 1fr 110px 76px 70px;
-    gap: 4px;
+    grid-template-columns: 48px 1fr 100px 70px 70px;
+    gap: 2px;
   }
   .list-header {
     font-size: 11px; font-weight: 700; color: #72243E;
@@ -703,6 +703,11 @@
   .sortable { cursor: pointer; user-select: none; }
   .sortable:hover { color: #993556; }
   .sort-icon { font-size: 10px; }
+
+  /* リスト内のタグは左右paddingを詰める */
+  .list-col-cat .tag,
+  .list-col-genre .tag,
+  .list-col-pub .tag { padding: 2px 4px; }
 
   /* 閲覧モード: カテゴリ以降を右寄せ */
   body:not(.edit-mode) .list-col-cat,
