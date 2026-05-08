@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260508-1424   -->
+    <!-- 260508-1430   -->
 
 <head>
   <meta charset="UTF-8">
@@ -741,7 +741,15 @@
   /* リスト内のタグは左右paddingを最小限に */
   .list-col-cat .tag,
   .list-col-genre .tag,
-  .list-col-pub .tag { padding: 2px 3px; font-size: 10px; }
+  .list-col-pub .tag {
+      padding: 2px 2px; /* 左右を 3px → 2px に */
+      font-size: 10px;
+      min-width: 54px;   /* 幅を少し小さめに固定（バラつきを防ぐ） */
+      text-align: center;
+      display: inline-block;
+    }
+  /* .list-col-pub .tag { padding: 2px 3px; font-size: 10px; } */
+  
 
   /* スマホ: サムネ 44px | 名前+説明 1fr | カテゴリ固定幅 */
   @media (max-width: 600px) {
