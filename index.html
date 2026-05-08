@@ -666,7 +666,7 @@
 .list-header,
 .list-row {
   display: grid;
-/* サムネ(48) 名前(1fr) 公開(44) カテゴリ(60) ジャンル(64) 日付(72) マーク(80) */
+
   grid-template-columns: 48px 1fr 40px 68px 56px 68px 80px;
   align-items: start;
   gap: 1px; 	← ここの gap が列間の隙間を作っています 
@@ -674,14 +674,18 @@
 }*/
 
 /* --- 修正後：gap を 0 にし、必要なら padding で微調整する --- */
+/* サムネ(48) 名前(1fr) 公開(44) カテゴリ(60) ジャンル(64) 日付(72) マーク(80) */
 .list-header,
 .list-row {
   display: grid;
-  grid-template-columns: 48px 1fr 40px 68px 56px 68px 64px;
+  grid-template-columns: 48px 1fr 40px 68px 56px 68px 80px;
   align-items: center; /* 中央揃えにするとより綺麗に見えます */
-  gap: 0px;            /* 列同士を密着させる */
-  padding: 5px 4px;
+  gap: 1px;            /* 列同士を密着させる */
+  padding: 5px 4px	    /* 余白　上下 左右 */
 }
+
+
+
   /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 72px | ジャンル 56px | 日付 64px */
   body:not(.edit-mode) .list-header,
   body:not(.edit-mode) .list-row {
