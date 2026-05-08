@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 2605010-1910   -->
+    <!-- 260508-1424   -->
 
 <head>
   <meta charset="UTF-8">
@@ -660,21 +660,32 @@
   }
 
   /* リスト表示（PC） */
-  /* 編集モード: サムネ 48px | 名前+説明 1fr | 公開 56px | カテゴリ 100px | ジャンル 82px | 日付 72px | マーク 72px */
+  /* 編集モード: サムネ 48px | 名前+説明 1fr | 公開 40px | カテゴリ 68px | ジャンル 56px | 日付 68px | マーク 64px */
   .list-view { display: flex; flex-direction: column; width: 100%; }
-  .list-header,
-  .list-row {
-    display: grid;
-    grid-template-columns: 48px 1fr 56px 100px 82px 72px 72px;
-    align-items: start;
-    gap: 4px;
-    padding: 5px 8px;
-  }
-  /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 110px | ジャンル 76px | 日付 70px */
+/* --- 修正前 --- 
+.list-header,
+.list-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 40px 68px 56px 68px 64px;
+  align-items: start;
+  gap: 2px; 	← ここの gap が列間の隙間を作っています 
+  padding: 5px 6px;
+}*/
+
+/* --- 修正後：gap を 0 にし、必要なら padding で微調整する --- */
+.list-header,
+.list-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 40px 68px 56px 68px 64px;
+  align-items: center; /* 中央揃えにするとより綺麗に見えます */
+  gap: 0px;            /* 列同士を密着させる */
+  padding: 5px 4px;
+}
+  /* 閲覧モード: 公開列なし、サムネ 48px | 名前+説明 1fr | カテゴリ 72px | ジャンル 56px | 日付 64px */
   body:not(.edit-mode) .list-header,
   body:not(.edit-mode) .list-row {
-    grid-template-columns: 48px 1fr 110px 76px 70px;
-    gap: 4px;
+    grid-template-columns: 48px 1fr 72px 56px 64px;
+    gap: 2px;
   }
   .list-header {
     font-size: 11px; font-weight: 700; color: #72243E;
@@ -727,10 +738,10 @@
     padding-left: 0;
     padding-right: 0;
   }
-  /* リスト内のタグは左右paddingを詰める */
+  /* リスト内のタグは左右paddingを最小限に */
   .list-col-cat .tag,
   .list-col-genre .tag,
-  .list-col-pub .tag { padding: 2px 5px; }
+  .list-col-pub .tag { padding: 2px 3px; font-size: 10px; }
 
   /* スマホ: サムネ 44px | 名前+説明 1fr | カテゴリ固定幅 */
   @media (max-width: 600px) {
