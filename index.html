@@ -743,6 +743,17 @@
     padding-left: 0;
     padding-right: 0;
   }
+
+  /* カテゴリとジャンルの間を詰めつつ、前後に隙間を作るためのマージン調整 */
+  .list-col-cat { margin-right: 2px; }   /* ジャンルとの距離を詰める */
+  .list-col-genre { margin-left: 2px; }  /* カテゴリとの距離を詰める */
+
+  /* 日付とマーク列の配置調整 */
+  .list-col-date {
+    text-align: center;
+    margin-left: 8px; /* ジャンルとの間を少し開ける */
+  }
+
   /* リスト内のタグは左右paddingを最小限に */
   .list-col-cat .tag,
   .list-col-genre .tag,
