@@ -2,7 +2,7 @@
 <html lang="ja">
   <!-- index.html だよ～～～ -->
    <!-- 　JS 分割版　 -->
-    <!-- 260508-1500   -->
+    <!-- 260508-1530   -->
 
 <head>
   <meta charset="UTF-8">
@@ -662,25 +662,14 @@
   /* リスト表示（PC） */
   .list-view { display: flex; flex-direction: column; width: 100%; }
 
-/* --- 修正前 --- 
-.list-header,
-.list-row {
-  display: grid;
-
-  grid-template-columns: 48px 1fr 40px 68px 56px 68px 80px;
-  align-items: start;
-  gap: 1px; 	← ここの gap が列間の隙間を作っています 
-  padding: 5px 6px;
-}*/
-
 /* --- 修正後：gap を 0 にし、必要なら padding で微調整する --- */
 /* サムネ(48) 名前(1fr) 公開(44) カテゴリ(60) ジャンル(64) 日付(72) マーク(80) */
 .list-header,
 .list-row {
   display: grid;
-  grid-template-columns: 48px 1fr 40px 70px 56px 72px 80px;
+  grid-template-columns: 48px 1fr 60px 60px 60px 75px 75px;
   align-items: center; /* 中央揃えにするとより綺麗に見えます */
-  gap: 1px;            /* 列同士を密着させる */
+  gap: 4px;            /* 列同士を密着させる */
   padding: 5px 4px	;    /* 余白　上下 左右 */
 }
 
@@ -745,8 +734,8 @@
   }
 
   /* カテゴリとジャンルの間を詰めつつ、前後に隙間を作るためのマージン調整 */
-  .list-col-cat { margin-right: 2px; }   /* ジャンルとの距離を詰める */
-  .list-col-genre { margin-left: 2px; }  /* カテゴリとの距離を詰める */
+  .list-col-cat { margin-right: 1px; }   /* ジャンルとの距離を詰める */
+  .list-col-genre { margin-left: 1px; }  /* カテゴリとの距離を詰める */
 
   /* 日付とマーク列の配置調整 */
   .list-col-date {
